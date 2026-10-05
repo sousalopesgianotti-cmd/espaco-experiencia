@@ -1,0 +1,121 @@
+﻿[
+    {
+        "id":  "acc-20260917164044",
+        "analista_nome":  "André Gianotti",
+        "analista_email":  "andre.gianotti@totvs.com.br",
+        "perfil":  "Analista de Segmentos",
+        "data_formatada":  "17/09/2026",
+        "horario_formatado":  "16:40:44",
+        "timestamp":  1789674044887,
+        "ip_dispositivo":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+        "acao":  "Sessao no Espaco Experiencia"
+    },
+    {
+        "id":  "acc-20260917163203",
+        "analista_nome":  "André Gianotti",
+        "analista_email":  "andre.gianotti@totvs.com.br",
+        "perfil":  "Analista de Segmentos",
+        "data_formatada":  "17/09/2026",
+        "horario_formatado":  "16:32:03",
+        "timestamp":  1789673523326,
+        "ip_dispositivo":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+        "acao":  "Sessao no Espaco Experiencia"
+    },
+    {
+        "id":  "acc-20260916164751",
+        "analista_nome":  "Mariana Santos",
+        "analista_email":  "mariana.santos@totvs.com.br",
+        "perfil":  "TOTVS Moda",
+        "data_formatada":  "16/09/2026",
+        "horario_formatado":  "16:47:51",
+        "timestamp":  1789588071072,
+        "ip_dispositivo":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+        "acao":  "Sessao no Espaco Experiencia"
+    },
+    {
+        "id":  "acc-20260916164258",
+        "analista_nome":  "André Gianotti",
+        "analista_email":  "andre.gianotti@totvs.com.br",
+        "perfil":  "Analista de Segmentos",
+        "data_formatada":  "16/09/2026",
+        "horario_formatado":  "16:42:58",
+        "timestamp":  1789587778747,
+        "ip_dispositivo":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+        "acao":  "Sessao no Espaco Experiencia"
+    },
+    {
+        "id":  "acc-20260916152540",
+        "analista_nome":  "André Gianotti",
+        "analista_email":  "andre.gianotti@totvs.com.br",
+        "perfil":  "Analista de Segmentos",
+        "data_formatada":  "16/09/2026",
+        "horario_formatado":  "15:25:40",
+        "timestamp":  1789583140852,
+        "ip_dispositivo":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+        "acao":  "Sessao no Espaco Experiencia"
+    },
+    {
+        "value":  [
+                      {
+                          "id":  "acc-20260916152421",
+                          "analista_nome":  "André Gianotti",
+                          "analista_email":  "andre.gianotti@totvs.com.br",
+                          "perfil":  "Analista de Segmentos",
+                          "data_formatada":  "16/09/2026",
+                          "horario_formatado":  "15:24:21",
+                          "timestamp":  1789583061330,
+                          "ip_dispositivo":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+                          "acao":  "Sessao no Espaco Experiencia"
+                      },
+                      {
+                          "value":  [
+                                        {
+                                            "id":  "acc-20260916145544",
+                                            "analista_nome":  "André Gianotti",
+                                            "analista_email":  "andre.gianotti@totvs.com.br",
+                                            "perfil":  "Analista de Segmentos",
+                                            "data_formatada":  "16/09/2026",
+                                            "horario_formatado":  "14:55:44",
+                                            "timestamp":  1789581344537,
+                                            "ip_dispositivo":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+                                            "acao":  "Sessao no Espaco Experiencia"
+                                        },
+                                        {
+                                            "value":  [
+                                                          {
+                                                              "id":  "acc-20260916141930",
+                                                              "analista_nome":  "Carlos Silva",
+                                                              "analista_email":  "carlos.silva@totvs.com.br",
+                                                              "perfil":  "Analista Agro",
+                                                              "data_formatada":  "16/09/2026",
+                                                              "horario_formatado":  "14:19:30",
+                                                              "timestamp":  1789579170095,
+                                                              "ip_dispositivo":  "Tablet Corporativo",
+                                                              "acao":  "Sessao no Espaco Experiencia"
+                                                          },
+                                                          {
+                                                              "value":  [
+                                                                            {
+                                                                                "id":  "acc-001",
+                                                                                "analista_nome":  "André Gianotti",
+                                                                                "analista_email":  "andre.gianotti@totvs.com.br",
+                                                                                "perfil":  "Analista de Segmentos",
+                                                                                "data_formatada":  "16/09/2026",
+                                                                                "horario_formatado":  "09:30:15",
+                                                                                "timestamp":  1789561815000,
+                                                                                "ip_dispositivo":  "Desktop Corporativo (Plantão Espaço Experiência)",
+                                                                                "acao":  "Início de Plantão no Espaço Experiência"
+                                                                            }
+                                                                        ],
+                                                              "Count":  1
+                                                          }
+                                                      ],
+                                            "Count":  2
+                                        }
+                                    ],
+                          "Count":  2
+                      }
+                  ],
+        "Count":  2
+    }
+]

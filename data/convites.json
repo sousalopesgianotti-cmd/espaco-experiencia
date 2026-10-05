@@ -1,0 +1,52 @@
+[
+  {
+    "id": "conv-1791227054080",
+    "token": "adm_7dxk3hnmuvmc8hs",
+    "criado_por": "Teste Automatizado",
+    "criado_em": "05/10/2026, 16:04:14",
+    "utilizado": true,
+    "utilizado_em": "05/10/2026, 16:04:14",
+    "utilizado_por": "Administrador Valido"
+  },
+  {
+    "id": "conv-1791226388063",
+    "token": "adm_til0eb7muvlxylb",
+    "criado_por": "André Gianotti",
+    "criado_em": "05/10/2026, 15:53:08",
+    "utilizado": true,
+    "utilizado_em": "05/10/2026, 15:54:07",
+    "utilizado_por": "Maria Jose"
+  },
+  {
+    "id": "conv-1791226064988",
+    "token": "adm_pbmspiumuvlr1b0",
+    "criado_por": "André Gianotti",
+    "criado_em": "05/10/2026, 15:47:44",
+    "utilizado": true,
+    "utilizado_em": "05/10/2026, 15:47:44",
+    "utilizado_por": "Novo Co-Administrador"
+  },
+  {
+    "id": "conv-1791226011964",
+    "token": "adm_kuoxo0fmuvlpwe4",
+    "criado_por": "André Gianotti",
+    "criado_em": "05/10/2026, 15:46:51",
+    "utilizado": false
+  },
+  {
+    "id": "conv-1791225040846",
+    "token": "adm_m8zahndmuvl532m",
+    "criado_por": "André Gianotti",
+    "criado_em": "05/10/2026, 15:30:40",
+    "utilizado": true,
+    "utilizado_em": "05/10/2026, 15:30:40",
+    "utilizado_por": "Carlos Convidado"
+  },
+  {
+    "id": "conv-1791225019919",
+    "token": "adm_r4urx9umuvl4mxa",
+    "criado_por": "André Gianotti",
+    "criado_em": "05/10/2026, 15:30:19",
+    "utilizado": false
+  }
+]

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "aud-1791227270750",
+    "analista_nome": "André Gianotti",
+    "analista_email": "andre.gianotti@totvs.com.br",
+    "segmento_id": "totvs_rm_clinicas",
+    "segmento_nome": "TOTVS RM Clínicas",
+    "acao": "Edição do card com validação manual",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "16:07:50",
+    "timestamp": 1791227270750,
+    "detalhes": "Atualização de conteúdo realizada por André Gianotti."
+  },
+  {
+    "id": "aud-1791227244771",
+    "analista_nome": "André Gianotti",
+    "analista_email": "andre.gianotti@totvs.com.br",
+    "segmento_id": "totvs_consinco",
+    "segmento_nome": "Loja TOTVS Consinco",
+    "acao": "Edição do card com validação manual",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "16:07:24",
+    "timestamp": 1791227244771,
+    "detalhes": "Atualização de conteúdo realizada por André Gianotti."
+  },
+  {
+    "id": "aud-1791227215637",
+    "analista_nome": "André Gianotti",
+    "analista_email": "andre.gianotti@totvs.com.br",
+    "segmento_id": "totvs_moda",
+    "segmento_nome": "Loja Totvs Moda",
+    "acao": "Edição do card com validação manual",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "16:06:55",
+    "timestamp": 1791227215637,
+    "detalhes": "Atualização de conteúdo realizada por André Gianotti."
+  },
+  {
+    "id": "aud-1791227016729",
+    "analista_nome": "André Gianotti",
+    "analista_email": "andre.gianotti@totvs.com.br",
+    "segmento_id": "totvs_varejo_online",
+    "segmento_nome": "TOTVS Varejo On-line",
+    "acao": "Edição do card com validação manual",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "16:03:36",
+    "timestamp": 1791227016730,
+    "detalhes": "Atualização de conteúdo realizada por André Gianotti."
+  },
+  {
+    "id": "aud-1791226980421",
+    "analista_nome": "André Gianotti",
+    "analista_email": "andre.gianotti@totvs.com.br",
+    "segmento_id": "totvs_agro",
+    "segmento_nome": "TOTVS Agro",
+    "acao": "Edição do card com validação manual",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "16:03:00",
+    "timestamp": 1791226980482,
+    "detalhes": "Atualização de conteúdo realizada por André Gianotti."
+  },
+  {
+    "id": "aud-1791223720948",
+    "analista_nome": "Robo de Testes",
+    "analista_email": "robo@totvs.com.br",
+    "segmento_id": "totvs_moda",
+    "segmento_nome": "Loja Totvs Moda",
+    "acao": "Edição do card com validação manual",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "15:08:40",
+    "timestamp": 1791223720948,
+    "detalhes": "Restauração pós-teste"
+  },
+  {
+    "id": "aud-1791223720922",
+    "analista_nome": "Robo de Testes",
+    "analista_email": "robo@totvs.com.br",
+    "segmento_id": "totvs_moda",
+    "segmento_nome": "Loja Totvs Moda",
+    "acao": "Edição do card com validação manual",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "15:08:40",
+    "timestamp": 1791223720922,
+    "detalhes": "Teste automatizado de persistência de badge_solucoes"
+  }
+]

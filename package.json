@@ -1,0 +1,20 @@
+{
+  "name": "espaco-experiencia-totvs",
+  "version": "1.0.0",
+  "description": "Showroom Inteligente e Guia Interativo do Espaço Experiência TOTVS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "totvs",
+    "showroom",
+    "espaco-experiencia",
+    "inovacao"
+  ],
+  "author": "TOTVS",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

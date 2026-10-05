@@ -1,0 +1,3550 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TOTVS Espaço Experiência • Hub de Segmentos</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            totvs: {
+              blue: '#002F6C',
+              dark: '#001A3D',
+              cyan: '#00A3E0',
+              accent: '#00C1D5',
+              light: '#F4F7FB'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React & Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F8FAFC;
+    }
+    .scrollbar-thin::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.85); opacity: 0; }
+      70% { transform: scale(1.03); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop-in {
+      animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-totvs-cyan selection:text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // Ícones SVG inline para máxima compatibilidade e confiabilidade
+    const Icons = {
+      Sprout: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2a9 9 0 019 9c0 4.97-4.03 9-9 9S3 15.97 3 11a9 9 0 019-9zm0 0v18m0-10a4 4 0 00-4-4m4 4a4 4 0 014-4" /></svg>,
+      Factory: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
+      Truck: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>,
+      ShoppingBag: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>,
+      ShoppingCart: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
+      Globe: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>,
+      Stethoscope: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v4a3 3 0 006 0V3m-9 8v5a4 4 0 004 4h2a4 4 0 004-4v-5m-8 0a2 2 0 10-4 0m12 0a2 2 0 10-4 0" /></svg>,
+      MonitorPlay: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2zM10 8l4 3-4 3V8z" /></svg>,
+      UserCheck: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7zM20 10l2 2-4 4" /></svg>,
+      Users: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
+      Shield: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
+      Search: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
+      Edit: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>,
+      ChevronRight: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>,
+      CheckCircle: () => <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+      AlertCircle: () => <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
+      Clock: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+      Video: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>,
+      Image: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+      X: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>,
+      Plus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>,
+      Trash: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
+      LogOut: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>,
+      Upload: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>,
+      Copy: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>,
+      Check: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>,
+      Eye: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>,
+      EyeOff: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>,
+      Monitor: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
+      Key: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>,
+      Building: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
+      Cpu: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>,
+      Maximize: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>,
+      ZoomIn: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" /></svg>,
+      Tag: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+    };
+
+    // Grafismo Geométrico Tech inspirado na identidade corporativa TOTVS (referência enviada)
+    function CardTechGraphic({ accentColor = '#00E5FF' }) {
+      return (
+        <div className="absolute top-0 right-0 w-44 h-36 pointer-events-none overflow-hidden select-none">
+          <svg viewBox="0 0 170 140" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full transform translate-x-2 -translate-y-2">
+            {/* Brilho Radial em Ciano / Acento */}
+            <circle cx="130" cy="30" r="50" fill={accentColor} fillOpacity="0.22" />
+            <circle cx="100" cy="70" r="30" fill="#00E5FF" fillOpacity="0.15" />
+
+            {/* Linhas Diagonais Estilizadas */}
+            <line x1="170" y1="-10" x2="60" y2="150" stroke={accentColor} strokeWidth="1.2" strokeOpacity="0.4" strokeDasharray="4 3" />
+            <line x1="140" y1="-20" x2="30" y2="135" stroke="#00E5FF" strokeWidth="1.8" strokeOpacity="0.5" />
+            <line x1="110" y1="-25" x2="0" y2="120" stroke="#00E5FF" strokeWidth="1" strokeOpacity="0.3" />
+
+            {/* Cápsula Preenchida em Ciano Néon (Inspirada no Slide) */}
+            <rect
+              x="78"
+              y="18"
+              width="48"
+              height="11"
+              rx="5.5"
+              transform="rotate(-52 78 18)"
+              fill="#00E5FF"
+              fillOpacity="0.9"
+            />
+
+            {/* Cápsula de Contorno (Outline) */}
+            <rect
+              x="94"
+              y="8"
+              width="74"
+              height="18"
+              rx="9"
+              transform="rotate(-52 94 8)"
+              stroke="#00E5FF"
+              strokeWidth="1.6"
+              strokeOpacity="0.55"
+              fill="none"
+            />
+
+            {/* Nós / Pontos de Conexão Tecnológicos */}
+            <circle cx="102" cy="62" r="3" fill="#00E5FF" fillOpacity="0.9" />
+            <circle cx="58" cy="106" r="2" fill="#00E5FF" fillOpacity="0.6" />
+          </svg>
+        </div>
+      );
+    }
+
+    // Identidade Visual e Cores Temáticas dos 8 Segmentos do Espaço Experiência
+    const SegmentThemes = {
+      totvs_agro: {
+        accentColor: '#10B981',
+        accentBorderLeft: 'border-l-4 border-l-emerald-500',
+        tagBg: 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30',
+        badgeBg: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+        gradientHeader: 'from-[#002654] via-[#003473] to-[#044c36]',
+        glowBorder: 'hover:border-emerald-400/60 hover:shadow-[0_12px_28px_rgba(16,185,129,0.2)]'
+      },
+      totvs_manufatura: {
+        accentColor: '#2563EB',
+        accentBorderLeft: 'border-l-4 border-l-blue-600',
+        tagBg: 'bg-blue-500/20 text-blue-300 border border-blue-400/30',
+        badgeBg: 'bg-blue-50 text-blue-800 border-blue-200',
+        gradientHeader: 'from-[#002654] via-[#003B8E] to-[#1e3a8a]',
+        glowBorder: 'hover:border-blue-400/60 hover:shadow-[0_12px_28px_rgba(37,99,235,0.2)]'
+      },
+      backoffice: {
+        accentColor: '#0284C7',
+        accentBorderLeft: 'border-l-4 border-l-sky-600',
+        tagBg: 'bg-sky-500/20 text-sky-300 border border-sky-400/30',
+        badgeBg: 'bg-sky-50 text-sky-900 border-sky-200',
+        gradientHeader: 'from-[#002654] via-[#0369a1] to-[#0c4a6e]',
+        glowBorder: 'hover:border-sky-400/60 hover:shadow-[0_12px_28px_rgba(2,132,199,0.2)]'
+      },
+      totvs_mes_ppi: {
+        accentColor: '#06B6D4',
+        accentBorderLeft: 'border-l-4 border-l-cyan-500',
+        tagBg: 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30',
+        badgeBg: 'bg-cyan-50 text-cyan-900 border-cyan-200',
+        gradientHeader: 'from-[#002654] via-[#0891b2] to-[#155e75]',
+        glowBorder: 'hover:border-cyan-400/60 hover:shadow-[0_12px_28px_rgba(6,182,212,0.2)]'
+      },
+      totvs_logistica: {
+        accentColor: '#F59E0B',
+        accentBorderLeft: 'border-l-4 border-l-amber-500',
+        tagBg: 'bg-amber-500/20 text-amber-300 border border-amber-400/30',
+        badgeBg: 'bg-amber-50 text-amber-900 border-amber-200',
+        gradientHeader: 'from-[#002654] via-[#003882] to-[#78350f]',
+        glowBorder: 'hover:border-amber-400/60 hover:shadow-[0_12px_28px_rgba(245,158,11,0.2)]'
+      },
+      totvs_moda: {
+        accentColor: '#EC4899',
+        accentBorderLeft: 'border-l-4 border-l-pink-500',
+        tagBg: 'bg-pink-500/20 text-pink-300 border border-pink-400/30',
+        badgeBg: 'bg-pink-50 text-pink-800 border-pink-200',
+        gradientHeader: 'from-[#002654] via-[#003882] to-[#831843]',
+        glowBorder: 'hover:border-pink-400/60 hover:shadow-[0_12px_28px_rgba(236,72,153,0.2)]'
+      },
+      totvs_consinco: {
+        accentColor: '#EF4444',
+        accentBorderLeft: 'border-l-4 border-l-rose-500',
+        tagBg: 'bg-rose-500/20 text-rose-300 border border-rose-400/30',
+        badgeBg: 'bg-rose-50 text-rose-800 border-rose-200',
+        gradientHeader: 'from-[#002654] via-[#003882] to-[#7f1d1d]',
+        glowBorder: 'hover:border-rose-400/60 hover:shadow-[0_12px_28px_rgba(239,68,68,0.2)]'
+      },
+      totvs_varejo_online: {
+        accentColor: '#8B5CF6',
+        accentBorderLeft: 'border-l-4 border-l-purple-500',
+        tagBg: 'bg-purple-500/20 text-purple-300 border border-purple-400/30',
+        badgeBg: 'bg-purple-50 text-purple-800 border-purple-200',
+        gradientHeader: 'from-[#002654] via-[#003882] to-[#4c1d95]',
+        glowBorder: 'hover:border-purple-400/60 hover:shadow-[0_12px_28px_rgba(139,92,246,0.2)]'
+      },
+      totvs_rm_clinicas: {
+        accentColor: '#06B6D4',
+        accentBorderLeft: 'border-l-4 border-l-cyan-500',
+        tagBg: 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30',
+        badgeBg: 'bg-cyan-50 text-cyan-900 border-cyan-200',
+        gradientHeader: 'from-[#002654] via-[#003882] to-[#164e63]',
+        glowBorder: 'hover:border-cyan-400/60 hover:shadow-[0_12px_28px_rgba(6,182,212,0.2)]'
+      },
+      mesa_interativa: {
+        accentColor: '#6366F1',
+        accentBorderLeft: 'border-l-4 border-l-indigo-500',
+        tagBg: 'bg-indigo-500/20 text-indigo-300 border border-indigo-400/30',
+        badgeBg: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+        gradientHeader: 'from-[#002654] via-[#003882] to-[#312e81]',
+        glowBorder: 'hover:border-indigo-400/60 hover:shadow-[0_12px_28px_rgba(99,102,241,0.2)]'
+      }
+    };
+
+    const defaultTheme = {
+      accentColor: '#00E5FF',
+      accentBorderLeft: 'border-l-4 border-l-totvs-cyan',
+      tagBg: 'bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30',
+      badgeBg: 'bg-slate-100 text-slate-700 border-slate-200',
+      gradientHeader: 'from-[#002654] via-[#003882] to-[#001D4A]',
+      glowBorder: 'hover:border-totvs-cyan/60 hover:shadow-[0_12px_28px_rgba(0,229,255,0.2)]'
+    };
+
+    // Componente dedicado para exibição e cópia de credenciais de PC da bancada
+    function StationCredentialsBox({ credenciais, onEdit }) {
+      const [copied, setCopied] = useState(null); // 'user' | 'pass' | null
+
+      if (!credenciais) return null;
+
+      const copyToClipboard = (text, type) => {
+        if (!text) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            setCopied(type);
+            setTimeout(() => setCopied(null), 1800);
+          }).catch(() => fallbackCopy(text, type));
+        } else {
+          fallbackCopy(text, type);
+        }
+      };
+
+      const fallbackCopy = (text, type) => {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          setCopied(type);
+          setTimeout(() => setCopied(null), 1800);
+        } catch (e) {
+          console.error('Falha ao copiar:', e);
+        }
+      };
+
+      return (
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-3 space-y-2">
+          {/* Topo do Box: Identificação do Equipamento */}
+          <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="w-5 h-5 rounded-md bg-totvs-blue/10 text-totvs-blue flex items-center justify-center shrink-0">
+                <Icons.Monitor />
+              </span>
+              <span className="font-bold text-[11px] text-slate-800 truncate" title={credenciais.equipamento}>
+                {credenciais.equipamento || 'Computador da Bancada'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Acesso Bancada
+              </span>
+            </div>
+          </div>
+
+          {/* Bloco do Usuário (Valor Completo Sem Cortes) */}
+          <div className="bg-slate-50/90 hover:bg-slate-50 p-2 rounded-lg border border-slate-200/60 transition space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[9.5px] font-extrabold text-slate-500 uppercase tracking-wider">
+                Usuário:
+              </span>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(credenciais.usuario, 'user')}
+                className={`p-1 px-1.5 rounded-md transition flex items-center gap-1 text-[10px] font-semibold ${
+                  copied === 'user'
+                    ? 'bg-emerald-500 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-totvs-blue hover:bg-slate-200/60'
+                }`}
+                title="Copiar usuário"
+              >
+                {copied === 'user' ? (
+                  <>
+                    <Icons.Check />
+                    <span className="text-[9px]">Copiado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Icons.Copy />
+                    <span className="text-[9px] text-slate-500 hover:text-totvs-blue">Copiar</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <div
+              className="font-mono text-slate-800 text-[11px] font-semibold select-all break-all leading-tight"
+              title={credenciais.usuario}
+            >
+              {credenciais.usuario || '—'}
+            </div>
+          </div>
+
+          {/* Bloco da Senha (Sempre Visível Sem Cortes) */}
+          <div className="bg-slate-50/90 hover:bg-slate-50 p-2 rounded-lg border border-slate-200/60 transition space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[9.5px] font-extrabold text-slate-500 uppercase tracking-wider">
+                Senha:
+              </span>
+              <button
+                type="button"
+                onClick={() => copyToClipboard(credenciais.senha, 'pass')}
+                className={`p-1 px-1.5 rounded-md transition flex items-center gap-1 text-[10px] font-semibold ${
+                  copied === 'pass'
+                    ? 'bg-emerald-500 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-totvs-blue hover:bg-slate-200/60'
+                }`}
+                title="Copiar senha"
+              >
+                {copied === 'pass' ? (
+                  <>
+                    <Icons.Check />
+                    <span className="text-[9px]">Copiada!</span>
+                  </>
+                ) : (
+                  <>
+                    <Icons.Copy />
+                    <span className="text-[9px] text-slate-500 hover:text-totvs-blue">Copiar</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <div
+              className="font-mono text-slate-800 text-[11px] font-semibold select-all break-all leading-tight tracking-tight"
+            >
+              {credenciais.senha || '—'}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE: CAPA DA FOTO DA BANCADA COM CURSOR DE MÃO E CLIQUE PARA AMPLIAR ---
+    function StationPhotoCover({ seg, onOpenPhoto, onEdit }) {
+      if (!seg.foto_bancada) {
+        return (
+          <div className="h-28 w-full bg-gradient-to-br from-slate-100 via-slate-50 to-slate-200 border-b border-dashed border-slate-300 flex flex-col items-center justify-center p-3 text-center">
+            <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[11px]">
+              <Icons.Image />
+              <span>Bancada Física</span>
+            </div>
+            <span className="text-[10px] text-slate-400 mt-0.5">Sem foto vinculada</span>
+            {onEdit && (
+              <button
+                type="button"
+                onClick={onEdit}
+                className="mt-2 text-[10px] font-extrabold text-totvs-blue hover:text-white bg-white hover:bg-totvs-blue px-3 py-1 rounded-lg border border-slate-300 hover:border-totvs-blue shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Icons.Plus />
+                <span>Adicionar Foto da Bancada</span>
+              </button>
+            )}
+          </div>
+        );
+      }
+
+      return (
+        <div 
+          onClick={() => onOpenPhoto && onOpenPhoto(seg)}
+          className="relative bg-slate-900 border-b border-slate-200/80 group/photo select-none cursor-pointer overflow-hidden"
+          title={`Clique para ampliar a foto da bancada (${seg.nome})`}
+        >
+          {/* Thumbnail Normal no Card */}
+          <div className="relative h-48 w-full overflow-hidden bg-slate-950">
+            <img
+              src={seg.foto_bancada}
+              alt={`Bancada física ${seg.nome}`}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover/photo:scale-103"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent pointer-events-none" />
+
+            {/* Badge identificador da Bancada */}
+            <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-bold border border-white/20 shadow-sm pointer-events-none">
+              <span>📸 Bancada Física</span>
+            </div>
+
+            {/* Indicador visual de clique com cursor de mão (sem explosão) */}
+            <div className="absolute bottom-2 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/70 backdrop-blur-xs text-white/95 text-[10px] font-semibold border border-white/10 shadow-sm transition-colors duration-200 group-hover/photo:bg-totvs-blue group-hover/photo:text-white pointer-events-none">
+              <Icons.ZoomIn />
+              <span>Clique para ampliar foto</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE: MODAL LIGHTBOX DE FOTO AMPLIADA POR CLIQUE ---
+    function PhotoLightboxModal({ segment, onClose }) {
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [onClose]);
+
+      if (!segment) return null;
+
+      return (
+        <div 
+          className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={onClose}
+        >
+          <div 
+            className="bg-slate-900 rounded-3xl max-w-4xl w-full border border-slate-700/80 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] overflow-hidden animate-in zoom-in-95 duration-200 my-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header do Lightbox */}
+            <div className="bg-slate-950/90 text-white p-4 sm:p-5 flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-totvs-cyan animate-pulse"></span>
+                <div>
+                  <h3 className="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
+                    Foto da Bancada • {segment.nome}
+                    <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/30">
+                      Estação {segment.ordem?.toString().padStart(2, '0') || '01'}
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    {segment.credenciais?.equipamento || 'Espaço Experiência TOTVS'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition cursor-pointer"
+                title="Fechar (ESC)"
+              >
+                <Icons.X />
+              </button>
+            </div>
+
+            {/* Imagem Centralizada */}
+            <div className="bg-black/95 p-2 sm:p-4 flex items-center justify-center min-h-[300px] max-h-[75vh]">
+              <img
+                src={segment.foto_bancada}
+                alt={`Bancada física ${segment.nome} ampliada`}
+                className="max-h-[70vh] w-auto max-w-full object-contain rounded-xl shadow-2xl"
+              />
+            </div>
+
+            {/* Rodapé do Lightbox */}
+            <div className="bg-slate-950/90 px-5 py-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+              <span className="font-mono text-cyan-300">
+                💻 {segment.credenciais?.equipamento || 'Estação Corporativa'}
+              </span>
+              <span className="text-slate-400 font-medium hidden sm:inline">
+                Pressione <strong className="text-white font-mono">ESC</strong> ou clique fora para fechar
+              </span>
+              <button
+                type="button"
+                onClick={onClose}
+                className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold px-4 py-1.5 rounded-xl transition cursor-pointer"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE: MODAL RÁPIDO PARA EDITAR ESTAÇÃO, BANCADA E SOLUÇÕES ---
+    function QuickBancadaModal({ segment, onClose, onSave }) {
+      const [nome, setNome] = useState(segment?.nome || '');
+      const [ordem, setOrdem] = useState(segment?.ordem || 1);
+      const [equipamento, setEquipamento] = useState(segment?.credenciais?.equipamento || `PC ${segment?.nome || ''}`);
+      const [usuario, setUsuario] = useState(segment?.credenciais?.usuario || 'ens.experiencia@totvs.com.br');
+      const [senha, setSenha] = useState(segment?.credenciais?.senha || 'Experienciastotvs@2026');
+      const [fotoBancada, setFotoBancada] = useState(segment?.foto_bancada || '');
+      const [solucoes, setSolucoes] = useState(() => Array.isArray(segment?.badge_solucoes) ? [...segment.badge_solucoes] : []);
+      const [novaSolucao, setNovaSolucao] = useState('');
+      const [uploading, setUploading] = useState(false);
+      const [uploadMsg, setUploadMsg] = useState('');
+      const [salvando, setSalvando] = useState(false);
+
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [onClose]);
+
+      const handleAddSolucao = () => {
+        const item = novaSolucao.trim();
+        if (!item) return;
+        if (!solucoes.includes(item)) {
+          setSolucoes(prev => [...prev, item]);
+        }
+        setNovaSolucao('');
+      };
+
+      const handleRemoveSolucao = (indexToRemove) => {
+        setSolucoes(prev => prev.filter((_, idx) => idx !== indexToRemove));
+      };
+
+      const handleFileUpload = async (file) => {
+        if (!file) return;
+        setUploading(true);
+        setUploadMsg(`Enviando foto da bancada "${file.name}"... ⏳`);
+        try {
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            headers: {
+              'X-Filename': encodeURIComponent(file.name),
+              'Content-Type': file.type || 'application/octet-stream'
+            },
+            body: file
+          });
+          const data = await res.json();
+          if (data.success && data.url) {
+            setFotoBancada(data.url);
+            setUploadMsg('Foto carregada com sucesso! ✅');
+          } else {
+            throw new Error(data.message || 'Falha ao processar imagem.');
+          }
+        } catch (err) {
+          alert(`Erro ao fazer upload da foto: ${err.message}`);
+          setUploadMsg('❌ Erro no upload. Tente novamente.');
+        } finally {
+          setUploading(false);
+        }
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setSalvando(true);
+        onSave({
+          nome: nome.trim(),
+          ordem: parseInt(ordem, 10) || segment.ordem,
+          foto_bancada: fotoBancada.trim(),
+          credenciais: {
+            equipamento: equipamento.trim(),
+            usuario: usuario.trim(),
+            senha: senha.trim()
+          },
+          badge_solucoes: solucoes
+        });
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-totvs-dark to-totvs-blue text-white p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-totvs-cyan/20 border border-totvs-cyan/40 text-totvs-cyan flex items-center justify-center font-bold">
+                  <Icons.Monitor />
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-totvs-cyan block">
+                    Editar Estação & Segmento
+                  </span>
+                  <h3 className="text-base font-black text-white leading-tight">
+                    Estação {ordem.toString().padStart(2, '0')} • {nome || segment.nome}
+                  </h3>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="text-slate-300 hover:text-white p-1 rounded-lg transition"
+                title="Fechar (ESC)"
+              >
+                <Icons.X />
+              </button>
+            </div>
+
+            {/* Formulário */}
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5 text-xs overflow-y-auto max-h-[calc(92vh-80px)]">
+              {/* Identificação da Estação */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <label className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                  <Icons.Edit />
+                  <span>Identificação da Estação:</span>
+                </label>
+
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div className="sm:col-span-1">
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Nº Estação:
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="99"
+                      value={ordem}
+                      onChange={e => setOrdem(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-bold text-slate-800 text-xs text-center focus:ring-2 focus:ring-totvs-cyan"
+                      required
+                    />
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Nome do Segmento / Card:
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ex: TOTVS Manufatura"
+                      value={nome}
+                      onChange={e => setNome(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-bold text-slate-800 text-xs focus:ring-2 focus:ring-totvs-cyan"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Soluções em Destaque */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                    <Icons.Tag />
+                    <span>Soluções em Destaque:</span>
+                  </label>
+                  <span className="text-[10px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-full border border-slate-200">
+                    {solucoes.length} cadastrada{solucoes.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                {/* Chips / Tags Interativas */}
+                <div className="flex flex-wrap gap-1.5 min-h-[38px] p-2 bg-white rounded-xl border border-slate-200 items-center">
+                  {solucoes.length === 0 ? (
+                    <span className="text-[11px] text-slate-400 italic px-1">Nenhuma solução cadastrada. Digite abaixo para adicionar.</span>
+                  ) : (
+                    solucoes.map((item, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-totvs-blue border border-blue-200 shadow-2xs group transition-all"
+                      >
+                        <span>{item}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSolucao(idx)}
+                          className="w-4 h-4 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-rose-500 transition text-[11px] font-black cursor-pointer leading-none"
+                          title={`Remover "${item}"`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+
+                {/* Input para Adicionar Nova Solução */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Digite a solução (ex: Protheus, RM, Fluig...) e tecle Enter"
+                    value={novaSolucao}
+                    onChange={e => setNovaSolucao(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddSolucao();
+                      }
+                    }}
+                    className="flex-1 p-2.5 border border-slate-300 rounded-xl bg-white font-medium text-slate-800 text-xs focus:ring-2 focus:ring-totvs-cyan"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSolucao}
+                    disabled={!novaSolucao.trim()}
+                    className="px-3.5 py-2.5 rounded-xl bg-totvs-blue hover:bg-totvs-cyan text-white font-extrabold text-xs transition shadow-xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 shrink-0 cursor-pointer"
+                  >
+                    <Icons.Plus />
+                    <span>Adicionar</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Foto da Bancada */}
+              <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                    <Icons.Image />
+                    <span>Foto da Bancada Física (Capa do Card):</span>
+                  </label>
+                  {fotoBancada && (
+                    <button
+                      type="button"
+                      onClick={() => setFotoBancada('')}
+                      className="text-rose-500 hover:text-rose-700 font-bold text-[11px] flex items-center gap-1"
+                    >
+                      <Icons.Trash />
+                      <span>Remover</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Prévia da Foto */}
+                {fotoBancada ? (
+                  <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-900 group">
+                    <img
+                      src={fotoBancada}
+                      alt="Prévia da Bancada"
+                      className="w-full h-32 object-cover"
+                      onError={(e) => { e.target.src = 'https://placehold.co/400x200?text=Foto+Bancada'; }}
+                    />
+                    <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/70 text-white text-[10px] font-mono truncate max-w-[90%]">
+                      {fotoBancada}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-24 rounded-xl border border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-3 text-center text-slate-400">
+                    <span className="text-[11px] font-bold text-slate-600 block">Sem foto vinculada</span>
+                    <span className="text-[10px] text-slate-400">Escolha uma imagem do seu computador abaixo</span>
+                  </div>
+                )}
+
+                {/* Botão de Upload e Input de Caminho */}
+                <div className="space-y-2">
+                  <label className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold text-xs cursor-pointer transition shadow-xs">
+                    <Icons.Upload />
+                    <span>{uploading ? 'Enviando imagem...' : '📁 Escolher Foto da Bancada do Computador'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleFileUpload(e.target.files[0]);
+                        }
+                      }}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <input
+                    type="text"
+                    placeholder="Ou digite o caminho (ex: uploads/foto.jpg)"
+                    value={fotoBancada}
+                    onChange={e => setFotoBancada(e.target.value)}
+                    className="w-full p-2 border border-slate-300 rounded-lg bg-white font-mono text-[11px] focus:ring-2 focus:ring-totvs-cyan"
+                  />
+                </div>
+
+                {uploadMsg && (
+                  <div className="text-[11px] font-semibold text-totvs-blue bg-white p-2 rounded-lg border border-blue-200 flex items-center gap-2">
+                    <Icons.CheckCircle />
+                    <span>{uploadMsg}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Credenciais de Acesso */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <label className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                  <Icons.Key />
+                  <span>Credenciais do PC / Notebook da Bancada:</span>
+                </label>
+
+                <div className="space-y-2.5">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Nome do Equipamento:
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ex: PC Logistica"
+                      value={equipamento}
+                      onChange={e => setEquipamento(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-bold text-slate-800 text-xs focus:ring-2 focus:ring-totvs-cyan"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Usuário de Acesso:
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="ens.experiencia@totvs.com.br"
+                      value={usuario}
+                      onChange={e => setUsuario(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-mono text-slate-800 text-xs focus:ring-2 focus:ring-totvs-cyan"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Senha de Acesso:
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Experienciastotvs@2026"
+                      value={senha}
+                      onChange={e => setSenha(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-mono text-slate-800 text-xs focus:ring-2 focus:ring-totvs-cyan"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Rodapé com Ações */}
+              <div className="pt-2 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition text-xs"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={salvando || uploading}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-totvs-blue to-totvs-cyan hover:from-[#003B8E] hover:to-[#00B4D8] text-white font-black text-xs transition shadow-md flex items-center justify-center gap-2"
+                >
+                  <Icons.Check />
+                  <span>{salvando ? 'Salvando...' : 'Salvar Alterações do Card'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [segmentos, setSegmentos] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [admLogado, setAdmLogado] = useState(null);
+      
+      // Modais
+      const [showLoginModal, setShowLoginModal] = useState(false);
+      const [showAcceptInviteModal, setShowAcceptInviteModal] = useState(false);
+      const [conviteToken, setConviteToken] = useState(null);
+      const [activeSegment, setActiveSegment] = useState(null);
+      const [editSegment, setEditSegment] = useState(null);
+      const [quickBancadaSegment, setQuickBancadaSegment] = useState(null);
+      const [validationModal, setValidationModal] = useState(null);
+      const [lightboxSegment, setLightboxSegment] = useState(null);
+      
+      // Painel ADM
+      const [adminModal, setAdminModal] = useState(false);
+      const [adminTab, setAdminTab] = useState('adms'); // 'adms', 'convites', 'visitas', 'audit'
+      const [admsList, setAdmsList] = useState([]);
+      const [convitesList, setConvitesList] = useState([]);
+      const [metricsData, setMetricsData] = useState(null);
+      const [accessLogs, setAccessLogs] = useState([]);
+      const [auditLogs, setAuditLogs] = useState([]);
+
+      // Busca e Filtros
+      const [searchTerm, setSearchTerm] = useState('');
+      const [toastMsg, setToastMsg] = useState(null);
+
+      const showToast = (msg) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(null), 4000);
+      };
+
+      // Carregamento inicial de dados
+      useEffect(() => {
+        // 1. Contador silencioso de visitas (1 por sessão de navegador)
+        if (!sessionStorage.getItem('totvs_visita_registrada')) {
+          fetch('/api/access', { method: 'POST' })
+            .then(() => sessionStorage.setItem('totvs_visita_registrada', '1'))
+            .catch(() => {});
+        }
+
+        // 2. Verificar se há parâmetro de convite na URL (?convite=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const convParam = urlParams.get('convite');
+        if (convParam) {
+          setConviteToken(convParam);
+          setShowAcceptInviteModal(true);
+        }
+
+        // 3. Restaurar sessão salva de administrador deste navegador
+        const savedAdm = localStorage.getItem('totvs_adm_session');
+        if (savedAdm) {
+          try { setAdmLogado(JSON.parse(savedAdm)); } catch(e){}
+        }
+
+        // 4. Buscar segmentos
+        fetch('/api/segmentos')
+          .then(res => res.json())
+          .then(data => {
+            setSegmentos(data);
+            setLoading(false);
+          })
+          .catch(err => {
+            fetch('./data/segmentos.json')
+              .then(res => res.json())
+              .then(data => {
+                setSegmentos(data);
+                setLoading(false);
+              })
+              .catch(() => setLoading(false));
+          });
+      }, []);
+
+      // Login bem-sucedido de Administrador
+      const handleLoginSuccess = (usuario) => {
+        setAdmLogado(usuario);
+        localStorage.setItem('totvs_adm_session', JSON.stringify(usuario));
+        setShowLoginModal(false);
+        showToast(`Bem-vindo, ${usuario.nome}! Modo Administrador ativado. ✅`);
+      };
+
+      // Logout do Administrador
+      const handleLogoutAdm = () => {
+        setAdmLogado(null);
+        localStorage.removeItem('totvs_adm_session');
+        showToast('Você saiu do modo administrador. Ambiente em modo somente leitura.');
+      };
+
+      // Ativação bem-sucedida de novo Administrador convidado
+      const handleAcceptInviteSuccess = (usuario) => {
+        setAdmLogado(usuario);
+        localStorage.setItem('totvs_adm_session', JSON.stringify(usuario));
+        setShowAcceptInviteModal(false);
+        setConviteToken(null);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        showToast(`Perfil ativado com sucesso! Bem-vindo, ${usuario.nome}. 🛡️`);
+      };
+
+      // Abrir Edição Completa (apenas ADM)
+      const handleOpenEdit = (seg) => {
+        if (!admLogado) {
+          showToast('Apenas administradores podem editar o projeto.');
+          setShowLoginModal(true);
+          return;
+        }
+        setEditSegment(JSON.parse(JSON.stringify(seg)));
+      };
+
+      // Salvar com Checkpoint de Validação
+      const handleTriggerSave = (editedData) => {
+        setValidationModal({
+          segmento: editedData,
+          confirmedCheck: false
+        });
+      };
+
+      const handleConfirmSave = () => {
+        if (!validationModal) return;
+        const segToSave = validationModal.segmento;
+        const autorNome = admLogado ? admLogado.nome : 'Administrador TOTVS';
+        const autorEmail = admLogado ? admLogado.email : 'admin@totvs.com.br';
+
+        segToSave.ultima_atualizacao = {
+          data: new Date().toLocaleString('pt-BR'),
+          autor: autorNome
+        };
+
+        fetch(`/api/segmentos/${segToSave.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            segmento: segToSave,
+            autor: { nome: autorNome, email: autorEmail },
+            detalhes: `Atualização de conteúdo realizada por ${autorNome}.`
+          })
+        })
+        .then(res => res.json())
+        .then(() => {
+          setSegmentos(prev => prev.map(s => s.id === segToSave.id ? segToSave : s));
+          setValidationModal(null);
+          setEditSegment(null);
+          if (activeSegment && activeSegment.id === segToSave.id) {
+            setActiveSegment(segToSave);
+          }
+          showToast(`Alterações do segmento "${segToSave.nome}" publicadas por ${autorNome}! ✅`);
+        })
+        .catch(() => {
+          setSegmentos(prev => {
+            const list = prev.map(s => s.id === segToSave.id ? segToSave : s);
+            return list.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+          });
+          setValidationModal(null);
+          setEditSegment(null);
+          showToast(`Salvo localmente com sucesso!`);
+        });
+      };
+
+      // Salvar Edição Rápida da Foto da Bancada, Credenciais e Soluções
+      const handleSaveQuickBancada = (dadosAtualizados) => {
+        if (!quickBancadaSegment) return;
+        const segId = quickBancadaSegment.id;
+        const autorNome = admLogado ? admLogado.nome : 'Administrador TOTVS';
+        const autorEmail = admLogado ? admLogado.email : 'admin@totvs.com.br';
+
+        const segToSave = {
+          ...quickBancadaSegment,
+          nome: dadosAtualizados.nome !== undefined ? dadosAtualizados.nome : quickBancadaSegment.nome,
+          ordem: dadosAtualizados.ordem !== undefined ? dadosAtualizados.ordem : quickBancadaSegment.ordem,
+          foto_bancada: dadosAtualizados.foto_bancada !== undefined ? dadosAtualizados.foto_bancada : quickBancadaSegment.foto_bancada,
+          credenciais: dadosAtualizados.credenciais !== undefined ? dadosAtualizados.credenciais : quickBancadaSegment.credenciais,
+          badge_solucoes: dadosAtualizados.badge_solucoes !== undefined ? dadosAtualizados.badge_solucoes : quickBancadaSegment.badge_solucoes,
+          ultima_atualizacao: {
+            data: new Date().toLocaleString('pt-BR'),
+            autor: autorNome
+          }
+        };
+
+        fetch(`/api/segmentos/${segId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            segmento: segToSave,
+            autor: { nome: autorNome, email: autorEmail },
+            detalhes: `Ajuste da Estação "${segToSave.nome}" (Estação ${segToSave.ordem}) realizado por ${autorNome}.`
+          })
+        })
+        .then(res => res.json())
+        .then(() => {
+          setSegmentos(prev => {
+            const list = prev.map(s => s.id === segId ? segToSave : s);
+            return list.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+          });
+          setQuickBancadaSegment(null);
+          if (activeSegment && activeSegment.id === segId) {
+            setActiveSegment(segToSave);
+          }
+          showToast(`Estação "${segToSave.nome}" salva com sucesso! ✅`);
+        })
+        .catch(() => {
+          setSegmentos(prev => {
+            const list = prev.map(s => s.id === segId ? segToSave : s);
+            return list.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+          });
+          setQuickBancadaSegment(null);
+          showToast(`Salvo localmente com sucesso! ✅`);
+        });
+      };
+
+      // Painel ADM
+      const handleOpenAdmin = () => {
+        if (!admLogado) {
+          setShowLoginModal(true);
+          return;
+        }
+        setAdminModal(true);
+        carregarDadosAdmin();
+      };
+
+      const carregarDadosAdmin = () => {
+        fetch('/api/admin/users').then(res => res.json()).then(setAdmsList).catch(() => {});
+        fetch('/api/admin/invites').then(res => res.json()).then(setConvitesList).catch(() => {});
+        fetch('/api/admin/metrics').then(res => res.json()).then(d => { if (d.success) setMetricsData(d); }).catch(() => {});
+        fetch('/api/logs/access').then(res => res.json()).then(setAccessLogs).catch(() => {});
+        fetch('/api/logs/audit').then(res => res.json()).then(setAuditLogs).catch(() => {});
+      };
+
+      // Filtro de busca
+      const filteredSegmentos = useMemo(() => {
+        if (!searchTerm.trim()) return segmentos;
+        const q = searchTerm.toLowerCase();
+        return segmentos.filter(s => 
+          s.nome.toLowerCase().includes(q) ||
+          s.tagline.toLowerCase().includes(q) ||
+          s.pitch.toLowerCase().includes(q) ||
+          (s.badge_solucoes && s.badge_solucoes.some(b => b.toLowerCase().includes(q)))
+        );
+      }, [segmentos, searchTerm]);
+
+      return (
+        <div className="min-h-screen flex flex-col bg-slate-50">
+          
+          {/* TOAST NOTIFICAÇÃO */}
+          {toastMsg && (
+            <div className="fixed bottom-6 right-6 z-50 bg-totvs-blue text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-totvs-cyan/40 animate-bounce">
+              <Icons.CheckCircle />
+              <span className="text-sm font-medium">{toastMsg}</span>
+            </div>
+          )}
+
+          {/* HEADER PRINCIPAL */}
+          <header className="bg-totvs-dark text-white border-b border-slate-700 sticky top-0 z-30 shadow-md">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+              
+              {/* Logo & Título */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-totvs-blue to-totvs-cyan flex items-center justify-center font-black text-xl text-white shadow-inner">
+                  T
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-lg tracking-tight text-white">TOTVS</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
+                      Espaço Experiência
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 font-medium">Plataforma Multiusuário de Segmentos</p>
+                </div>
+              </div>
+
+              {/* Barra de Busca */}
+              <div className="flex items-center gap-3 w-full order-3 sm:order-2 sm:w-auto sm:flex-1 max-w-md">
+                <div className="relative w-full">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <Icons.Search />
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Buscar soluções (ex: MES, RFID, Consinco, PEP)..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-800/80 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-cyan focus:border-transparent transition"
+                  />
+                </div>
+              </div>
+
+              {/* Botões de Usuário Conectado e ADM */}
+              <div className="flex items-center gap-3">
+                {admLogado ? (
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 bg-slate-800/95 text-slate-200 text-xs px-3.5 py-1.5 rounded-xl border border-totvs-cyan/40 shadow-sm">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <div className="text-left">
+                        <span className="font-bold text-white block leading-tight">{admLogado.nome}</span>
+                        <span className="text-[10px] text-totvs-cyan font-bold block">Administrador</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleOpenAdmin}
+                      className="flex items-center gap-1.5 bg-totvs-blue hover:bg-[#003B8E] text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm cursor-pointer"
+                      title="Painel de Gestão ADM"
+                    >
+                      <Icons.Shield />
+                      <span>Painel ADM</span>
+                    </button>
+                    <button
+                      onClick={handleLogoutAdm}
+                      className="flex items-center gap-1 bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-bold px-2.5 py-2 rounded-xl border border-rose-500/30 transition shadow-sm cursor-pointer"
+                      title="Sair do modo administrador"
+                    >
+                      <Icons.LogOut />
+                      <span>Sair</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3.5 py-2 rounded-xl border border-white/25 transition shadow-sm backdrop-blur-md cursor-pointer hover:border-totvs-cyan/60"
+                    title="Acesso restrito para Administradores com permissão de edição"
+                  >
+                    <Icons.Shield />
+                    <span>Área ADM</span>
+                  </button>
+                )}
+              </div>
+
+            </div>
+          </header>
+
+          {/* BANNER INSTITUCIONAL */}
+          <section className="relative overflow-hidden bg-gradient-to-r from-totvs-dark via-totvs-blue to-[#003B8E] text-white py-7 px-4 border-b border-totvs-cyan/20">
+            {/* Grafismo sutil de fundo */}
+            <div className="absolute inset-0 pointer-events-none opacity-20 select-none">
+              <svg className="w-full h-full" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <line x1="0" y1="120" x2="280" y2="0" stroke="#00E5FF" strokeWidth="2" strokeDasharray="6 6" />
+                <line x1="180" y1="120" x2="460" y2="0" stroke="#00E5FF" strokeWidth="2.5" />
+                <line x1="750" y1="120" x2="1050" y2="0" stroke="#00E5FF" strokeWidth="1.5" />
+                <rect x="400" y="25" width="100" height="18" rx="9" transform="rotate(-24 400 25)" fill="#00E5FF" fillOpacity="0.8" />
+              </svg>
+            </div>
+
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[11px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/40">
+                    Showroom Inteligente
+                  </span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-sm">
+                  Espaço Experiência TOTVS
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-200 mt-1 max-w-2xl font-normal leading-relaxed">
+                  Guia interativo institucional e roteiro de visitação guiada pelas 8 estações tecnológicas do laboratório.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-lg">
+                <div className={`w-2.5 h-2.5 rounded-full ${admLogado ? 'bg-emerald-400' : 'bg-totvs-cyan'} animate-pulse`}></div>
+                <div className="text-xs">
+                  <span className="font-bold block text-white">
+                    {admLogado ? `Administrador Conectado: ${admLogado.nome}` : 'Vitrine Institucional Aberta'}
+                  </span>
+                  <span className="text-[11px] text-totvs-cyan font-medium">
+                    {admLogado ? '🛡️ Edição e Gerenciamento Liberados' : '✨ Modo Somente Leitura • Acesso Livre'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* GRID DE CARDS NA ORDEM DA JORNADA */}
+          <main className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+            {loading ? (
+              <div className="text-center py-20">
+                <div className="w-12 h-12 border-4 border-totvs-cyan border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-sm font-semibold text-slate-600">Carregando estações do Espaço Experiência...</p>
+              </div>
+            ) : filteredSegmentos.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+                <p className="text-slate-500 font-medium">Nenhum segmento encontrado para a busca "{searchTerm}".</p>
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="mt-3 text-xs font-semibold text-totvs-cyan hover:underline"
+                >
+                  Limpar busca
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {filteredSegmentos.map((seg) => {
+                  const IconComp = Icons[seg.icone] || Icons.Factory;
+                  const theme = SegmentThemes[seg.id] || defaultTheme;
+
+                  return (
+                    <div
+                      key={seg.id}
+                      className={`bg-white rounded-2xl border border-slate-200/90 shadow-sm transition-all duration-300 flex flex-col relative group hover:-translate-y-1.5 hover:z-40 ${theme.glowBorder}`}
+                    >
+                      {/* Topo do Card com Gradiente Azul Real e Grafismo Vetorial (Inspirado no anexo) */}
+                      <div className={`p-4 relative overflow-hidden rounded-t-2xl bg-gradient-to-br ${theme.gradientHeader} text-white border-b border-white/10`}>
+                        {/* Grafismo Geométrico Tech */}
+                        <CardTechGraphic accentColor={theme.accentColor} />
+
+                        <div className="relative z-10 flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md text-white border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-inner">
+                              <IconComp />
+                            </div>
+                            <div>
+                              <span className={`inline-block text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full mb-1 ${theme.tagBg}`}>
+                                Estação {seg.ordem.toString().padStart(2, '0')}
+                              </span>
+                              <h3 className="font-black text-base text-white leading-tight tracking-tight drop-shadow-sm">
+                                {seg.nome}
+                              </h3>
+                            </div>
+                          </div>
+
+                          {/* Botão Único de Edição do Card (Apenas para ADM autenticado) */}
+                          {admLogado && (
+                            <button
+                              type="button"
+                              onClick={() => setQuickBancadaSegment(seg)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/35 text-white text-[11px] font-extrabold border border-white/30 shadow-sm transition backdrop-blur-md cursor-pointer hover:scale-105 active:scale-95"
+                              title={`Editar dados e configurações da Estação ${seg.ordem.toString().padStart(2, '0')}`}
+                            >
+                              <Icons.Edit />
+                              <span>Editar</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Capa com Foto da Bancada Física e Pop-out Flutuante Ampliado em Hover */}
+                      <StationPhotoCover seg={seg} onOpenPhoto={setLightboxSegment} />
+
+                      {/* Conteúdo Resumido do Card com Fundo Azul Gelo Soft Corporativo */}
+                      <div className="p-4 flex-1 flex flex-col justify-between space-y-3 bg-[#F0F5FA] rounded-b-2xl">
+                        {/* Box de Credenciais do PC da Bancada (Sempre Visível) */}
+                        <StationCredentialsBox credenciais={seg.credenciais} />
+
+                        {/* Badges de Soluções do Segmento */}
+                        <div className="space-y-1.5 pt-1">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                            <span>Soluções em Destaque:</span>
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {seg.badge_solucoes && seg.badge_solucoes.map((badge, bIdx) => (
+                              <span
+                                key={bIdx}
+                                className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border shadow-2xs ${theme.badgeBg}`}
+                              >
+                                {badge}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Rodapé do Card com Ação */}
+                        <div className="pt-2 border-t border-slate-200/60">
+                          <button
+                            onClick={() => setActiveSegment(seg)}
+                            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-totvs-blue via-[#0047BA] to-totvs-cyan hover:from-[#0047BA] hover:to-[#00D2ED] text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform active:scale-95 cursor-pointer"
+                          >
+                            <span>Abrir Guia</span>
+                            <Icons.ChevronRight />
+                          </button>
+                        </div>
+
+                        {/* Última atualização */}
+                        <div className="text-[10px] text-slate-400 flex items-center justify-between pt-1 font-mono">
+                          <span className="truncate max-w-[120px]">Por: {seg.ultima_atualizacao?.autor || 'Especialista'}</span>
+                          <span>{seg.ultima_atualizacao?.data?.split(' ')[0]}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </main>
+
+          {/* MODAL DETALHE DO SEGMENTO (MODO COPILOTO) */}
+          {activeSegment && (
+            <SegmentDetailModal
+              segment={activeSegment}
+              admLogado={admLogado}
+              onClose={() => setActiveSegment(null)}
+              onEdit={() => {
+                const segToEdit = activeSegment;
+                setActiveSegment(null);
+                handleOpenEdit(segToEdit);
+              }}
+            />
+          )}
+
+          {/* MODAL DE EDIÇÃO DESCENTRALIZADA COMPLETA */}
+          {editSegment && (
+            <SegmentEditModal
+              segment={editSegment}
+              usuarioAtivo={admLogado}
+              onClose={() => setEditSegment(null)}
+              onSave={handleTriggerSave}
+            />
+          )}
+
+          {/* MODAL RÁPIDO: EDITAR FOTO DA BANCADA E CREDENCIAIS DE PC */}
+          {quickBancadaSegment && (
+            <QuickBancadaModal
+              segment={quickBancadaSegment}
+              onClose={() => setQuickBancadaSegment(null)}
+              onSave={handleSaveQuickBancada}
+            />
+          )}
+
+          {/* MODAL DE CHECKPOINT / VALIDAÇÃO EXPLÍCITA ANTES DE SALVAR */}
+          {validationModal && (
+            <ValidationModal
+              data={validationModal}
+              usuarioAtivo={admLogado}
+              onCancel={() => setValidationModal(null)}
+              onConfirm={handleConfirmSave}
+            />
+          )}
+
+          {/* MODAL DE LOGIN DO ADMINISTRADOR */}
+          {showLoginModal && (
+            <LoginModal
+              onClose={() => setShowLoginModal(false)}
+              onLoginSuccess={handleLoginSuccess}
+            />
+          )}
+
+          {/* MODAL DE ATIVAÇÃO DE CONVITE (VIA URL ?convite=TOKEN) */}
+          {showAcceptInviteModal && conviteToken && (
+            <AcceptInviteModal
+              token={conviteToken}
+              onClose={() => {
+                setShowAcceptInviteModal(false);
+                setConviteToken(null);
+                window.history.replaceState({}, document.title, window.location.pathname);
+              }}
+              onAcceptSuccess={handleAcceptInviteSuccess}
+            />
+          )}
+
+          {/* MODAL PAINEL ADM */}
+          {adminModal && (
+            <AdminModal
+              admLogado={admLogado}
+              activeTab={adminTab}
+              onTabChange={setAdminTab}
+              admsList={admsList}
+              onAdmsChange={carregarDadosAdmin}
+              convitesList={convitesList}
+              onConvitesChange={carregarDadosAdmin}
+              metricsData={metricsData}
+              accessLogs={accessLogs}
+              auditLogs={auditLogs}
+              segmentos={segmentos}
+              onClose={() => setAdminModal(false)}
+              onRefresh={carregarDadosAdmin}
+              showToast={showToast}
+            />
+          )}
+
+          {/* MODAL LIGHTBOX DE FOTO AMPLIADA */}
+          {lightboxSegment && (
+            <PhotoLightboxModal
+              segment={lightboxSegment}
+              onClose={() => setLightboxSegment(null)}
+            />
+          )}
+
+          {/* FOOTER CORPORATIVO */}
+          <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
+            <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+              <p>TOTVS S.A. • Espaço Experiência • Todos os direitos reservados.</p>
+              <p className="text-slate-400">Ambiente Multiusuário de Capacitação e Monitoramento de Utilização</p>
+            </div>
+          </footer>
+
+        </div>
+      );
+    }
+
+    // --- COMPONENTE: MODAL DE LOGIN DO ADMINISTRADOR ---
+    function LoginModal({ onClose, onLoginSuccess }) {
+      const [email, setEmail] = useState('');
+      const [senha, setSenha] = useState('');
+      const [showSenha, setShowSenha] = useState(false);
+      const [loading, setLoading] = useState(false);
+      const [erro, setErro] = useState('');
+
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [onClose]);
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setErro('');
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email.trim(), senha: senha.trim() })
+          });
+          const data = await res.json();
+          if (data.success && data.usuario) {
+            onLoginSuccess(data.usuario);
+          } else {
+            setErro(data.message || 'E-mail ou senha incorretos.');
+          }
+        } catch (err) {
+          setErro('Erro de conexão ao autenticar. Tente novamente.');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-150 relative">
+            <button
+              onClick={onClose}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+              title="Fechar (ESC)"
+            >
+              <Icons.X />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-totvs-blue/10 text-totvs-blue flex items-center justify-center mx-auto mb-3 font-black text-xl">
+                <Icons.Shield />
+              </div>
+              <h3 className="font-black text-xl text-slate-800">Área do Administrador</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Acesso exclusivo para administradores com permissão de edição
+              </p>
+            </div>
+
+            {erro && (
+              <div className="mb-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3 rounded-xl flex items-center gap-2">
+                <Icons.AlertCircle />
+                <span>{erro}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">E-mail Corporativo:</label>
+                <input
+                  type="email"
+                  placeholder="seu.email@totvs.com.br"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-medium text-slate-800 focus:ring-2 focus:ring-totvs-cyan"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Senha de Acesso:</label>
+                <div className="relative">
+                  <input
+                    type={showSenha ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={senha}
+                    onChange={e => setSenha(e.target.value)}
+                    className="w-full p-2.5 pr-10 border border-slate-300 rounded-xl bg-white font-medium text-slate-800 focus:ring-2 focus:ring-totvs-cyan"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSenha(!showSenha)}
+                    title={showSenha ? "Ocultar senha" : "Visualizar senha"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-1 rounded-lg cursor-pointer"
+                  >
+                    {showSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-totvs-blue to-totvs-cyan hover:from-[#003B8E] hover:to-[#00B4D8] text-white font-black text-xs transition shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Icons.Key />
+                  <span>{loading ? 'Entrando...' : 'Entrar como Administrador'}</span>
+                </button>
+              </div>
+
+              <p className="text-[11px] text-center text-slate-400 pt-2">
+                🔒 Visitantes podem navegar livremente pelo site sem efetuar login.
+              </p>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE: MODAL DE ATIVAÇÃO DE CONVITE DE NOVO ADM ---
+    function AcceptInviteModal({ token, onClose, onAcceptSuccess }) {
+      const [conviteData, setConviteData] = useState(null);
+      const [carregando, setCarregando] = useState(true);
+      const [erroToken, setErroToken] = useState('');
+      
+      const [nome, setNome] = useState('');
+      const [email, setEmail] = useState('');
+      const [senhaProvisoria, setSenhaProvisoria] = useState('totvs123');
+      const [novaSenha, setNovaSenha] = useState('');
+      const [confirmaSenha, setConfirmaSenha] = useState('');
+      const [showNovaSenha, setShowNovaSenha] = useState(false);
+      const [showConfirmaSenha, setShowConfirmaSenha] = useState(false);
+      const [emailTocado, setEmailTocado] = useState(false);
+      const [salvando, setSalvando] = useState(false);
+      const [formErro, setFormErro] = useState('');
+
+      useEffect(() => {
+        if (!token) return;
+        fetch(`/api/admin/invite/${token}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.convite) {
+              setConviteData(data.convite);
+            } else {
+              setErroToken(data.message || 'Este link de convite é inválido ou já foi utilizado.');
+            }
+          })
+          .catch(() => setErroToken('Erro ao verificar o convite. Verifique sua conexão.'))
+          .finally(() => setCarregando(false));
+      }, [token]);
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setFormErro('');
+
+        const emailTrim = email.trim();
+        const emailRegex = /^[^s@]+@[^s@]+.[^s@]{2,}$/;
+        if (!emailRegex.test(emailTrim)) {
+          setFormErro('Por favor, informe um endereço de e-mail corporativo válido (exemplo: usuario@empresa.com.br).');
+          return;
+        }
+
+        if (senhaProvisoria.trim() !== 'totvs123') {
+          setFormErro('A senha provisória padrão é totvs123.');
+          return;
+        }
+
+        if (novaSenha.trim().length < 4) {
+          setFormErro('A nova senha deve possuir pelo menos 4 caracteres.');
+          return;
+        }
+
+        if (novaSenha !== confirmaSenha) {
+          setFormErro('A confirmação da nova senha não confere.');
+          return;
+        }
+
+        setSalvando(true);
+        try {
+          const res = await fetch('/api/admin/accept-invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              token,
+              nome: nome.trim(),
+              email: email.trim(),
+              senhaProvisoria: senhaProvisoria.trim(),
+              novaSenha: novaSenha.trim()
+            })
+          });
+          const data = await res.json();
+          if (data.success && data.usuario) {
+            onAcceptSuccess(data.usuario);
+          } else {
+            setFormErro(data.message || 'Erro ao ativar perfil de administrador.');
+          }
+        } catch (err) {
+          setFormErro('Erro de conexão ao ativar convite.');
+        } finally {
+          setSalvando(false);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 border border-slate-200 animate-in fade-in zoom-in-95 duration-200 relative">
+            {carregando ? (
+              <div className="text-center py-12">
+                <div className="w-10 h-10 border-4 border-totvs-cyan border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                <p className="text-xs font-bold text-slate-600">Verificando link de convite...</p>
+              </div>
+            ) : erroToken ? (
+              <div className="text-center py-8 space-y-4">
+                <div className="w-14 h-14 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-2xl font-bold">
+                  ⚠️
+                </div>
+                <h3 className="text-lg font-black text-slate-800">Convite Indisponível</h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">{erroToken}</p>
+                <div className="pt-2">
+                  <button
+                    onClick={onClose}
+                    className="px-5 py-2.5 rounded-xl bg-totvs-blue hover:bg-totvs-dark text-white font-bold text-xs transition shadow-md cursor-pointer"
+                  >
+                    Acessar o Espaço Experiência
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="text-center mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto mb-2 text-2xl font-black">
+                    🎉
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-block mb-1">
+                    Convite de Administrador
+                  </span>
+                  <h3 className="font-black text-xl text-slate-800">Ative seu Perfil de ADM</h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar o Espaço Experiência TOTVS.
+                  </p>
+                </div>
+
+                {formErro && (
+                  <div className="mb-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3 rounded-xl flex items-center gap-2">
+                    <Icons.AlertCircle />
+                    <span>{formErro}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Seu Nome Completo:</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Carlos Silva"
+                      value={nome}
+                      onChange={e => setNome(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-medium text-slate-800 focus:ring-2 focus:ring-totvs-cyan"
+                      required
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold text-slate-700">Seu E-mail Corporativo:</label>
+                      {emailTocado && !/^[^s@]+@[^s@]+.[^s@]{2,}$/.test(email.trim()) && email.trim().length > 0 && (
+                        <span className="text-[10px] text-rose-500 font-bold">Formato inválido</span>
+                      )}
+                    </div>
+                    <input
+                      type="email"
+                      placeholder="seu.nome@empresa.com.br"
+                      value={email}
+                      onBlur={() => setEmailTocado(true)}
+                      onChange={e => {
+                        setEmail(e.target.value);
+                        if (!emailTocado && e.target.value.includes('@')) setEmailTocado(true);
+                      }}
+                      className={`w-full p-2.5 border rounded-xl bg-white font-medium text-slate-800 transition focus:ring-2 focus:ring-totvs-cyan ${
+                        emailTocado && !/^[^s@]+@[^s@]+.[^s@]{2,}$/.test(email.trim()) && email.trim().length > 0
+                          ? 'border-rose-400 focus:border-rose-500 bg-rose-50/20'
+                          : 'border-slate-300'
+                      }`}
+                      required
+                    />
+                    {emailTocado && !/^[^s@]+@[^s@]+.[^s@]{2,}$/.test(email.trim()) && email.trim().length > 0 && (
+                      <p className="text-[10px] text-rose-500 mt-1">
+                        Informe um e-mail válido (ex: nome@empresa.com.br).
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-50/60 p-3 rounded-2xl border border-blue-100 space-y-2">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-slate-700">Senha Provisória do Convite:</label>
+                        <span className="text-[10px] text-totvs-blue font-bold">Padrão: totvs123</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={senhaProvisoria}
+                        onChange={e => setSenhaProvisoria(e.target.value)}
+                        className="w-full p-2 border border-slate-300 rounded-lg bg-white font-mono text-slate-800 focus:ring-2 focus:ring-totvs-cyan"
+                        required
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                      <div>
+                        <label className="block text-[10.5px] font-bold text-slate-700 mb-1">Nova Senha Definitiva:</label>
+                        <div className="relative">
+                          <input
+                            type={showNovaSenha ? 'text' : 'password'}
+                            placeholder="Mínimo 4 caracteres"
+                            value={novaSenha}
+                            onChange={e => setNovaSenha(e.target.value)}
+                            className="w-full p-2 pr-8 border border-slate-300 rounded-lg bg-white font-medium text-slate-800 focus:ring-2 focus:ring-totvs-cyan text-xs"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNovaSenha(!showNovaSenha)}
+                            title={showNovaSenha ? "Ocultar senha" : "Visualizar senha"}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-0.5 rounded cursor-pointer"
+                          >
+                            {showNovaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10.5px] font-bold text-slate-700 mb-1">Confirmar Nova Senha:</label>
+                        <div className="relative">
+                          <input
+                            type={showConfirmaSenha ? 'text' : 'password'}
+                            placeholder="Repita a nova senha"
+                            value={confirmaSenha}
+                            onChange={e => setConfirmaSenha(e.target.value)}
+                            className="w-full p-2 pr-8 border border-slate-300 rounded-lg bg-white font-medium text-slate-800 focus:ring-2 focus:ring-totvs-cyan text-xs"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmaSenha(!showConfirmaSenha)}
+                            title={showConfirmaSenha ? "Ocultar senha" : "Visualizar senha para confirmação"}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-0.5 rounded cursor-pointer"
+                          >
+                            {showConfirmaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition text-xs cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={salvando}
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-totvs-blue to-totvs-cyan hover:from-[#003B8E] hover:to-[#00B4D8] text-white font-black text-xs transition shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      <Icons.Check />
+                      <span>{salvando ? 'Ativando...' : 'Ativar e Entrar como ADM'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE: MODAL DE DETALHES (MODO COPILOTO) ---
+    function SegmentDetailModal({ segment, admLogado, onClose, onEdit }) {
+      const [tab, setTab] = useState('pitch');
+      const IconComp = Icons[segment.icone] || Icons.Factory;
+
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [onClose]);
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Header do Modal */}
+            <div className="bg-gradient-to-r from-totvs-dark to-totvs-blue text-white p-4 sm:p-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+                  <IconComp />
+                </div>
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-totvs-cyan">
+                    Estação {segment.ordem} do Roteiro Físico
+                  </span>
+                  <h2 className="text-2xl font-black text-white">{segment.nome}</h2>
+                  <p className="text-xs text-slate-200 mt-0.5">{segment.tagline}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {admLogado && (
+                  <button
+                    onClick={onEdit}
+                    className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/20 transition cursor-pointer"
+                  >
+                    <Icons.Edit />
+                    <span>Editar Informações</span>
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="text-slate-300 hover:text-white p-1 rounded-lg transition"
+                >
+                  <Icons.X />
+                </button>
+              </div>
+            </div>
+
+            {/* Navegação por Abas */}
+            <div className="flex border-b border-slate-200 bg-slate-50 px-4 sm:px-6 overflow-x-auto scrollbar-thin">
+              <button
+                onClick={() => setTab('pitch')}
+                className={`py-3.5 px-4 font-semibold text-xs border-b-2 transition flex items-center gap-2 ${
+                  tab === 'pitch'
+                    ? 'border-totvs-blue text-totvs-blue bg-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <span>🎙️ Discurso de Plantão (Pitch)</span>
+              </button>
+              <button
+                onClick={() => setTab('bancada')}
+                className={`py-3.5 px-4 font-semibold text-xs border-b-2 transition flex items-center gap-2 ${
+                  tab === 'bancada'
+                    ? 'border-totvs-blue text-totvs-blue bg-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <span>🖥️ Bancada Física & Roteiro</span>
+              </button>
+              <button
+                onClick={() => setTab('midias')}
+                className={`py-3.5 px-4 font-semibold text-xs border-b-2 transition flex items-center gap-2 ${
+                  tab === 'midias'
+                    ? 'border-totvs-blue text-totvs-blue bg-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <span>🎬 Fotos & Vídeos</span>
+              </button>
+            </div>
+
+            {/* Conteúdo das Abas */}
+            <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
+              {tab === 'pitch' && (
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50/40 p-5 rounded-2xl border border-blue-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-totvs-blue flex items-center gap-1.5">
+                        <Icons.UserCheck />
+                        <span>Pitch Sugerido de 1 Minuto para o Visitante:</span>
+                      </span>
+                      <span className="text-[11px] font-semibold bg-totvs-blue text-white px-2 py-0.5 rounded-full">
+                        Discurso de Alto Impacto
+                      </span>
+                    </div>
+                    <blockquote className="text-sm font-medium text-slate-800 italic leading-relaxed">
+                      "{segment.pitch}"
+                    </blockquote>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                      <Icons.AlertCircle />
+                      <span>Dores Críticas do Mercado que a TOTVS Resolve:</span>
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {segment.dores_setor && segment.dores_setor.map((dor, i) => (
+                        <div key={i} className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 text-xs text-slate-700 leading-snug flex gap-2">
+                          <span className="font-bold text-totvs-cyan">{i+1}.</span>
+                          <span>{dor}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-200/70">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 mb-2 flex items-center gap-1.5">
+                      <span>💡 Perguntas-Chave para Provocar e Engajar o Visitante:</span>
+                    </h4>
+                    <ul className="space-y-2 text-xs text-amber-950 font-medium">
+                      {segment.perguntas_visitante && segment.perguntas_visitante.map((perg, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-amber-600 font-bold">•</span>
+                          <span>"{perg}"</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {tab === 'bancada' && (
+                <div className="space-y-6">
+                  {/* Foto da Bancada e Credenciais Integradas */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {segment.foto_bancada ? (
+                      <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-950 group">
+                        <img
+                          src={segment.foto_bancada}
+                          alt={`Bancada física ${segment.nome}`}
+                          className="w-full h-48 object-cover group-hover:scale-105 transition duration-500"
+                        />
+                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-bold border border-white/20 shadow-sm">
+                          <span>📸 Foto da Bancada Física</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-48 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-dashed border-slate-300 flex flex-col items-center justify-center p-4 text-center">
+                        <span className="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mb-2">
+                          <Icons.Image />
+                        </span>
+                        <span className="text-xs font-bold text-slate-600 block">Bancada Física</span>
+                        <span className="text-[11px] text-slate-400">Nenhuma foto vinculada ainda</span>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col justify-between">
+                      <StationCredentialsBox credenciais={segment.credenciais} />
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 mt-3 text-xs text-slate-600 leading-relaxed">
+                        <strong className="text-totvs-blue block mb-1">Dica para a Visita:</strong>
+                        Mantenha este computador ligado e logado com as credenciais acima antes do início da jornada dos clientes.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                      O Que Há Fisicamente no Laboratório:
+                    </h4>
+                    <p className="text-xs text-slate-700 font-medium leading-relaxed">
+                      {segment.cenario_fisico}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-totvs-blue mb-3">
+                      Passo a Passo de Demonstração na Bancada:
+                    </h4>
+                    <div className="space-y-3">
+                      {segment.roteiro_bancada && segment.roteiro_bancada.map((passo, idx) => (
+                        <div key={idx} className="flex items-start gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                          <span className="w-6 h-6 rounded-full bg-totvs-blue text-white flex items-center justify-center text-xs font-bold shrink-0">
+                            {idx + 1}
+                          </span>
+                          <span className="text-xs text-slate-800 font-medium leading-relaxed">
+                            {passo}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                      Sistemas & Módulos TOTVS Exibidos:
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {segment.badge_solucoes && segment.badge_solucoes.map((sol, idx) => (
+                        <span key={idx} className="bg-totvs-blue/10 text-totvs-blue font-bold text-xs px-3 py-1 rounded-lg border border-totvs-blue/20">
+                          {sol}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {tab === 'midias' && (
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                      <Icons.Video />
+                      <span>Vídeos de Demonstração & Tour no Laboratório:</span>
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {segment.midias?.videos && segment.midias.videos.map((vid, idx) => (
+                        <div key={idx} className="bg-slate-900 rounded-2xl overflow-hidden shadow-md border border-slate-800">
+                          <video
+                            controls
+                            className="w-full h-48 object-cover bg-black"
+                            src={vid.url}
+                          >
+                            Seu navegador não suporta reprodução de vídeo.
+                          </video>
+                          <div className="p-3 bg-slate-900 text-white">
+                            <h5 className="font-bold text-xs">{vid.titulo}</h5>
+                            <span className="text-[10px] text-slate-400">Vídeo local gravado no Espaço Experiência</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                      <Icons.Image />
+                      <span>Fotos dos Equipamentos e Telas do Laboratório:</span>
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {segment.midias?.fotos && segment.midias.fotos.map((foto, idx) => (
+                        <div key={idx} className="rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
+                          <img
+                            src={foto.url}
+                            alt={foto.titulo}
+                            className="w-full h-36 object-cover hover:scale-105 transition duration-300"
+                          />
+                          <div className="p-2 text-[11px] font-semibold text-slate-700 bg-white">
+                            {foto.titulo}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Rodapé do Modal */}
+            <div className="bg-slate-100 px-6 py-3.5 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+              <span>Última revisão por {segment.ultima_atualizacao?.autor} em {segment.ultima_atualizacao?.data}</span>
+              <button
+                onClick={onClose}
+                className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-lg font-semibold transition"
+              >
+                Fechar
+              </button>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE: MODAL DE EDIÇÃO DESCENTRALIZADA COM GESTÃO DE MÍDIAS ---
+    function SegmentEditModal({ segment, usuarioAtivo, onClose, onSave }) {
+      const [form, setForm] = useState(() => {
+        const copy = JSON.parse(JSON.stringify(segment));
+        if (!copy.midias) copy.midias = {};
+        if (!copy.midias.videos) copy.midias.videos = [];
+        if (!copy.midias.fotos) copy.midias.fotos = [];
+        if (!copy.credenciais) copy.credenciais = { equipamento: `PC ${copy.nome}`, usuario: 'ens.experiencia@totvs.com.br', senha: 'Experienciastotvs@2026' };
+        if (typeof copy.foto_bancada === 'undefined') copy.foto_bancada = '';
+        return copy;
+      });
+
+      // Estados para Foto da Bancada
+      const [uploadingBancada, setUploadingBancada] = useState(false);
+      const [bancadaUploadMsg, setBancadaUploadMsg] = useState('');
+
+      // Estados para Novo Vídeo
+      const [novoVideoTitulo, setNovoVideoTitulo] = useState('');
+      const [novoVideoUrl, setNovoVideoUrl] = useState('');
+      const [uploadingVideo, setUploadingVideo] = useState(false);
+      const [videoUploadMsg, setVideoUploadMsg] = useState('');
+
+      // Estados para Nova Foto de Apoio
+      const [novaFotoTitulo, setNovaFotoTitulo] = useState('');
+      const [novaFotoUrl, setNovaFotoUrl] = useState('');
+      const [uploadingFoto, setUploadingFoto] = useState(false);
+      const [fotoUploadMsg, setFotoUploadMsg] = useState('');
+
+      // Função Universal de Upload Binário Direto (/api/upload)
+      const handleFileUpload = async (file, tipo) => {
+        if (!file) return;
+        const isBancada = tipo === 'bancada';
+        const isVideo = tipo === 'video';
+
+        if (isBancada) {
+          setUploadingBancada(true);
+          setBancadaUploadMsg(`Enviando foto da bancada "${file.name}" para o servidor local... ⏳`);
+        } else if (isVideo) {
+          setUploadingVideo(true);
+          setVideoUploadMsg(`Enviando "${file.name}" para o servidor local... ⏳`);
+        } else {
+          setUploadingFoto(true);
+          setFotoUploadMsg(`Enviando "${file.name}" para o servidor local... ⏳`);
+        }
+
+        try {
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            headers: {
+              'X-Filename': encodeURIComponent(file.name),
+              'Content-Type': file.type || 'application/octet-stream'
+            },
+            body: file
+          });
+          const data = await res.json();
+          if (data.success && data.url) {
+            if (isBancada) {
+              setForm(prev => ({ ...prev, foto_bancada: data.url }));
+              setBancadaUploadMsg(`Foto da bancada carregada com sucesso! ✅`);
+            } else if (isVideo) {
+              setNovoVideoUrl(data.url);
+              setVideoUploadMsg(`Upload concluído com sucesso! ✅ (${(data.tamanho_bytes / 1024 / 1024).toFixed(2)} MB)`);
+            } else {
+              setNovaFotoUrl(data.url);
+              setFotoUploadMsg(`Upload concluído com sucesso! ✅`);
+            }
+          } else {
+            throw new Error(data.message || 'Falha ao processar arquivo.');
+          }
+        } catch (err) {
+          alert(`Erro ao fazer upload do arquivo: ${err.message}`);
+          if (isBancada) setBancadaUploadMsg('❌ Erro no upload da foto da bancada.');
+          else if (isVideo) setVideoUploadMsg('❌ Erro no upload. Tente novamente.');
+          else setFotoUploadMsg('❌ Erro no upload. Tente novamente.');
+        } finally {
+          if (isBancada) setUploadingBancada(false);
+          else if (isVideo) setUploadingVideo(false);
+          else setUploadingFoto(false);
+        }
+      };
+
+      // Adicionar Vídeo à Estação
+      const handleAddVideo = () => {
+        if (!novoVideoUrl.trim()) {
+          alert('Selecione um arquivo de vídeo do seu computador ou informe a URL do vídeo.');
+          return;
+        }
+        const titulo = novoVideoTitulo.trim() || `Vídeo Demonstrativo de ${form.nome}`;
+        const novoItem = { titulo, url: novoVideoUrl.trim() };
+        setForm(prev => ({
+          ...prev,
+          midias: {
+            ...prev.midias,
+            videos: [...(prev.midias.videos || []), novoItem]
+          }
+        }));
+        setNovoVideoTitulo('');
+        setNovoVideoUrl('');
+        setVideoUploadMsg('');
+      };
+
+      const handleRemoveVideo = (idx) => {
+        setForm(prev => ({
+          ...prev,
+          midias: {
+            ...prev.midias,
+            videos: prev.midias.videos.filter((_, i) => i !== idx)
+          }
+        }));
+      };
+
+      // Adicionar Foto à Estação
+      const handleAddFoto = () => {
+        if (!novaFotoUrl.trim()) {
+          alert('Selecione um arquivo de foto do seu computador ou informe a URL da imagem.');
+          return;
+        }
+        const titulo = novaFotoTitulo.trim() || `Equipamento de ${form.nome}`;
+        const novoItem = { titulo, url: novaFotoUrl.trim() };
+        setForm(prev => ({
+          ...prev,
+          midias: {
+            ...prev.midias,
+            fotos: [...(prev.midias.fotos || []), novoItem]
+          }
+        }));
+        setNovaFotoTitulo('');
+        setNovaFotoUrl('');
+        setFotoUploadMsg('');
+      };
+
+      const handleRemoveFoto = (idx) => {
+        setForm(prev => ({
+          ...prev,
+          midias: {
+            ...prev.midias,
+            fotos: prev.midias.fotos.filter((_, i) => i !== idx)
+          }
+        }));
+      };
+
+      const handleAddSolucao = () => {
+        const nova = prompt('Informe o nome da nova solução TOTVS:');
+        if (nova && nova.trim()) {
+          setForm(prev => ({
+            ...prev,
+            badge_solucoes: [...(prev.badge_solucoes || []), nova.trim()]
+          }));
+        }
+      };
+
+      const handleRemoveSolucao = (idx) => {
+        setForm(prev => ({
+          ...prev,
+          badge_solucoes: prev.badge_solucoes.filter((_, i) => i !== idx)
+        }));
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+            
+            <div className="bg-totvs-blue text-white p-5 flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-totvs-cyan">Edição Colaborativa Multiusuário</span>
+                <h3 className="text-xl font-bold">Editar: {segment.nome}</h3>
+              </div>
+              <button onClick={onClose} className="text-slate-300 hover:text-white p-1 rounded-lg transition">
+                <Icons.X />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                onSave(form);
+              }}
+              className="p-6 space-y-6 max-h-[75vh] overflow-y-auto text-xs"
+            >
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px] text-slate-600 flex items-center justify-between">
+                <span>Editando como Analista: <strong>{usuarioAtivo ? usuarioAtivo.nome : 'Especialista TOTVS'}</strong></span>
+                <span className="text-totvs-blue font-semibold">{usuarioAtivo?.email}</span>
+              </div>
+
+              {/* SEÇÃO: IDENTIFICAÇÃO DA ESTAÇÃO */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                  <Icons.Edit />
+                  <span>Identificação da Estação & Segmento</span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div className="sm:col-span-1">
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Nº da Estação:
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="99"
+                      value={form.ordem || 1}
+                      onChange={e => setForm({ ...form, ordem: parseInt(e.target.value, 10) || 1 })}
+                      className="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-bold text-slate-800 text-xs text-center focus:ring-2 focus:ring-totvs-cyan"
+                      required
+                    />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Nome do Segmento / Card:
+                    </label>
+                    <input
+                      type="text"
+                      value={form.nome || ''}
+                      onChange={e => setForm({ ...form, nome: e.target.value })}
+                      placeholder="Ex: TOTVS Manufatura"
+                      className="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-bold text-slate-800 text-xs focus:ring-2 focus:ring-totvs-cyan"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SEÇÃO PRINCIPAL: BANCADA FÍSICA & CREDENCIAIS DE ACESSO */}
+              <div className="bg-gradient-to-br from-blue-50/70 via-indigo-50/40 to-slate-50 p-4 rounded-2xl border-2 border-totvs-blue/20 shadow-xs space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-blue-200/60">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-xl bg-totvs-blue text-white flex items-center justify-center font-bold shadow-sm">
+                      <Icons.Monitor />
+                    </span>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                        <span>Bancada Física & Credenciais de Acesso ao PC</span>
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                          Visível na Capa
+                        </span>
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Foto da bancada e dados de login exibidos diretamente na face do card de cada estação.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Subseção 1: Foto da Bancada Física (Capa do Card) */}
+                <div className="bg-white p-3.5 rounded-xl border border-blue-100 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                      <Icons.Image />
+                      <span>Foto da Bancada Física (Capa do Card):</span>
+                    </label>
+                    {form.foto_bancada && (
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, foto_bancada: '' })}
+                        className="text-rose-500 hover:text-rose-700 font-bold text-[11px] flex items-center gap-1"
+                        title="Remover foto da bancada"
+                      >
+                        <Icons.Trash />
+                        <span>Remover Foto</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Prévia da Foto da Bancada */}
+                  {form.foto_bancada ? (
+                    <div className="flex items-center gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                      <img
+                        src={form.foto_bancada}
+                        alt="Prévia da Bancada"
+                        className="w-24 h-16 object-cover rounded-lg border border-slate-300 shadow-xs shrink-0"
+                        onError={(e) => { e.target.src = 'https://placehold.co/100x70?text=Bancada'; }}
+                      />
+                      <div className="text-xs truncate flex-1">
+                        <span className="font-bold text-slate-800 block">Foto da Bancada Vinculada</span>
+                        <span className="text-[10px] text-slate-500 font-mono block truncate">{form.foto_bancada}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-center text-slate-400 text-xs">
+                      Nenhuma foto da bancada vinculada no momento. Selecione uma foto abaixo.
+                    </div>
+                  )}
+
+                  {/* Input de URL / Caminho e Botão de Escolha no Computador */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                    <div className="md:col-span-2">
+                      <input
+                        type="text"
+                        placeholder="uploads/bancada_totvs_logistica.jpg ou URL da foto"
+                        value={form.foto_bancada || ''}
+                        onChange={e => setForm({ ...form, foto_bancada: e.target.value })}
+                        className="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-totvs-cyan font-mono text-[11px]"
+                      />
+                    </div>
+                    <div>
+                      <label className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 cursor-pointer transition shadow-xs font-semibold text-[11px] text-center">
+                        <Icons.Upload />
+                        <span>{uploadingBancada ? 'Enviando...' : '📁 Escolher Foto'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={e => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleFileUpload(e.target.files[0], 'bancada');
+                            }
+                          }}
+                          disabled={uploadingBancada}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {bancadaUploadMsg && (
+                    <div className="text-[11px] font-semibold text-totvs-blue bg-blue-50 p-2 rounded-lg border border-blue-200 flex items-center gap-2">
+                      <Icons.CheckCircle />
+                      <span>{bancadaUploadMsg}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Subseção 2: Credenciais do PC / Notebook */}
+                <div className="bg-white p-3.5 rounded-xl border border-blue-100 space-y-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-totvs-blue font-bold">
+                      <Icons.Key />
+                    </span>
+                    <label className="font-bold text-slate-800 text-xs">
+                      Credenciais de Acesso (Computador / Notebook da Estação):
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                        Nome do Equipamento:
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: PC Logistica"
+                        value={form.credenciais?.equipamento || ''}
+                        onChange={e => setForm({
+                          ...form,
+                          credenciais: { ...(form.credenciais || {}), equipamento: e.target.value }
+                        })}
+                        className="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-totvs-cyan font-medium text-xs"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                        Usuário de Acesso:
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="ens.experiencia@totvs.com.br"
+                        value={form.credenciais?.usuario || ''}
+                        onChange={e => setForm({
+                          ...form,
+                          credenciais: { ...(form.credenciais || {}), usuario: e.target.value }
+                        })}
+                        className="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-totvs-cyan font-mono text-[11px]"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                        Senha de Acesso:
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Experienciastotvs@2026"
+                        value={form.credenciais?.senha || ''}
+                        onChange={e => setForm({
+                          ...form,
+                          credenciais: { ...(form.credenciais || {}), senha: e.target.value }
+                        })}
+                        className="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-totvs-cyan font-mono text-[11px]"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tagline */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Frase de Efeito / Tagline:</label>
+                <input
+                  type="text"
+                  value={form.tagline || ''}
+                  onChange={e => setForm({ ...form, tagline: e.target.value })}
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-totvs-cyan"
+                  required
+                />
+              </div>
+
+              {/* Pitch Sugerido de 1 Minuto */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Discurso Sugerido (Pitch de 1 Minuto para o Visitante):
+                </label>
+                <textarea
+                  rows={4}
+                  value={form.pitch || ''}
+                  onChange={e => setForm({ ...form, pitch: e.target.value })}
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-totvs-cyan leading-relaxed"
+                  required
+                />
+              </div>
+
+              {/* Cenário Físico do Laboratório */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Cenário Físico na Bancada do Laboratório:</label>
+                <textarea
+                  rows={2}
+                  value={form.cenario_fisico || ''}
+                  onChange={e => setForm({ ...form, cenario_fisico: e.target.value })}
+                  className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-totvs-cyan"
+                  required
+                />
+              </div>
+
+              {/* Soluções em Exposição */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Soluções TOTVS em Exposição:</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {form.badge_solucoes && form.badge_solucoes.map((b, idx) => (
+                    <span key={idx} className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md border border-slate-300 flex items-center gap-1 font-semibold">
+                      {b}
+                      <button type="button" onClick={() => handleRemoveSolucao(idx)} className="text-red-500 hover:text-red-700 font-bold ml-1">×</button>
+                    </span>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddSolucao}
+                  className="text-xs text-totvs-blue font-bold hover:underline"
+                >
+                  + Adicionar Solução
+                </button>
+              </div>
+
+              {/* SEÇÃO 1: GESTÃO & UPLOAD DE VÍDEOS */}
+              <div className="pt-4 border-t border-slate-200">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-7 h-7 rounded-lg bg-totvs-blue/10 text-totvs-blue flex items-center justify-center font-bold">
+                      <Icons.Video />
+                    </span>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">Vídeos em Exposição ({form.midias?.videos?.length || 0})</h4>
+                      <p className="text-[11px] text-slate-500">Faça upload de vídeos MP4 locais ou informe links de demonstração</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista de Vídeos Existentes */}
+                <div className="space-y-2 mb-4">
+                  {(!form.midias?.videos || form.midias.videos.length === 0) ? (
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center text-slate-400 text-xs">
+                      Nenhum vídeo cadastrado nesta estação.
+                    </div>
+                  ) : (
+                    form.midias.videos.map((vid, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition">
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <span className="w-8 h-8 rounded-lg bg-slate-800 text-totvs-cyan flex items-center justify-center shrink-0">
+                            <Icons.Video />
+                          </span>
+                          <div className="truncate">
+                            <span className="font-bold text-slate-800 block text-xs truncate">{vid.titulo}</span>
+                            <span className="text-[10px] text-slate-500 font-mono block truncate">{vid.url}</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveVideo(idx)}
+                          className="text-rose-500 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-50 transition shrink-0 ml-2"
+                          title="Remover vídeo"
+                        >
+                          <Icons.Trash />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Formulário para Adicionar / Upload de Novo Vídeo */}
+                <div className="bg-blue-50/40 p-4 rounded-xl border border-blue-100 space-y-3">
+                  <h5 className="font-bold text-totvs-blue text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <Icons.Plus />
+                    <span>Adicionar Novo Vídeo:</span>
+                  </h5>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Título do Vídeo:</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Demonstração da Linha de Montagem"
+                        value={novoVideoTitulo}
+                        onChange={e => setNovoVideoTitulo(e.target.value)}
+                        className="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-totvs-cyan"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">URL / Caminho do Arquivo:</label>
+                      <input
+                        type="text"
+                        placeholder="uploads/video.mp4 ou URL"
+                        value={novoVideoUrl}
+                        onChange={e => setNovoVideoUrl(e.target.value)}
+                        className="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-totvs-cyan font-mono text-[11px]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Seletor de Arquivo com Upload Direto */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                    <label className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 cursor-pointer transition shadow-sm font-semibold text-[11px]">
+                      <Icons.Upload />
+                      <span>{uploadingVideo ? 'Enviando...' : '📁 Escolher Vídeo do Computador (.mp4, .webm)'}</span>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/webm"
+                        onChange={e => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileUpload(e.target.files[0], 'video');
+                          }
+                        }}
+                        disabled={uploadingVideo}
+                        className="hidden"
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={handleAddVideo}
+                      disabled={uploadingVideo || !novoVideoUrl}
+                      className={`px-4 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm ${
+                        novoVideoUrl && !uploadingVideo
+                          ? 'bg-totvs-blue text-white hover:bg-totvs-dark cursor-pointer'
+                          : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-70'
+                      }`}
+                    >
+                      <Icons.Plus />
+                      <span>Inserir Vídeo na Estação</span>
+                    </button>
+                  </div>
+
+                  {videoUploadMsg && (
+                    <div className="text-[11px] font-semibold text-totvs-blue bg-white p-2 rounded-lg border border-blue-100 flex items-center gap-2">
+                      <Icons.CheckCircle />
+                      <span>{videoUploadMsg}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* SEÇÃO 2: GESTÃO & UPLOAD DE FOTOS */}
+              <div className="pt-4 border-t border-slate-200">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-7 h-7 rounded-lg bg-totvs-blue/10 text-totvs-blue flex items-center justify-center font-bold">
+                      <Icons.Image />
+                    </span>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">Fotos dos Equipamentos & Telas ({form.midias?.fotos?.length || 0})</h4>
+                      <p className="text-[11px] text-slate-500">Faça upload de fotos da bancada física ou insira imagens de suporte</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grade de Fotos Existentes */}
+                <div className="mb-4">
+                  {(!form.midias?.fotos || form.midias.fotos.length === 0) ? (
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center text-slate-400 text-xs">
+                      Nenhuma foto cadastrada nesta estação.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {form.midias.fotos.map((foto, idx) => (
+                        <div key={idx} className="relative group rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm">
+                          <img
+                            src={foto.url}
+                            alt={foto.titulo}
+                            className="w-full h-24 object-cover group-hover:scale-105 transition duration-300"
+                            onError={(e) => { e.target.src = 'https://placehold.co/400x300?text=Foto'; }}
+                          />
+                          <div className="p-2 bg-white">
+                            <span className="font-semibold text-slate-700 text-[11px] block truncate">{foto.titulo}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFoto(idx)}
+                            className="absolute top-1.5 right-1.5 bg-rose-600 hover:bg-rose-700 text-white p-1 rounded-lg shadow-md transition opacity-90 hover:opacity-100"
+                            title="Remover foto"
+                          >
+                            <Icons.Trash />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Formulário para Adicionar / Upload de Nova Foto */}
+                <div className="bg-blue-50/40 p-4 rounded-xl border border-blue-100 space-y-3">
+                  <h5 className="font-bold text-totvs-blue text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <Icons.Plus />
+                    <span>Adicionar Nova Foto:</span>
+                  </h5>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Título da Foto:</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Terminal IoT e Balança Digital"
+                        value={novaFotoTitulo}
+                        onChange={e => setNovaFotoTitulo(e.target.value)}
+                        className="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-totvs-cyan"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">URL / Caminho da Imagem:</label>
+                      <input
+                        type="text"
+                        placeholder="uploads/foto.jpg ou URL"
+                        value={novaFotoUrl}
+                        onChange={e => setNovaFotoUrl(e.target.value)}
+                        className="w-full p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-totvs-cyan font-mono text-[11px]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Prévia da imagem selecionada */}
+                  {novaFotoUrl && (
+                    <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-slate-200">
+                      <img
+                        src={novaFotoUrl}
+                        alt="Preview"
+                        className="w-16 h-16 object-cover rounded-lg border border-slate-200"
+                        onError={(e) => { e.target.src = 'https://placehold.co/100x100?text=Preview'; }}
+                      />
+                      <div className="text-xs">
+                        <span className="font-bold text-slate-800 block">Prévia da Foto Carregada</span>
+                        <span className="text-[10px] text-slate-500 font-mono">{novaFotoUrl}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Seletor de Foto do Computador */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                    <label className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 cursor-pointer transition shadow-sm font-semibold text-[11px]">
+                      <Icons.Upload />
+                      <span>{uploadingFoto ? 'Enviando...' : '📁 Escolher Foto do Computador (.png, .jpg, .webp)'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileUpload(e.target.files[0], 'foto');
+                          }
+                        }}
+                        disabled={uploadingFoto}
+                        className="hidden"
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={handleAddFoto}
+                      disabled={uploadingFoto || !novaFotoUrl}
+                      className={`px-4 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm ${
+                        novaFotoUrl && !uploadingFoto
+                          ? 'bg-totvs-blue text-white hover:bg-totvs-dark cursor-pointer'
+                          : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-70'
+                      }`}
+                    >
+                      <Icons.Plus />
+                      <span>Inserir Foto na Estação</span>
+                    </button>
+                  </div>
+
+                  {fotoUploadMsg && (
+                    <div className="text-[11px] font-semibold text-totvs-blue bg-white p-2 rounded-lg border border-blue-100 flex items-center gap-2">
+                      <Icons.CheckCircle />
+                      <span>{fotoUploadMsg}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Botões de Ação */}
+              <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-4 py-2 rounded-xl transition"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  className="bg-totvs-blue hover:bg-totvs-dark text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition flex items-center gap-2"
+                >
+                  <span>Revisar e Salvar Alterações</span>
+                  <Icons.ChevronRight />
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE: MODAL DE VALIDAÇÃO EXPLÍCITA (CHECKPOINT OBRIGATÓRIO) ---
+    function ValidationModal({ data, usuarioAtivo, onCancel, onConfirm }) {
+      const [checked, setChecked] = useState(false);
+      const seg = data.segmento;
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+            
+            <div className="flex items-center gap-3 text-amber-600 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                <Icons.AlertCircle />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-slate-800">Confirmação de Publicação</h3>
+                <p className="text-xs text-slate-500">Validação manual obrigatória antes de gravar</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-2 mb-4">
+              <p className="font-semibold text-totvs-blue">
+                Você confirma a atualização do segmento <strong>"{seg.nome}"</strong>?
+              </p>
+              <p className="text-slate-600 leading-relaxed">
+                Estas alterações ficarão visíveis para todos os analistas simultaneamente no Espaço Experiência.
+              </p>
+              <div className="bg-white p-2.5 rounded-lg border border-slate-200 text-[11px] space-y-1.5">
+                <div><strong>Responsável registrado:</strong> {usuarioAtivo ? `${usuarioAtivo.nome} (${usuarioAtivo.email})` : 'Analista TOTVS'}</div>
+                <div className="text-slate-700 bg-slate-50 p-2 rounded border border-slate-200/80 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span>🖥️ <strong>Equipamento:</strong> {seg.credenciais?.equipamento || 'Padrão'}</span>
+                    <span className="font-mono text-[10px] text-totvs-blue">🔑 {seg.credenciais?.usuario || '—'}</span>
+                  </div>
+                  <div>
+                    <span>📸 <strong>Foto Bancada:</strong> {seg.foto_bancada ? 'Foto vinculada e ativa ✅' : 'Nenhuma foto vinculada'}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 text-slate-500 pt-1 border-t border-slate-100">
+                  <span>🎬 <strong>{seg.midias?.videos?.length || 0}</strong> vídeo(s)</span>
+                  <span>•</span>
+                  <span>🖼️ <strong>{seg.midias?.fotos?.length || 0}</strong> foto(s) de apoio</span>
+                  <span>•</span>
+                  <span>⚙️ <strong>{seg.badge_solucoes?.length || 0}</strong> solução(ões)</span>
+                </div>
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 mb-6 cursor-pointer text-xs font-semibold text-slate-700 select-none">
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={e => setChecked(e.target.checked)}
+                className="w-4 h-4 rounded text-totvs-blue focus:ring-totvs-cyan"
+              />
+              <span>Confirmo a veracidade e alinhamento do conteúdo.</span>
+            </label>
+
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition"
+              >
+                Voltar e Corrigir
+              </button>
+              <button
+                type="button"
+                disabled={!checked}
+                onClick={onConfirm}
+                className={`px-5 py-2 text-xs font-bold rounded-xl text-white transition shadow-md ${
+                  checked
+                    ? 'bg-totvs-blue hover:bg-totvs-dark cursor-pointer'
+                    : 'bg-slate-400 cursor-not-allowed opacity-60'
+                }`}
+              >
+                Confirmar e Publicar Agora
+              </button>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE: PAINEL ADMINISTRATIVO (ADMS, CONVITES, VISITAS & AUDITORIA) ---
+    function AdminModal({
+      admLogado,
+      activeTab = 'adms',
+      onTabChange,
+      admsList = [],
+      onAdmsChange,
+      convitesList = [],
+      onConvitesChange,
+      metricsData = {},
+      accessLogs = [],
+      auditLogs = [],
+      segmentos = [],
+      onClose,
+      onRefresh,
+      showToast
+    }) {
+      // Fechar com a tecla ESC
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [onClose]);
+
+      const [copiedToken, setCopiedToken] = useState(null);
+      const [gerandoConvite, setGerandoConvite] = useState(false);
+      const [conviteRecemCriado, setConviteRecemCriado] = useState(null);
+      const [deletingId, setDeletingId] = useState(null);
+      const [filterAudit, setFilterAudit] = useState('');
+      const [filterVisitas, setFilterVisitas] = useState('');
+
+      const handleGerarConvite = async () => {
+        setGerandoConvite(true);
+        try {
+          const res = await fetch('/api/admin/invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ criado_por: admLogado?.nome || 'Administrador' })
+          });
+          const data = await res.json();
+          if (data.success && data.convite) {
+            setConviteRecemCriado(data.convite);
+            if (onConvitesChange) onConvitesChange();
+            if (showToast) showToast('Link de convite gerado com sucesso! 🔗');
+          } else {
+            alert(data.error || 'Erro ao gerar convite.');
+          }
+        } catch (err) {
+          alert('Falha de conexão ao gerar link de convite.');
+        } finally {
+          setGerandoConvite(false);
+        }
+      };
+
+      const handleCopyLink = (tokenOrLink) => {
+        const url = (tokenOrLink && tokenOrLink.startsWith('http'))
+          ? tokenOrLink
+          : `${window.location.origin}${window.location.pathname}?convite=${tokenOrLink}`;
+        
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(() => {
+            setCopiedToken(tokenOrLink);
+            setTimeout(() => setCopiedToken(null), 3000);
+            if (showToast) showToast('Link copiado para a área de transferência! 📋');
+          }).catch(() => {
+            prompt('Copie o link abaixo:', url);
+          });
+        } else {
+          prompt('Copie o link abaixo:', url);
+        }
+      };
+
+      const handleDeleteAdm = async (adm) => {
+        if (!admsList || admsList.length <= 1) {
+          alert('Ação bloqueada: Não é permitido remover o único administrador do sistema!');
+          return;
+        }
+
+        const isSelf = adm.id === admLogado?.id || adm.email === admLogado?.email;
+        const msg = isSelf
+          ? `Atenção: Você está excluindo sua própria conta de administrador (${adm.nome}). Deseja realmente prosseguir?`
+          : `Deseja realmente remover os privilégios de administrador de "${adm.nome}" (${adm.email})?`;
+
+        if (!confirm(msg)) return;
+
+        setDeletingId(adm.id);
+        try {
+          const res = await fetch(`/api/admin/users/${adm.id}`, { method: 'DELETE' });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            if (onAdmsChange) onAdmsChange();
+            if (showToast) showToast(`Administrador "${adm.nome}" removido.`);
+            if (isSelf) {
+              window.location.reload();
+            }
+          } else {
+            alert(data.error || 'Erro ao remover administrador.');
+          }
+        } catch (err) {
+          alert('Erro de conexão ao remover administrador.');
+        } finally {
+          setDeletingId(null);
+        }
+      };
+
+      // Filtros
+      const filteredAuditLogs = useMemo(() => {
+        if (!filterAudit.trim()) return auditLogs;
+        const q = filterAudit.toLowerCase();
+        return auditLogs.filter(l => 
+          (l.acao && l.acao.toLowerCase().includes(q)) ||
+          (l.segmento && l.segmento.toLowerCase().includes(q)) ||
+          (l.usuario && l.usuario.toLowerCase().includes(q))
+        );
+      }, [auditLogs, filterAudit]);
+
+      const filteredAccessLogs = useMemo(() => {
+        if (!filterVisitas.trim()) return accessLogs;
+        const q = filterVisitas.toLowerCase();
+        return accessLogs.filter(l => 
+          (l.tipo && l.tipo.toLowerCase().includes(q)) ||
+          (l.acao && l.acao.toLowerCase().includes(q)) ||
+          (l.origem && l.origem.toLowerCase().includes(q)) ||
+          (l.ip_dispositivo && l.ip_dispositivo.toLowerCase().includes(q)) ||
+          (l.data_formatada && l.data_formatada.toLowerCase().includes(q)) ||
+          (l.data && l.data.toLowerCase().includes(q)) ||
+          (l.usuario && l.usuario.toLowerCase().includes(q))
+        );
+      }, [accessLogs, filterVisitas]);
+
+      const totalVisitasCount = metricsData?.total_visitas !== undefined 
+        ? metricsData.total_visitas 
+        : (metricsData?.totalVisitas !== undefined ? metricsData.totalVisitas : (accessLogs?.length || 0));
+
+      return (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8">
+            
+            {/* Header Modal */}
+            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-totvs-blue/20 border border-totvs-cyan/40 text-totvs-cyan flex items-center justify-center font-bold">
+                  <Icons.Shield />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-white flex items-center gap-2">
+                    Painel Administrativo
+                    <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
+                      Acesso Exclusivo ADM
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Logado como <strong className="text-white">{admLogado?.nome || 'Administrador'}</strong> ({admLogado?.email})
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onRefresh}
+                  title="Atualizar dados"
+                  className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition text-xs flex items-center gap-1"
+                >
+                  <Icons.Clock />
+                  <span className="hidden sm:inline">Atualizar</span>
+                </button>
+                <button
+                  onClick={onClose}
+                  className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition"
+                >
+                  <Icons.X />
+                </button>
+              </div>
+            </div>
+
+            {/* Abas de Navegação */}
+            <div className="flex border-b border-slate-200 bg-slate-50 px-6 gap-2 pt-2 overflow-x-auto">
+              <button
+                onClick={() => onTabChange('adms')}
+                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
+                  activeTab === 'adms'
+                    ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Icons.Shield />
+                <span>Administradores ({admsList.length})</span>
+              </button>
+
+              <button
+                onClick={() => onTabChange('convites')}
+                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
+                  activeTab === 'convites'
+                    ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Icons.Plus />
+                <span>Convites de ADM ({convitesList.length})</span>
+              </button>
+
+              <button
+                onClick={() => onTabChange('visitas')}
+                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
+                  activeTab === 'visitas'
+                    ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Icons.Users />
+                <span>Contador de Visitas ({totalVisitasCount})</span>
+              </button>
+
+              <button
+                onClick={() => onTabChange('audit')}
+                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
+                  activeTab === 'audit'
+                    ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Icons.Edit />
+                <span>Auditoria ({auditLogs.length})</span>
+              </button>
+            </div>
+
+            {/* Conteúdo das Abas */}
+            <div className="p-6 max-h-[70vh] overflow-y-auto">
+
+              {/* ABA 1: ADMINISTRADORES */}
+              {activeTab === 'adms' && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-blue-50/60 border border-blue-100">
+                    <div>
+                      <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                        <span>Perfil de Administrador Exclusivo</span>
+                        <span className="text-[10px] bg-totvs-blue text-white px-2 py-0.5 rounded-full font-semibold">
+                          Permissões Totais
+                        </span>
+                      </h4>
+                      <p className="text-xs text-slate-600 mt-1">
+                        Somente administradores autenticados podem editar cartões, fazer upload de fotos/vídeos e gerenciar estações. Visitantes acessam de modo aberto e leitura.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onTabChange('convites')}
+                      className="px-4 py-2.5 rounded-xl bg-totvs-blue hover:bg-totvs-blue/90 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm shrink-0 transition"
+                    >
+                      <Icons.Plus />
+                      <span>Convidar Outro ADM</span>
+                    </button>
+                  </div>
+
+                  {/* Lista de Administradores */}
+                  <div className="space-y-3">
+                    <h5 className="font-bold text-xs uppercase tracking-wider text-slate-500">
+                      Administradores Cadastrados ({admsList.length})
+                    </h5>
+
+                    <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+                      {admsList.map((adm) => {
+                        const isSelf = adm.id === admLogado?.id || adm.email === admLogado?.email;
+                        const isOnlyOne = admsList.length <= 1;
+
+                        return (
+                          <div key={adm.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-totvs-blue to-totvs-cyan text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
+                                {adm.nome ? adm.nome.charAt(0).toUpperCase() : 'A'}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-bold text-slate-900 text-sm">{adm.nome}</span>
+                                  {isSelf && (
+                                    <span className="text-[10px] bg-slate-900 text-totvs-cyan font-semibold px-2 py-0.5 rounded-full">
+                                      Você
+                                    </span>
+                                  )}
+                                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
+                                    ADM Ativo
+                                  </span>
+                                </div>
+                                <span className="text-xs text-slate-500 font-mono block">{adm.email}</span>
+                                <span className="text-[10px] text-slate-400 block mt-0.5">
+                                  {adm.criado_em ? `Cadastrado em: ${new Date(adm.criado_em).toLocaleString('pt-BR')}` : 'Administrador principal'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 self-end sm:self-center">
+                              {isOnlyOne ? (
+                                <span
+                                  className="text-xs text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 cursor-not-allowed"
+                                  title="Não é permitido remover o único administrador cadastrado"
+                                >
+                                  Único ADM (Protegido)
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteAdm(adm)}
+                                  disabled={deletingId === adm.id}
+                                  className="px-3 py-1.5 rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 hover:border-rose-300 font-semibold text-xs flex items-center gap-1.5 transition disabled:opacity-50"
+                                  title="Remover este administrador"
+                                >
+                                  <Icons.Trash />
+                                  <span>{deletingId === adm.id ? 'Removendo...' : 'Excluir ADM'}</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ABA 2: CONVITES DE ADM */}
+              {activeTab === 'convites' && (
+                <div className="space-y-6">
+                  {/* Card Gerador de Convite */}
+                  <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-md">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <h4 className="font-extrabold text-base text-white flex items-center gap-2">
+                          <Icons.Plus />
+                          <span>Gerar Link de Convite para Novo Administrador</span>
+                        </h4>
+                        <p className="text-xs text-slate-300 mt-1 max-w-xl">
+                          Gera um link seguro exclusivo. O novo administrador acessa o link, digita a senha inicial provisória <strong className="text-totvs-cyan font-mono">totvs123</strong>, preenche seus dados e define sua senha definitiva.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleGerarConvite}
+                        disabled={gerandoConvite}
+                        className="px-5 py-3 rounded-xl bg-gradient-to-r from-totvs-blue to-totvs-cyan text-slate-900 font-extrabold text-xs shadow-lg hover:shadow-cyan-500/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+                      >
+                        <Icons.Plus />
+                        <span>{gerandoConvite ? 'Gerando Link...' : 'Gerar Novo Link'}</span>
+                      </button>
+                    </div>
+
+                    {/* Destaque do Convite Recém-Criado */}
+                    {conviteRecemCriado && (
+                      <div className="mt-5 p-4 rounded-xl bg-slate-800/90 border border-totvs-cyan/40 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-totvs-cyan flex items-center gap-1.5">
+                            <Icons.CheckCircle />
+                            Link Pronto para Envio:
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            Senha provisória: totvs123
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            readOnly
+                            value={`${window.location.origin}${window.location.pathname}?convite=${conviteRecemCriado.token}`}
+                            className="w-full bg-slate-900 text-xs font-mono text-slate-200 px-3 py-2.5 rounded-xl border border-slate-700 select-all focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleCopyLink(conviteRecemCriado.token)}
+                            className="px-4 py-2.5 bg-totvs-blue hover:bg-totvs-blue/90 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0 transition"
+                          >
+                            <Icons.Copy />
+                            <span>{copiedToken === conviteRecemCriado.token ? 'Copiado!' : 'Copiar Link'}</span>
+                          </button>
+                        </div>
+
+                        <p className="text-[11px] text-slate-300">
+                          ℹ️ Copie e envie esse link ao colega. Ao abrir, ele verá a tela de ativação de administrador com troca imediata da senha inicial.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Histórico de Convites */}
+                  <div className="space-y-3">
+                    <h5 className="font-bold text-xs uppercase tracking-wider text-slate-500">
+                      Histórico de Links de Convite ({convitesList.length})
+                    </h5>
+
+                    {(!convitesList || convitesList.length === 0) ? (
+                      <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs">
+                        Nenhum convite gerado até o momento. Clique em "Gerar Novo Link" acima.
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+                        {convitesList.map((convite) => {
+                          const isUsado = convite.utilizado === true || convite.status === 'utilizado';
+                          const isCopied = copiedToken === convite.token;
+
+                          return (
+                            <div key={convite.token} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition">
+                              <div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-mono text-xs font-bold text-slate-800">
+                                    ?convite={convite.token.slice(0, 8)}...
+                                  </span>
+                                  {isUsado ? (
+                                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
+                                      Utilizado
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">
+                                      Pendente de Ativação
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="text-[11px] text-slate-500 mt-1 space-y-0.5">
+                                  <span>Criado em: {new Date(convite.criado_em).toLocaleString('pt-BR')} por {convite.criado_por}</span>
+                                  {isUsado && (
+                                    <span className="block text-emerald-700 font-medium">
+                                      Ativado por: {convite.utilizado_por || convite.nome_utilizado} {convite.email_utilizado ? `(${convite.email_utilizado})` : ''} em {new Date(convite.utilizado_em).toLocaleString('pt-BR')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 self-end sm:self-center">
+                                {!isUsado ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopyLink(convite.token)}
+                                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1.5 transition"
+                                  >
+                                    <Icons.Copy />
+                                    <span>{isCopied ? 'Copiado!' : 'Copiar Link'}</span>
+                                  </button>
+                                ) : (
+                                  <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
+                                    <Icons.CheckCircle /> Concluído
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ABA 3: CONTADOR DE VISITAS & GESTÃO DE ACESSO */}
+              {activeTab === 'visitas' && (
+                <div className="space-y-6">
+                  {/* Visão Geral Métricas */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-600 to-totvs-blue text-white shadow-md">
+                      <div className="flex items-center justify-between opacity-80 mb-2">
+                        <span className="text-xs font-bold uppercase tracking-wider">Total de Visitas</span>
+                        <Icons.Users />
+                      </div>
+                      <div className="text-3xl font-extrabold tracking-tight">
+                        {totalVisitasCount}
+                      </div>
+                      <p className="text-[11px] text-blue-100 mt-1">
+                        Acessos institucionais únicos por sessão
+                      </p>
+                    </div>
+
+                    <div className="p-5 rounded-2xl bg-slate-900 text-white shadow-md">
+                      <div className="flex items-center justify-between opacity-80 mb-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Administradores</span>
+                        <Icons.Shield />
+                      </div>
+                      <div className="text-3xl font-extrabold tracking-tight text-totvs-cyan">
+                        {admsList.length}
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Usuários com poder de edição total
+                      </p>
+                    </div>
+
+                    <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                      <div className="flex items-center justify-between text-slate-500 mb-2">
+                        <span className="text-xs font-bold uppercase tracking-wider">Modo do Catálogo</span>
+                        <Icons.Monitor />
+                      </div>
+                      <div className="text-lg font-extrabold text-emerald-600">
+                        100% Aberto
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Visitantes não necessitam de login
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Informação Institucional */}
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                    <h5 className="font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                      <Icons.AlertCircle />
+                      Como funciona a contagem de acessos:
+                    </h5>
+                    <p>
+                      Conforme solicitado, visitantes institucionais não passam por telas de bloqueio nem precisam de login. Ao carregarem a página, uma visita silenciosa é registrada para contabilização estatística nesta tela administrativa.
+                    </p>
+                  </div>
+
+                  {/* Histórico de Visitas */}
+                  <div className="space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <h5 className="font-bold text-xs uppercase tracking-wider text-slate-500">
+                        Histórico Recente de Visitas ({filteredAccessLogs.length})
+                      </h5>
+                      <input
+                        type="text"
+                        placeholder="Filtrar por data, tipo, IP..."
+                        value={filterVisitas}
+                        onChange={(e) => setFilterVisitas(e.target.value)}
+                        className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-totvs-blue w-full sm:w-64"
+                      />
+                    </div>
+
+                    {(!filteredAccessLogs || filteredAccessLogs.length === 0) ? (
+                      <div className="p-6 text-center bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs">
+                        Nenhum registro de acesso encontrado.
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm max-h-80 overflow-y-auto">
+                        {filteredAccessLogs.slice().reverse().map((log, idx) => (
+                          <div key={idx} className="p-3 flex items-center justify-between text-xs hover:bg-slate-50 transition">
+                            <div className="flex items-center gap-3">
+                              <span className="w-7 h-7 rounded-lg bg-blue-50 text-totvs-blue flex items-center justify-center font-bold text-xs shrink-0">
+                                <Icons.Eye />
+                              </span>
+                              <div>
+                                <span className="font-semibold text-slate-800 block">
+                                  {log.tipo || log.acao || 'Visita Institucional de Visitante'}
+                                </span>
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  {log.ip || log.ip_dispositivo || log.origem || 'Navegador Web'} {log.usuario ? `• ${log.usuario}` : ''}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-[11px] text-slate-500 font-mono shrink-0">
+                              {log.data_formatada && log.horario_formatado ? `${log.data_formatada} às ${log.horario_formatado}` : (log.data ? new Date(log.data).toLocaleString('pt-BR') : 'Hoje')}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ABA 4: AUDITORIA DE EDIÇÕES */}
+              {activeTab === 'audit' && (
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">Histórico de Alterações de Conteúdo</h4>
+                      <p className="text-xs text-slate-500">Rastreamento de edições feitas nas estações pelos administradores</p>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Filtrar por estação, autor..."
+                      value={filterAudit}
+                      onChange={(e) => setFilterAudit(e.target.value)}
+                      className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-totvs-blue w-full sm:w-64"
+                    />
+                  </div>
+
+                  {(!filteredAuditLogs || filteredAuditLogs.length === 0) ? (
+                    <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs">
+                      Nenhuma alteração registrada até o momento.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm max-h-96 overflow-y-auto">
+                      {filteredAuditLogs.slice().reverse().map((audit, idx) => (
+                        <div key={idx} className="p-4 hover:bg-slate-50 transition space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-bold text-slate-800 flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-totvs-blue"></span>
+                              {audit.segmento || 'Estação'}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {audit.data ? new Date(audit.data).toLocaleString('pt-BR') : ''}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-600 pl-4">
+                            {audit.acao || 'Edição realizada'}
+                          </p>
+                          <span className="text-[10px] text-slate-400 pl-4 block">
+                            Por: <strong className="text-slate-700">{audit.usuario || 'Administrador'}</strong>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer do Modal */}
+            <div className="bg-slate-100 p-4 border-t border-slate-200 flex items-center justify-between">
+              <span className="text-[11px] text-slate-500">
+                Espaço Experiência TOTVS • Painel Exclusivo de Gestão
+              </span>
+              <button
+                onClick={onClose}
+                className="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition"
+              >
+                Fechar Painel
+              </button>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    // Renderizar Aplicação
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

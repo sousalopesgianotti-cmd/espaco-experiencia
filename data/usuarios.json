@@ -1,0 +1,18 @@
+[
+  {
+    "id": "adm-001",
+    "nome": "André Gianotti",
+    "email": "andre.gianotti@totvs.com.br",
+    "senha": "totvs123",
+    "cargo": "Administrador",
+    "criado_em": "16/09/2026 15:30"
+  },
+  {
+    "id": "adm-1791226447024",
+    "nome": "Maria Jose",
+    "email": "zezemoreira2001@hotmail.com",
+    "senha": "diplomata",
+    "cargo": "Administrador",
+    "criado_em": "05/10/2026, 15:54:07"
+  }
+]

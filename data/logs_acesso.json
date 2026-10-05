@@ -1,0 +1,61 @@
+[
+  {
+    "id": "acc-1791226898714",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "16:01:38",
+    "timestamp": 1791226898714,
+    "ip_dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+    "acao": "Visita ao Espaço Experiência"
+  },
+  {
+    "id": "acc-1791226394101",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "15:53:14",
+    "timestamp": 1791226394101,
+    "ip_dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+    "acao": "Visita ao Espaço Experiência"
+  },
+  {
+    "id": "acc-1791226287920",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "15:51:27",
+    "timestamp": 1791226287920,
+    "ip_dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+    "acao": "Visita ao Espaço Experiência"
+  },
+  {
+    "id": "acc-1791226064970",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "15:47:44",
+    "timestamp": 1791226064970,
+    "ip_dispositivo": "Visitante Institucional",
+    "acao": "Visita ao Espaço Experiência"
+  },
+  {
+    "id": "acc-1791226011943",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "15:46:51",
+    "timestamp": 1791226011943,
+    "ip_dispositivo": "Visitante Institucional",
+    "acao": "Visita ao Espaço Experiência"
+  },
+  {
+    "id": "acc-1791225019945",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "15:30:19",
+    "timestamp": 1791225019946,
+    "ip_dispositivo": "Visitante Institucional",
+    "acao": "Visita ao Espaço Experiência"
+  },
+  {
+    "id": "acc-1791222618844",
+    "analista_nome": "André Gianotti",
+    "analista_email": "andre.gianotti@totvs.com.br",
+    "perfil": "Analista de Segmentos",
+    "data_formatada": "05/10/2026",
+    "horario_formatado": "14:50:18",
+    "timestamp": 1791222618844,
+    "ip_dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+    "acao": "Sessao no Espaco Experiencia"
+  }
+]
