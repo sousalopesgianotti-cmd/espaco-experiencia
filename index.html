@@ -225,6 +225,14 @@
         gradientHeader: 'from-[#002654] via-[#003882] to-[#164e63]',
         glowBorder: 'hover:border-cyan-400/60 hover:shadow-[0_12px_28px_rgba(6,182,212,0.2)]'
       },
+      solucoes_cross: {
+        accentColor: '#8B5CF6',
+        accentBorderLeft: 'border-l-4 border-l-purple-500',
+        tagBg: 'bg-purple-500/20 text-purple-300 border border-purple-400/30',
+        badgeBg: 'bg-purple-50 text-purple-800 border-purple-200',
+        gradientHeader: 'from-[#002654] via-[#003882] to-[#4c1d95]',
+        glowBorder: 'hover:border-purple-400/60 hover:shadow-[0_12px_28px_rgba(139,92,246,0.2)]'
+      },
       mesa_interativa: {
         accentColor: '#6366F1',
         accentBorderLeft: 'border-l-4 border-l-indigo-500',
@@ -1219,7 +1227,7 @@
                   Espaço Experiência TOTVS
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-200 mt-1 max-w-2xl font-normal leading-relaxed">
-                  Guia interativo institucional e roteiro de visitação guiada pelas 8 estações tecnológicas do laboratório.
+                  Guia interativo institucional e roteiro de visitação guiada pelas {segmentos.length || 11} estações tecnológicas do laboratório.
                 </p>
               </div>
               <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-lg">

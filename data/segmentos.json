@@ -544,5 +544,50 @@
       "senha": "totvsdiretoria ou rsxw7"
     },
     "foto_bancada": "uploads/media_20261005_121049_mesa_interativa.jpeg"
+  },
+  {
+    "id": "solucoes_cross",
+    "ordem": 11,
+    "nome": "SOLUÇÕES CROSS",
+    "icone": "Cpu",
+    "cor": "purple",
+    "tagline": "Soluções horizontais, inteligência artificial e ecossistema conectado",
+    "badge_solucoes": [
+      "TOTVS Fluig",
+      "Carol AI",
+      "TOTVS Assinatura Eletrônica",
+      "iPaaS / Integrações",
+      "TOTVS Techfin"
+    ],
+    "cenario_fisico": "Bancada e estação dedicada à demonstração de soluções transversais, inteligência artificial integrada e automação de fluxos corporativos.",
+    "pitch": "As Soluções Cross conectam e potencializam todos os sistemas da TOTVS. Independentemente do setor — seja agro, manufatura, saúde, logística ou varejo —, nossas soluções transversais trazem Inteligência Artificial com a Carol, automação de fluxos de trabalho com o Fluig, assinatura eletrônica com validade jurídica e integração de plataformas com o iPaaS.",
+    "dores_setor": [
+      "Sistemas departamentais desconectados e perda de produtividade com processos manuais.",
+      "Lentidão e insegurança na coleta de assinaturas e gestão física de documentos.",
+      "Dificuldade em consolidar dados de múltiplos sistemas para gerar insights preditivos com IA."
+    ],
+    "roteiro_bancada": [
+      "Apresente o conceito de soluções transversais que atendem a qualquer ERP ou segmento de negócio.",
+      "Mostre na tela a automação de processos inteligentes e integrações entre diferentes plataformas.",
+      "Destaque os benefícios de segurança jurídica, rapidez e redução de custos da assinatura eletrônica."
+    ],
+    "perguntas_visitante": [
+      "Como é feita hoje a integração entre os diferentes sistemas e setores na sua empresa?",
+      "Vocês já utilizam inteligência artificial ou fluxos digitais de aprovação no dia a dia?"
+    ],
+    "midias": {
+      "fotos": [],
+      "videos": []
+    },
+    "ultima_atualizacao": {
+      "data": "05/10/2026, 18:29:16",
+      "autor": "André Gianotti"
+    },
+    "credenciais": {
+      "equipamento": "PC Soluções Cross",
+      "usuario": "ens.experiencia@totvs.com.br",
+      "senha": "Experienciastotvs@2026"
+    },
+    "foto_bancada": ""
   }
 ]
