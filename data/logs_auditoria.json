@@ -1,5 +1,17 @@
 [
   {
+    "id": "aud-1791317340544",
+    "analista_nome": "Administrador TOTVS",
+    "analista_email": "adm@totvs.com.br",
+    "segmento_id": "video-gestao",
+    "segmento_nome": "Vídeo da Gestão",
+    "acao": "Exclusão do vídeo institucional",
+    "data_formatada": "06/10/2026",
+    "horario_formatado": "17:09:00",
+    "timestamp": 1791317340545,
+    "detalhes": "Vídeo \"Totvs Espaço Experiência.mov\" excluído do servidor pelo administrador."
+  },
+  {
     "id": "aud-1791227270750",
     "analista_nome": "André Gianotti",
     "analista_email": "andre.gianotti@totvs.com.br",

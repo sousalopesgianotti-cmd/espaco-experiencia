@@ -878,6 +878,66 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    // 22. DELETE /api/admin/video (Excluir Vídeo da Gestão e Limpar Arquivo Físico do Disco)
+    if (pathname === '/api/admin/video' && method === 'DELETE') {
+      const videoFile = path.join(DATA_DIR, 'video_gestao.json');
+      const current = readJsonFile(videoFile, {});
+
+      // Se houver arquivo local gravado em uploads/videos/, apagar fisicamente do disco
+      if (current && current.url && current.url.startsWith('/uploads/videos/')) {
+        const localFileName = path.basename(current.url);
+        const diskPath = path.join(BASE_DIR, 'uploads', 'videos', localFileName);
+        try {
+          if (fs.existsSync(diskPath)) {
+            fs.unlinkSync(diskPath);
+            console.log(`[DELETE VIDEO] Arquivo removido do disco: ${diskPath}`);
+          }
+        } catch (e) {
+          console.error(`[DELETE VIDEO] Erro ao remover arquivo do disco: ${e.message}`);
+        }
+      }
+
+      const resetConfig = {
+        ativo: true,
+        tipo: 'arquivo',
+        url: '',
+        titulo: 'Discurso da Gestão',
+        mensagem: 'Veja seu discurso aqui',
+        subtitulo: 'Mensagem institucional da liderança aos visitantes do Espaço Experiência',
+        nome_arquivo: null,
+        tamanho_mb: null,
+        atualizado_em: new Date().toLocaleString('pt-BR'),
+        atualizado_por: decodeURIComponent(req.headers['x-admin'] || 'Administrador')
+      };
+
+      writeJsonFile(videoFile, resetConfig);
+
+      // Log de Auditoria
+      const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+      let logs = readJsonFile(auditFile, []);
+      if (Array.isArray(logs)) {
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: resetConfig.atualizado_por || 'Administrador',
+          analista_email: 'adm@totvs.com.br',
+          segmento_id: 'video-gestao',
+          segmento_nome: 'Vídeo da Gestão',
+          acao: 'Exclusão do vídeo institucional',
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `Vídeo "${current?.nome_arquivo || current?.url || 'institucional'}" excluído do servidor pelo administrador.`
+        });
+        writeJsonFile(auditFile, logs);
+      }
+
+      return sendJson(res, {
+        success: true,
+        message: 'Vídeo institucional excluído com sucesso!',
+        video: resetConfig
+      });
+    }
+
     // 10. Static files
     let relPath = pathname.replace(/^\/+/, '');
     if (!relPath) relPath = 'index.html';
