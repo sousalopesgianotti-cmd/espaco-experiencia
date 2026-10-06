@@ -100,7 +100,10 @@
       Cpu: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>,
       Maximize: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>,
       ZoomIn: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" /></svg>,
-      Tag: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+      Tag: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>,
+      UserPlus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>,
+      Calendar: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+      ExternalLink: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
     };
 
     // Grafismo Geométrico Tech inspirado na identidade corporativa TOTVS (referência enviada)
@@ -899,6 +902,75 @@
       const [accessLogs, setAccessLogs] = useState([]);
       const [auditLogs, setAuditLogs] = useState([]);
 
+      // Contabilização e Registro de Visitantes do Espaço Experiência
+      const [visitorMetrics, setVisitorMetrics] = useState({ 
+        hoje: 0, 
+        semana: 0, 
+        mes: 0, 
+        ano: 0, 
+        ano_atual: new Date().getFullYear(), 
+        total: 0,
+        formulario_aberto_hoje: false
+      });
+      const [showVisitorModal, setShowVisitorModal] = useState(false);
+      const [showVisitorHistoryModal, setShowVisitorHistoryModal] = useState(false);
+      const [dismissedReminderToday, setDismissedReminderToday] = useState(false);
+      const [visitorsList, setVisitorsList] = useState([]);
+
+      const carregarVisitorMetrics = () => {
+        fetch('/api/visitors/metrics')
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.success) {
+              setVisitorMetrics({
+                hoje: data.hoje || 0,
+                semana: data.semana || 0,
+                mes: data.mes || 0,
+                ano: data.ano !== undefined ? data.ano : (data.total || 0),
+                ano_atual: data.ano_atual || new Date().getFullYear(),
+                total: data.total || 0,
+                formulario_aberto_hoje: Boolean(data.formulario_aberto_hoje)
+              });
+            }
+          })
+          .catch(() => {});
+      };
+
+      const carregarVisitantes = () => {
+        fetch('/api/visitors')
+          .then(res => res.json())
+          .then(data => {
+            if (Array.isArray(data)) setVisitorsList(data);
+          })
+          .catch(() => {});
+      };
+
+      const handleOpenGoogleForm = async () => {
+        const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfQWaQrpLcHNW1HkOhe2RQ2AnpNEzb-Duna6hyP1__FxGalmQ/viewform";
+        window.open(formUrl, '_blank', 'noopener,noreferrer');
+        try {
+          const res = await fetch('/api/visitors/form-opened', { method: 'POST' });
+          const data = await res.json();
+          if (data && data.success) {
+            setVisitorMetrics(prev => ({ ...prev, formulario_aberto_hoje: true }));
+          }
+        } catch (e) {}
+      };
+
+      // Lembrete inteligente das 17:00 (se formulário não foi aberto hoje)
+      // Permite testar via query param ?test_lembrete=1
+      const isTestLembrete = useMemo(() => {
+        try {
+          return new URLSearchParams(window.location.search).get('test_lembrete') === '1';
+        } catch (e) {
+          return false;
+        }
+      }, []);
+      const currentHour = new Date().getHours();
+      const shouldShowFormReminder = (currentHour >= 17 || isTestLembrete) && 
+        !visitorMetrics.formulario_aberto_hoje && 
+        !dismissedReminderToday;
+
       // Busca e Filtros
       const [searchTerm, setSearchTerm] = useState('');
       const [toastMsg, setToastMsg] = useState(null);
@@ -931,7 +1003,11 @@
           try { setAdmLogado(JSON.parse(savedAdm)); } catch(e){}
         }
 
-        // 4. Buscar segmentos
+        // 4. Carregar métricas de visitantes presenciais
+        carregarVisitorMetrics();
+        carregarVisitantes();
+
+        // 5. Buscar segmentos
         fetch('/api/segmentos')
           .then(res => res.json())
           .then(data => {
@@ -1100,6 +1176,8 @@
         fetch('/api/admin/metrics').then(res => res.json()).then(d => { if (d.success) setMetricsData(d); }).catch(() => {});
         fetch('/api/logs/access').then(res => res.json()).then(setAccessLogs).catch(() => {});
         fetch('/api/logs/audit').then(res => res.json()).then(setAuditLogs).catch(() => {});
+        carregarVisitorMetrics();
+        carregarVisitantes();
       };
 
       // Filtro de busca
@@ -1204,6 +1282,45 @@
             </div>
           </header>
 
+          {/* LEMBRETE INTELIGENTE DAS 17:00 (FORMULÁRIO NÃO PREENCHIDO HOJE) */}
+          {shouldShowFormReminder && (
+            <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 px-4 py-2.5 shadow-lg border-b border-amber-300/60 relative z-30 animate-in slide-in-from-top duration-300">
+              <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 text-center sm:text-left">
+                  <span className="w-8 h-8 rounded-xl bg-slate-950/20 text-slate-950 flex items-center justify-center shrink-0 font-bold text-base shadow-inner">
+                    <Icons.Clock />
+                  </span>
+                  <div>
+                    <p className="text-xs sm:text-sm font-black text-slate-950 leading-tight">
+                      ⚠️ Você ainda não preencheu o Formulário hoje!
+                    </p>
+                    <p className="text-[11px] font-medium text-slate-900/80">
+                      Lembrete diário das 17:00 • Ajude a manter os dados de visitação atualizados no Espaço Experiência.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={handleOpenGoogleForm}
+                    className="flex-1 sm:flex-initial bg-slate-950 hover:bg-slate-900 text-white font-black text-xs px-4 py-2 rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Abrir Formulário Agora</span>
+                    <Icons.ExternalLink />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDismissedReminderToday(true)}
+                    className="p-2 text-slate-950/80 hover:text-slate-950 rounded-xl hover:bg-slate-950/10 transition cursor-pointer"
+                    title="Dispensar lembrete por hoje"
+                  >
+                    <Icons.X />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* BANNER INSTITUCIONAL */}
           <section className="relative overflow-hidden bg-gradient-to-r from-totvs-dark via-totvs-blue to-[#003B8E] text-white py-7 px-4 border-b border-totvs-cyan/20">
             {/* Grafismo sutil de fundo */}
@@ -1240,6 +1357,95 @@
                     {admLogado ? '🛡️ Edição e Gerenciamento Liberados' : '✨ Modo Somente Leitura • Acesso Livre'}
                   </span>
                 </div>
+              </div>
+            </div>
+
+            {/* PAINEL À VISTA - CONTABILIZAÇÃO DE VISITANTES DO ESPAÇO EXPERIÊNCIA */}
+            <div className="max-w-7xl mx-auto mt-6 pt-5 border-t border-white/15 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-totvs-cyan/20 border border-totvs-cyan/40 text-totvs-cyan flex items-center justify-center font-bold shadow-inner shrink-0">
+                  <Icons.Users />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-totvs-cyan">
+                      Painel de Visitantes
+                    </span>
+                    <span className="text-[10px] font-semibold bg-white/15 px-2 py-0.5 rounded-full text-slate-200">
+                      Visualização Aberta
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300">
+                    Contabilização de público no Espaço Experiência TOTVS
+                  </p>
+                </div>
+              </div>
+
+              {/* 4 Indicadores à Vista + Botão de Consulta Histórica + Botão de Registro */}
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
+                {/* Indicador 1: Hoje */}
+                <div className="flex-1 sm:flex-initial min-w-[95px] bg-white/10 hover:bg-white/15 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 shadow-sm transition">
+                  <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider block">Hoje</span>
+                  <div className="text-2xl font-black text-white flex items-baseline gap-1">
+                    <span>{visitorMetrics.hoje}</span>
+                    <span className="text-[10px] font-medium text-totvs-cyan">pessoas</span>
+                  </div>
+                </div>
+
+                {/* Indicador 2: Esta Semana */}
+                <div className="flex-1 sm:flex-initial min-w-[105px] bg-white/10 hover:bg-white/15 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 shadow-sm transition">
+                  <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider block">Esta Semana</span>
+                  <div className="text-2xl font-black text-white flex items-baseline gap-1">
+                    <span>{visitorMetrics.semana}</span>
+                    <span className="text-[10px] font-medium text-totvs-cyan">pessoas</span>
+                  </div>
+                </div>
+
+                {/* Indicador 3: Este Mês */}
+                <div className="flex-1 sm:flex-initial min-w-[105px] bg-white/10 hover:bg-white/15 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 shadow-sm transition">
+                  <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider block">Este Mês</span>
+                  <div className="text-2xl font-black text-white flex items-baseline gap-1">
+                    <span>{visitorMetrics.mes}</span>
+                    <span className="text-[10px] font-medium text-totvs-cyan">pessoas</span>
+                  </div>
+                </div>
+
+                {/* Indicador 4: Este Ano (Acumulativo do ano corrente) */}
+                <div className="flex-1 sm:flex-initial min-w-[110px] bg-white/10 hover:bg-white/15 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 shadow-sm transition">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider block">Ano</span>
+                    <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/40">
+                      {visitorMetrics.ano_atual || new Date().getFullYear()}
+                    </span>
+                  </div>
+                  <div className="text-2xl font-black text-white flex items-baseline gap-1">
+                    <span>{visitorMetrics.ano !== undefined ? visitorMetrics.ano : (visitorMetrics.total || 0)}</span>
+                    <span className="text-[10px] font-medium text-totvs-cyan">pessoas</span>
+                  </div>
+                </div>
+
+                {/* Botão de Histórico e Consulta de Meses Anteriores */}
+                <button
+                  type="button"
+                  onClick={() => setShowVisitorHistoryModal(true)}
+                  className="flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3.5 py-3 rounded-2xl border border-white/25 shadow-sm transition backdrop-blur-md cursor-pointer hover:border-totvs-cyan/50"
+                  title="Consultar total de visitantes de meses e anos anteriores"
+                >
+                  <Icons.Calendar />
+                  <span className="hidden sm:inline">Outros Meses</span>
+                  <span className="sm:hidden">Meses</span>
+                </button>
+
+                {/* Botão de Registro Facilitado (Acesso livre para todos os perfis) */}
+                <button
+                  type="button"
+                  onClick={() => setShowVisitorModal(true)}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-totvs-cyan to-teal-300 hover:from-cyan-300 hover:to-teal-200 text-slate-900 font-black text-xs px-4 py-3 rounded-2xl shadow-lg hover:shadow-cyan-400/25 transition transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                  title="Registrar visita no Espaço Experiência TOTVS (liberado para todos os perfis)"
+                >
+                  <Icons.UserPlus />
+                  <span>+ Registrar Visitante</span>
+                </button>
               </div>
             </div>
           </section>
@@ -1420,6 +1626,32 @@
             />
           )}
 
+          {/* MODAL DE HISTÓRICO DE VISITANTES (MESES & ANOS ANTERIORES) */}
+          {showVisitorHistoryModal && (
+            <VisitorHistoryModal
+              currentYear={visitorMetrics.ano_atual || new Date().getFullYear()}
+              onClose={() => setShowVisitorHistoryModal(false)}
+              showToast={showToast}
+            />
+          )}
+
+          {/* MODAL DE REGISTRO DE VISITANTE NO ESPAÇO EXPERIÊNCIA (ACESSO ABERTO) */}
+          {showVisitorModal && (
+            <VisitorRegisterModal
+              admLogado={admLogado}
+              onClose={() => setShowVisitorModal(false)}
+              onSuccess={(newMetrics) => {
+                if (newMetrics) setVisitorMetrics(newMetrics);
+                carregarVisitantes();
+                carregarVisitorMetrics();
+              }}
+              onFormOpened={() => {
+                setVisitorMetrics(prev => ({ ...prev, formulario_aberto_hoje: true }));
+              }}
+              showToast={showToast}
+            />
+          )}
+
           {/* MODAL PAINEL ADM */}
           {adminModal && (
             <AdminModal
@@ -1434,6 +1666,10 @@
               accessLogs={accessLogs}
               auditLogs={auditLogs}
               segmentos={segmentos}
+              visitorsList={visitorsList}
+              onVisitorsChange={carregarDadosAdmin}
+              visitorMetrics={visitorMetrics}
+              onOpenVisitorModal={() => setShowVisitorModal(true)}
               onClose={() => setAdminModal(false)}
               onRefresh={carregarDadosAdmin}
               showToast={showToast}
@@ -2926,6 +3162,638 @@
       );
     }
 
+    // --- COMPONENTE: HISTÓRICO DE VISITANTES (MESES & ANOS ANTERIORES) ---
+    function VisitorHistoryModal({ onClose, currentYear = new Date().getFullYear(), showToast }) {
+      const [selectedYear, setSelectedYear] = useState(currentYear);
+      const [selectedMonth, setSelectedMonth] = useState(null);
+      const [historyData, setHistoryData] = useState(null);
+      const [loading, setLoading] = useState(true);
+
+      // Bloquear rolagem do fundo (body + html) e fechar com ESC
+      useEffect(() => {
+        const originalBodyOverflow = document.body.style.overflow;
+        const originalHtmlOverflow = document.documentElement.style.overflow;
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+          window.removeEventListener('keydown', handleKeyDown);
+          document.body.style.overflow = originalBodyOverflow || '';
+          document.documentElement.style.overflow = originalHtmlOverflow || '';
+        };
+      }, [onClose]);
+
+      useEffect(() => {
+        setLoading(true);
+        const url = selectedMonth
+          ? `/api/visitors/history?ano=${selectedYear}&mes=${selectedMonth}`
+          : `/api/visitors/history?ano=${selectedYear}`;
+        fetch(url)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.success) {
+              setHistoryData(data);
+            }
+          })
+          .catch(() => {})
+          .finally(() => setLoading(false));
+      }, [selectedYear, selectedMonth]);
+
+      const anosDisponiveis = historyData?.anos_disponiveis || [currentYear];
+      const meses = historyData?.meses || [];
+      const visitantesMes = historyData?.visitantes_mes || [];
+
+      return (
+        <div 
+          className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden overscroll-none"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+          onTouchMove={(e) => {
+            if (e.target === e.currentTarget) e.preventDefault();
+          }}
+          onWheel={(e) => {
+            if (e.target === e.currentTarget) e.preventDefault();
+          }}
+        >
+          <div 
+            className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150 my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header Fixo */}
+            <div 
+              className="bg-gradient-to-r from-totvs-dark via-totvs-blue to-[#003B8E] text-white p-4 sm:p-5 shrink-0 relative flex items-center justify-between"
+              onTouchMove={(e) => e.stopPropagation()}
+              onWheel={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-totvs-cyan/20 border border-totvs-cyan/40 text-totvs-cyan flex items-center justify-center font-bold shadow-inner shrink-0">
+                  <Icons.Calendar />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
+                    Consulta Histórica
+                  </span>
+                  <h3 className="font-extrabold text-base sm:text-lg text-white mt-0.5 leading-tight">
+                    Histórico de Visitantes por Mês & Ano
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-slate-200">
+                    Contabilização de meses e anos anteriores no Espaço Experiência
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-white/80 hover:text-white p-2 rounded-xl hover:bg-white/10 transition shrink-0 ml-2 cursor-pointer"
+                title="Fechar modal (ESC)"
+              >
+                <Icons.X />
+              </button>
+            </div>
+
+            {/* Conteúdo com rolagem suave isolada */}
+            <div 
+              className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 scrollbar-thin"
+              style={{
+                overscrollBehavior: 'contain',
+                overscrollBehaviorY: 'contain',
+                WebkitOverflowScrolling: 'touch',
+                touchAction: 'pan-y'
+              }}
+            >
+              {/* Barra de Seleção de Ano */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Icons.Clock />
+                  <span>Selecione o Ano de Consulta:</span>
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  {anosDisponiveis.map(anoItem => {
+                    const isSelected = selectedYear === anoItem;
+                    const isCurrentYear = anoItem === currentYear;
+                    return (
+                      <button
+                        key={anoItem}
+                        type="button"
+                        onClick={() => {
+                          setSelectedYear(anoItem);
+                          setSelectedMonth(null);
+                        }}
+                        className={`px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                          isSelected
+                            ? 'bg-totvs-blue text-white shadow-totvs-blue/30'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                        }`}
+                      >
+                        <span>{anoItem}</span>
+                        {isCurrentYear ? (
+                          <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded-full font-bold ${
+                            isSelected ? 'bg-white/20 text-white' : 'bg-totvs-cyan/20 text-totvs-blue'
+                          }`}>
+                            Ano Atual
+                          </span>
+                        ) : (
+                          <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded-full font-bold ${
+                            isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
+                          }`}>
+                            Ano Anterior
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Card Resumo do Ano Selecionado */}
+              <div className="bg-gradient-to-br from-slate-900 to-totvs-dark text-white p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-slate-700 shadow-md">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-totvs-cyan tracking-wider">
+                    Total Acumulado em {selectedYear}
+                  </span>
+                  <div className="text-3xl font-black text-white mt-0.5 flex items-baseline gap-1.5">
+                    <span>{loading ? '...' : (historyData?.total_ano || 0)}</span>
+                    <span className="text-xs font-medium text-totvs-cyan">pessoas registradas</span>
+                  </div>
+                </div>
+                <div className="bg-white/10 px-3.5 py-2 rounded-xl border border-white/15 text-right">
+                  <span className="text-[11px] text-slate-300 block">Comitivas / Visitas</span>
+                  <span className="text-base font-extrabold text-white">
+                    {loading ? '...' : (historyData?.visitas_ano || 0)} <span className="text-xs font-normal text-slate-300">registros</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Grade de 12 Meses */}
+              <div>
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Meses de {selectedYear} (Clique em um mês para detalhar)
+                  </span>
+                  {selectedMonth && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMonth(null)}
+                      className="text-xs text-totvs-blue hover:underline font-semibold cursor-pointer"
+                    >
+                      Limpar filtro de mês
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                  {meses.map(m => {
+                    const isSelected = selectedMonth === m.mes;
+                    const hasData = m.total_pessoas > 0;
+                    return (
+                      <div
+                        key={m.mes}
+                        onClick={() => {
+                          if (hasData) {
+                            setSelectedMonth(isSelected ? null : m.mes);
+                          }
+                        }}
+                        className={`p-3 rounded-2xl border transition text-left flex flex-col justify-between ${
+                          hasData ? 'cursor-pointer hover:shadow-md' : 'opacity-60 cursor-default'
+                        } ${
+                          isSelected
+                            ? 'bg-totvs-blue text-white border-totvs-blue shadow-lg ring-2 ring-totvs-cyan'
+                            : hasData
+                            ? 'bg-white hover:bg-slate-50 border-slate-200 shadow-sm'
+                            : 'bg-slate-50/70 border-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                            {m.nome}
+                          </span>
+                          {hasData && (
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                              isSelected ? 'bg-white/20 text-white' : 'bg-totvs-cyan/15 text-totvs-blue border border-totvs-cyan/30'
+                            }`}>
+                              {m.total_visitas} vis.
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-2">
+                          <span className={`text-lg font-black block leading-none ${
+                            isSelected ? 'text-totvs-cyan' : hasData ? 'text-totvs-blue' : 'text-slate-400'
+                          }`}>
+                            {m.total_pessoas}
+                          </span>
+                          <span className={`text-[10px] font-medium ${isSelected ? 'text-slate-200' : 'text-slate-400'}`}>
+                            pessoa(s)
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Detalhamento do Mês Selecionado */}
+              {selectedMonth && (
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                      <Icons.Building />
+                      <span>Visitas registradas em {meses.find(m => m.mes === selectedMonth)?.nome} de {selectedYear} ({visitantesMes.length}):</span>
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMonth(null)}
+                      className="text-xs text-slate-500 hover:text-slate-800 p-1 rounded-lg"
+                      title="Fechar detalhe do mês"
+                    >
+                      <Icons.X />
+                    </button>
+                  </div>
+
+                  {visitantesMes.length === 0 ? (
+                    <p className="text-xs text-slate-500">Nenhum registro detalhado para este período.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
+                      {visitantesMes.map(v => (
+                        <div key={v.id} className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between text-xs shadow-xs">
+                          <div>
+                            <span className="font-bold text-slate-800 block">{v.empresa || v.nome}</span>
+                            <span className="text-[10px] text-slate-500 block">
+                              Data: {v.data} • Anfitrião: {v.responsavel || 'Equipe TOTVS'}
+                            </span>
+                          </div>
+                          <span className="px-2.5 py-1 rounded-lg bg-totvs-blue/10 text-totvs-blue font-black text-xs shrink-0">
+                            👥 {v.numero_pessoas || 1}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer Fixo */}
+            <div 
+              className="shrink-0 bg-slate-50 px-4 sm:px-6 py-3.5 sm:py-4 border-t border-slate-200 flex items-center justify-end"
+              onTouchMove={(e) => e.stopPropagation()}
+              onWheel={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={onClose}
+                className="bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs px-5 py-2.5 rounded-xl border border-slate-200 transition cursor-pointer"
+              >
+                Fechar Consulta
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE: REGISTRO DE VISITANTE NO ESPAÇO EXPERIÊNCIA (ACESSO ABERTO) ---
+    function VisitorRegisterModal({ onClose, onSuccess, onFormOpened, showToast, admLogado }) {
+      const [dataVisita, setDataVisita] = useState(() => {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      });
+      const [empresa, setEmpresa] = useState('');
+      const [numeroPessoas, setNumeroPessoas] = useState(1);
+      const [responsavel, setResponsavel] = useState(admLogado ? admLogado.nome : '');
+      const [salvando, setSalvando] = useState(false);
+      const [copiedFormLink, setCopiedFormLink] = useState(false);
+
+      const googleFormsUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfQWaQrpLcHNW1HkOhe2RQ2AnpNEzb-Duna6hyP1__FxGalmQ/viewform";
+
+      // Bloquear rolagem do fundo (body + html) e fechar com ESC
+      useEffect(() => {
+        const originalBodyOverflow = document.body.style.overflow;
+        const originalHtmlOverflow = document.documentElement.style.overflow;
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+          window.removeEventListener('keydown', handleKeyDown);
+          document.body.style.overflow = originalBodyOverflow || '';
+          document.documentElement.style.overflow = originalHtmlOverflow || '';
+        };
+      }, [onClose]);
+
+      const handleCopyLink = () => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(googleFormsUrl).then(() => {
+            setCopiedFormLink(true);
+            setTimeout(() => setCopiedFormLink(false), 3000);
+            if (showToast) showToast('Link do formulário copiado! 📋');
+          }).catch(() => {
+            prompt('Copie o link do formulário abaixo:', googleFormsUrl);
+          });
+        } else {
+          prompt('Copie o link do formulário abaixo:', googleFormsUrl);
+        }
+      };
+
+      const handleOpenForm = async () => {
+        window.open(googleFormsUrl, '_blank', 'noopener,noreferrer');
+        try {
+          const res = await fetch('/api/visitors/form-opened', { method: 'POST' });
+          const data = await res.json();
+          if (data && data.success && onFormOpened) {
+            onFormOpened();
+          }
+        } catch (err) {}
+      };
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!dataVisita) {
+          alert('Por favor, informe a Data da Visita.');
+          return;
+        }
+        if (!empresa.trim()) {
+          alert('Por favor, informe o Nome da Empresa ou Instituição visitante.');
+          return;
+        }
+        const qtd = parseInt(numeroPessoas, 10);
+        if (isNaN(qtd) || qtd < 1) {
+          alert('Por favor, informe o Número de Pessoas (mínimo 1).');
+          return;
+        }
+        if (!responsavel.trim()) {
+          alert('Por favor, informe o Responsável / Anfitrião TOTVS que acompanhou a visita.');
+          return;
+        }
+        setSalvando(true);
+        try {
+          const res = await fetch('/api/visitors', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              data: dataVisita,
+              empresa: empresa.trim(),
+              nome: empresa.trim(),
+              numero_pessoas: qtd,
+              responsavel: responsavel.trim()
+            })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            if (onSuccess) onSuccess(data.metrics, data.registro || data.visitante);
+            if (showToast) showToast(`Visita de "${empresa.trim()}" (${qtd} pessoa${qtd > 1 ? 's' : ''}) registrada! 🎉`);
+            onClose();
+          } else {
+            alert(data.message || data.error || 'Erro ao registrar visita.');
+          }
+        } catch (err) {
+          alert('Falha de conexão com o servidor ao registrar visita.');
+        } finally {
+          setSalvando(false);
+        }
+      };
+
+      return (
+        <div 
+          className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden overscroll-none"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+          onTouchMove={(e) => {
+            if (e.target === e.currentTarget) e.preventDefault();
+          }}
+          onWheel={(e) => {
+            if (e.target === e.currentTarget) e.preventDefault();
+          }}
+        >
+          <div 
+            className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150 my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            
+            {/* Header Fixo do Modal */}
+            <div 
+              className="bg-gradient-to-r from-totvs-dark via-totvs-blue to-[#003B8E] text-white p-4 sm:p-5 shrink-0 relative flex items-center justify-between"
+              onTouchMove={(e) => e.stopPropagation()}
+              onWheel={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-totvs-cyan/20 border border-totvs-cyan/40 text-totvs-cyan flex items-center justify-center font-bold shadow-inner shrink-0">
+                  <Icons.UserPlus />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
+                    Registro Diário de Acesso
+                  </span>
+                  <h3 className="font-extrabold text-base sm:text-lg text-white mt-0.5 leading-tight">
+                    Registrar Visitante
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-slate-200">
+                    Contabilização no Espaço Experiência TOTVS
+                  </p>
+                </div>
+              </div>
+              
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-white/80 hover:text-white p-2 rounded-xl hover:bg-white/10 transition shrink-0 ml-2 cursor-pointer"
+                title="Fechar modal (ESC)"
+              >
+                <Icons.X />
+              </button>
+            </div>
+
+            {/* Formulário com Rolagem Interna Exclusiva */}
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              
+              {/* Área com rolagem suave isolada (sem rolar o fundo da página) */}
+              <div 
+                className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5 scrollbar-thin"
+                style={{ 
+                  overscrollBehavior: 'contain', 
+                  overscrollBehaviorY: 'contain',
+                  WebkitOverflowScrolling: 'touch',
+                  touchAction: 'pan-y'
+                }}
+              >
+                
+                {/* Campo Data */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <Icons.Calendar />
+                    <span>Data da Visita *</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={dataVisita}
+                    onChange={(e) => setDataVisita(e.target.value)}
+                    required
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
+                  />
+                </div>
+
+                {/* Campo Nome da Empresa / Instituição */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <Icons.Building />
+                    <span>Nome da Empresa / Instituição *</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Raízen, Unimed, Magalu, Hospital ABC..."
+                    value={empresa}
+                    onChange={(e) => setEmpresa(e.target.value)}
+                    required
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
+                  />
+                </div>
+
+                {/* Campo Número de Pessoas */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                      <Icons.Users />
+                      <span>Número de Pessoas *</span>
+                    </label>
+                    <span className="text-[11px] text-totvs-blue font-semibold">
+                      Contabilizado no painel
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="1"
+                      max="999"
+                      value={numeroPessoas}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        setNumeroPessoas(isNaN(val) ? '' : Math.max(1, val));
+                      }}
+                      onBlur={() => {
+                        if (!numeroPessoas || numeroPessoas < 1) setNumeroPessoas(1);
+                      }}
+                      required
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-xs font-semibold text-slate-400">
+                      pessoa(s)
+                    </div>
+                  </div>
+                </div>
+
+                {/* Campo Responsável / Anfitrião TOTVS */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                      <Icons.UserCheck />
+                      <span>Responsável / Anfitrião TOTVS *</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400">
+                      (Obrigatório • não soma aos visitantes)
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Ex: André Gianotti (ou Anfitrião Responsável)"
+                    value={responsavel}
+                    onChange={(e) => setResponsavel(e.target.value)}
+                    required
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
+                  />
+                </div>
+
+                {/* Card em Destaque: Formulário Google Forms */}
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/40 border border-blue-200/70 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-xl bg-totvs-blue text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
+                        <Icons.ExternalLink />
+                      </span>
+                      <div>
+                        <h4 className="text-xs font-extrabold text-slate-800">
+                          Formulário de Pré/Pós-Visita (Google Forms)
+                        </h4>
+                        <p className="text-[11px] text-slate-500">
+                          Questionário institucional para preenchimento do visitante
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleOpenForm}
+                      className="flex-1 flex items-center justify-center gap-2 bg-totvs-blue hover:bg-totvs-dark text-white text-xs font-bold py-2.5 px-3 rounded-xl transition shadow-sm cursor-pointer"
+                    >
+                      <span>Abrir Formulário</span>
+                      <Icons.ExternalLink />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopyLink}
+                      className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 flex items-center gap-1.5 transition shrink-0 cursor-pointer"
+                      title="Copiar link do formulário"
+                    >
+                      <Icons.Copy />
+                      <span>{copiedFormLink ? 'Copiado!' : 'Copiar Link'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Informação sobre visibilidade pública */}
+                <p className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                  <Icons.CheckCircle />
+                  <span>O total numérico de pessoas será somado imediatamente no painel à vista do topo.</span>
+                </p>
+
+              </div>
+
+              {/* Footer de Ações Fixo na Base */}
+              <div 
+                className="shrink-0 bg-slate-50 px-4 sm:px-6 py-3.5 sm:py-4 border-t border-slate-200 flex items-center justify-between gap-3"
+                onTouchMove={(e) => e.stopPropagation()}
+                onWheel={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={salvando}
+                  className="bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs px-4 py-2.5 rounded-xl border border-slate-200 transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={salvando || !empresa.trim() || !responsavel.trim() || !dataVisita || !numeroPessoas}
+                  className="flex-1 bg-gradient-to-r from-totvs-blue to-[#003B8E] hover:from-[#003B8E] hover:to-totvs-dark text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                >
+                  <Icons.UserPlus />
+                  <span>{salvando ? 'Salvando...' : 'Confirmar e Salvar Visita'}</span>
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      );
+    }
+
     // --- COMPONENTE: PAINEL ADMINISTRATIVO (ADMS, CONVITES, VISITAS & AUDITORIA) ---
     function AdminModal({
       admLogado,
@@ -2939,17 +3807,30 @@
       accessLogs = [],
       auditLogs = [],
       segmentos = [],
+      visitorsList = [],
+      onVisitorsChange,
+      visitorMetrics = {},
+      onOpenVisitorModal,
       onClose,
       onRefresh,
       showToast
     }) {
-      // Fechar com a tecla ESC
+      // Bloquear rolagem do fundo e fechar com a tecla ESC
       useEffect(() => {
+        const originalBodyOverflow = document.body.style.overflow;
+        const originalHtmlOverflow = document.documentElement.style.overflow;
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+
         const handleKeyDown = (e) => {
           if (e.key === 'Escape') onClose();
         };
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        return () => {
+          window.removeEventListener('keydown', handleKeyDown);
+          document.body.style.overflow = originalBodyOverflow || '';
+          document.documentElement.style.overflow = originalHtmlOverflow || '';
+        };
       }, [onClose]);
 
       const [copiedToken, setCopiedToken] = useState(null);
@@ -2958,6 +3839,39 @@
       const [deletingId, setDeletingId] = useState(null);
       const [filterAudit, setFilterAudit] = useState('');
       const [filterVisitas, setFilterVisitas] = useState('');
+      const [filterVisitors, setFilterVisitors] = useState('');
+      const [deletingVisitorId, setDeletingVisitorId] = useState(null);
+
+      const handleDeleteVisitor = async (vis) => {
+        const nomeEmpresa = vis.empresa || vis.nome;
+        if (!confirm(`Deseja realmente remover o registro de visita de "${nomeEmpresa}"?`)) return;
+        setDeletingVisitorId(vis.id);
+        try {
+          const res = await fetch(`/api/visitors/${vis.id}`, { method: 'DELETE' });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            if (onVisitorsChange) onVisitorsChange();
+            if (showToast) showToast(`Registro de "${nomeEmpresa}" removido com sucesso.`);
+          } else {
+            alert(data.error || 'Erro ao excluir registro de visitante.');
+          }
+        } catch (err) {
+          alert('Falha na comunicação com o servidor ao excluir visitante.');
+        } finally {
+          setDeletingVisitorId(null);
+        }
+      };
+
+      const filteredVisitors = useMemo(() => {
+        if (!filterVisitors.trim()) return visitorsList;
+        const q = filterVisitors.toLowerCase();
+        return visitorsList.filter(v =>
+          (v.empresa && v.empresa.toLowerCase().includes(q)) ||
+          (v.nome && v.nome.toLowerCase().includes(q)) ||
+          (v.responsavel && v.responsavel.toLowerCase().includes(q)) ||
+          (v.data && v.data.toLowerCase().includes(q))
+        );
+      }, [visitorsList, filterVisitors]);
 
       const handleGerarConvite = async () => {
         setGerandoConvite(true);
@@ -3139,7 +4053,7 @@
                 }`}
               >
                 <Icons.Users />
-                <span>Contador de Visitas ({totalVisitasCount})</span>
+                <span>Visitantes & Acessos ({visitorsList.length})</span>
               </button>
 
               <button
@@ -3381,68 +4295,173 @@
                 </div>
               )}
 
-              {/* ABA 3: CONTADOR DE VISITAS & GESTÃO DE ACESSO */}
+              {/* ABA 3: GESTÃO DE VISITANTES & ACESSOS */}
               {activeTab === 'visitas' && (
                 <div className="space-y-6">
-                  {/* Visão Geral Métricas */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-600 to-totvs-blue text-white shadow-md">
-                      <div className="flex items-center justify-between opacity-80 mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider">Total de Visitas</span>
-                        <Icons.Users />
+                  {/* SEÇÃO 1: VISITANTES PRESENCIAIS DO ESPAÇO EXPERIÊNCIA */}
+                  <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-totvs-blue text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                          <Icons.UserCheck />
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-slate-900 text-sm">
+                            Visitantes Presenciais Registrados
+                          </h4>
+                          <p className="text-xs text-slate-500">
+                            Espaço Experiência TOTVS (contabilizados no painel aberto do topo)
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-3xl font-extrabold tracking-tight">
-                        {totalVisitasCount}
-                      </div>
-                      <p className="text-[11px] text-blue-100 mt-1">
-                        Acessos institucionais únicos por sessão
-                      </p>
+
+                      <button
+                        type="button"
+                        onClick={onOpenVisitorModal}
+                        className="px-4 py-2 bg-gradient-to-r from-totvs-blue to-[#003B8E] hover:from-[#003B8E] hover:to-totvs-dark text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+                      >
+                        <Icons.UserPlus />
+                        <span>+ Registrar Visitante</span>
+                      </button>
                     </div>
 
-                    <div className="p-5 rounded-2xl bg-slate-900 text-white shadow-md">
-                      <div className="flex items-center justify-between opacity-80 mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Administradores</span>
-                        <Icons.Shield />
+                    {/* 5 Cards de Métricas de Visitantes Presenciais */}
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                      <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Hoje</span>
+                        <div className="text-2xl font-black text-slate-800 flex items-baseline gap-1">
+                          <span>{visitorMetrics?.hoje || 0}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">pessoas</span>
+                        </div>
                       </div>
-                      <div className="text-3xl font-extrabold tracking-tight text-totvs-cyan">
-                        {admsList.length}
+
+                      <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Esta Semana</span>
+                        <div className="text-2xl font-black text-slate-800 flex items-baseline gap-1">
+                          <span>{visitorMetrics?.semana || 0}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">pessoas</span>
+                        </div>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        Usuários com poder de edição total
-                      </p>
+
+                      <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Este Mês</span>
+                        <div className="text-2xl font-black text-slate-800 flex items-baseline gap-1">
+                          <span>{visitorMetrics?.mes || 0}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">pessoas</span>
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Ano</span>
+                          <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-totvs-blue/10 text-totvs-blue">
+                            {visitorMetrics?.ano_atual || new Date().getFullYear()}
+                          </span>
+                        </div>
+                        <div className="text-2xl font-black text-slate-800 flex items-baseline gap-1">
+                          <span>{visitorMetrics?.ano !== undefined ? visitorMetrics.ano : (visitorMetrics?.total || 0)}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">pessoas</span>
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl bg-gradient-to-br from-totvs-blue to-[#003B8E] text-white shadow-sm">
+                        <span className="text-[10px] uppercase font-bold text-blue-200 tracking-wider block">Total Geral</span>
+                        <div className="text-2xl font-black text-white flex items-baseline gap-1">
+                          <span>{visitorMetrics?.total !== undefined ? visitorMetrics.total : visitorsList.reduce((acc, v) => acc + (v.numero_pessoas || 1), 0)}</span>
+                          <span className="text-[10px] text-totvs-cyan font-medium">pessoas</span>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-                      <div className="flex items-center justify-between text-slate-500 mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider">Modo do Catálogo</span>
-                        <Icons.Monitor />
+                    {/* Barra de Filtro e Tabela de Visitantes */}
+                    <div className="space-y-3 pt-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h5 className="font-bold text-xs uppercase tracking-wider text-slate-500">
+                          Lista de Cadastros ({filteredVisitors.length})
+                        </h5>
+                        <input
+                          type="text"
+                          placeholder="Buscar por empresa, data, responsável..."
+                          value={filterVisitors}
+                          onChange={(e) => setFilterVisitors(e.target.value)}
+                          className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-totvs-blue w-full sm:w-64 bg-white"
+                        />
                       </div>
-                      <div className="text-lg font-extrabold text-emerald-600">
-                        100% Aberto
-                      </div>
-                      <p className="text-[11px] text-slate-500 mt-1">
-                        Visitantes não necessitam de login
-                      </p>
+
+                      {(!filteredVisitors || filteredVisitors.length === 0) ? (
+                        <div className="p-8 text-center bg-white border border-slate-200 rounded-2xl text-slate-400 text-xs">
+                          {filterVisitors ? 'Nenhum visitante encontrado para o filtro digitado.' : 'Nenhum visitante presencial cadastrado até o momento.'}
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm max-h-72 overflow-y-auto">
+                          {filteredVisitors.slice().reverse().map((vis) => (
+                            <div key={vis.id} className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition">
+                              <div className="flex items-center gap-3">
+                                <span className="w-9 h-9 rounded-xl bg-blue-50 text-totvs-blue flex items-center justify-center font-bold text-xs shrink-0 border border-blue-100">
+                                  <Icons.Building />
+                                </span>
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-extrabold text-xs text-slate-900">
+                                      {vis.empresa || vis.nome}
+                                    </span>
+                                    <span className="text-[10px] font-extrabold bg-cyan-50 text-totvs-blue px-2 py-0.5 rounded-full border border-totvs-cyan/30 flex items-center gap-1">
+                                      <Icons.Users />
+                                      <span>{vis.numero_pessoas || 1} { (vis.numero_pessoas || 1) === 1 ? 'pessoa' : 'pessoas' }</span>
+                                    </span>
+                                    <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">
+                                      {vis.data ? vis.data.split('-').reverse().join('/') : '—'}
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-slate-500 mt-0.5">
+                                    Anfitrião TOTVS: <strong className="text-slate-700">{vis.responsavel || 'Equipe TOTVS'}</strong>
+                                    {vis.criado_em ? ` • Registrado em: ${new Date(vis.criado_em).toLocaleDateString('pt-BR')}` : ''}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 self-end sm:self-center">
+                                {vis.link_formulario && (
+                                  <a
+                                    href={vis.link_formulario}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-[11px] flex items-center gap-1 transition"
+                                    title="Abrir Formulário Google"
+                                  >
+                                    <Icons.ExternalLink />
+                                    <span className="hidden sm:inline">Formulário</span>
+                                  </a>
+                                )}
+                                <button
+                                  type="button"
+                                  disabled={deletingVisitorId === vis.id}
+                                  onClick={() => handleDeleteVisitor(vis)}
+                                  className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition disabled:opacity-50 cursor-pointer"
+                                  title="Excluir este registro"
+                                >
+                                  <Icons.Trash />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Informação Institucional */}
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
-                    <h5 className="font-bold text-slate-800 mb-1 flex items-center gap-1.5">
-                      <Icons.AlertCircle />
-                      Como funciona a contagem de acessos:
-                    </h5>
-                    <p>
-                      Conforme solicitado, visitantes institucionais não passam por telas de bloqueio nem precisam de login. Ao carregarem a página, uma visita silenciosa é registrada para contabilização estatística nesta tela administrativa.
-                    </p>
-                  </div>
-
-                  {/* Histórico de Visitas */}
-                  <div className="space-y-3">
+                  {/* SEÇÃO 2: HISTÓRICO DE SESSÕES WEB (ACESSOS SILENCIOSOS) */}
+                  <div className="space-y-4 pt-2">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <h5 className="font-bold text-xs uppercase tracking-wider text-slate-500">
-                        Histórico Recente de Visitas ({filteredAccessLogs.length})
-                      </h5>
+                      <div>
+                        <h4 className="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                          <Icons.Monitor />
+                          <span>Sessões Web Silenciosas ({filteredAccessLogs.length})</span>
+                        </h4>
+                        <p className="text-[11px] text-slate-400">
+                          Total de acessos únicos por sessão de navegador ({totalVisitasCount})
+                        </p>
+                      </div>
                       <input
                         type="text"
                         placeholder="Filtrar por data, tipo, IP..."
@@ -3454,10 +4473,10 @@
 
                     {(!filteredAccessLogs || filteredAccessLogs.length === 0) ? (
                       <div className="p-6 text-center bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs">
-                        Nenhum registro de acesso encontrado.
+                        Nenhum registro de acesso web encontrado.
                       </div>
                     ) : (
-                      <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm max-h-80 overflow-y-auto">
+                      <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm max-h-64 overflow-y-auto">
                         {filteredAccessLogs.slice().reverse().map((log, idx) => (
                           <div key={idx} className="p-3 flex items-center justify-between text-xs hover:bg-slate-50 transition">
                             <div className="flex items-center gap-3">

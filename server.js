@@ -83,6 +83,182 @@ function readBodyJson(req) {
   });
 }
 
+function getTodayString() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getStartAndEndOfWeek(d) {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diffToMonday = (day === 0 ? -6 : 1) - day;
+  const monday = new Date(date);
+  monday.setDate(date.getDate() + diffToMonday);
+  monday.setHours(0, 0, 0, 0);
+
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+
+  return { monday, sunday };
+}
+
+function getFormStatus() {
+  const statusFile = path.join(DATA_DIR, 'status_formulario.json');
+  const data = readJsonFile(statusFile, {});
+  const todayStr = getTodayString();
+  const abertoHoje = Boolean(data && data.ultima_data_abertura === todayStr);
+  return {
+    formulario_aberto_hoje: abertoHoje,
+    ultima_data_abertura: data ? data.ultima_data_abertura : null,
+    ultimo_horario: data ? data.ultimo_horario : null
+  };
+}
+
+function setFormOpenedToday() {
+  const statusFile = path.join(DATA_DIR, 'status_formulario.json');
+  const todayStr = getTodayString();
+  const now = new Date();
+  const horario = now.toLocaleTimeString('pt-BR');
+  const statusData = {
+    ultima_data_abertura: todayStr,
+    ultimo_horario: horario,
+    timestamp: Date.now()
+  };
+  writeJsonFile(statusFile, statusData);
+  return statusData;
+}
+
+function calculateVisitorMetrics(visitors) {
+  if (!Array.isArray(visitors)) visitors = [];
+  const now = new Date();
+  const todayStr = getTodayString();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+
+  const { monday, sunday } = getStartAndEndOfWeek(now);
+
+  let hoje = 0;
+  let semana = 0;
+  let mes = 0;
+  let ano = 0;
+  let total = 0;
+
+  for (const v of visitors) {
+    if (!v) continue;
+    const qtdPessoas = Math.max(1, parseInt(v.numero_pessoas, 10) || 1);
+    total += qtdPessoas;
+
+    if (!v.data) continue;
+    const dataStr = v.data.slice(0, 10);
+    if (dataStr === todayStr) {
+      hoje += qtdPessoas;
+    }
+
+    const parts = dataStr.split('-');
+    if (parts.length === 3) {
+      const vYear = parseInt(parts[0], 10);
+      const vMonth = parseInt(parts[1], 10) - 1;
+      const vDay = parseInt(parts[2], 10);
+      const vDate = new Date(vYear, vMonth, vDay, 12, 0, 0);
+
+      // Acumulado do Ano Atual (na virada de ano, renova para o novo ano)
+      if (vYear === currentYear) {
+        ano += qtdPessoas;
+      }
+
+      if (vYear === currentYear && vMonth === currentMonth) {
+        mes += qtdPessoas;
+      }
+
+      if (vDate >= monday && vDate <= sunday) {
+        semana += qtdPessoas;
+      }
+    }
+  }
+
+  const formStatus = getFormStatus();
+
+  return {
+    hoje,
+    semana,
+    mes,
+    ano,
+    ano_atual: currentYear,
+    total,
+    formulario_aberto_hoje: formStatus.formulario_aberto_hoje,
+    ultimo_horario_formulario: formStatus.ultimo_horario
+  };
+}
+
+function getVisitorHistory(visitors, targetYear, targetMonth) {
+  if (!Array.isArray(visitors)) visitors = [];
+  const currentYear = new Date().getFullYear();
+  const yearToUse = parseInt(targetYear, 10) || currentYear;
+
+  const anosSet = new Set([currentYear]);
+  for (const v of visitors) {
+    if (v && v.data) {
+      const y = parseInt(v.data.slice(0, 4), 10);
+      if (!isNaN(y) && y >= 2020) anosSet.add(y);
+    }
+  }
+  const anosDisponiveis = Array.from(anosSet).sort((a, b) => b - a);
+
+  const mesesNomes = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+
+  const mesesResumo = mesesNomes.map((nome, idx) => ({
+    mes: idx + 1,
+    nome,
+    total_pessoas: 0,
+    total_visitas: 0
+  }));
+
+  let totalAno = 0;
+  let visitasAno = 0;
+  const visitantesMesEspecifico = [];
+  const selectedMonthNum = targetMonth ? parseInt(targetMonth, 10) : null;
+
+  for (const v of visitors) {
+    if (!v || !v.data) continue;
+    const parts = v.data.slice(0, 10).split('-');
+    if (parts.length < 3) continue;
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const qtd = Math.max(1, parseInt(v.numero_pessoas, 10) || 1);
+
+    if (y === yearToUse) {
+      totalAno += qtd;
+      visitasAno += 1;
+      if (m >= 1 && m <= 12) {
+        mesesResumo[m - 1].total_pessoas += qtd;
+        mesesResumo[m - 1].total_visitas += 1;
+
+        if (selectedMonthNum && selectedMonthNum === m) {
+          visitantesMesEspecifico.push(v);
+        }
+      }
+    }
+  }
+
+  return {
+    ano: yearToUse,
+    ano_atual: currentYear,
+    total_ano: totalAno,
+    visitas_ano: visitasAno,
+    anos_disponiveis: anosDisponiveis,
+    meses: mesesResumo,
+    mes_selecionado: selectedMonthNum,
+    visitantes_mes: visitantesMesEspecifico
+  };
+}
+
 function serveStaticFile(req, res, filePath) {
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
@@ -453,6 +629,109 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/admin/invites' && method === 'GET') {
       const convites = readJsonFile(path.join(DATA_DIR, 'convites.json'), []);
       return sendJson(res, Array.isArray(convites) ? convites : []);
+    }
+
+    // 15. GET /api/visitors/metrics (Métricas dos Visitantes no Topo com Ano e Status do Formulário)
+    if (pathname === '/api/visitors/metrics' && method === 'GET') {
+      const visitors = readJsonFile(path.join(DATA_DIR, 'registro_visitantes.json'), []);
+      const metrics = calculateVisitorMetrics(visitors);
+      return sendJson(res, { success: true, ...metrics });
+    }
+
+    // 15.1 GET /api/visitors/history (Consulta de Histórico por Ano e Mês)
+    if (pathname === '/api/visitors/history' && method === 'GET') {
+      const visitors = readJsonFile(path.join(DATA_DIR, 'registro_visitantes.json'), []);
+      const anoParam = parsedUrl.query.ano;
+      const mesParam = parsedUrl.query.mes;
+      const history = getVisitorHistory(visitors, anoParam, mesParam);
+      return sendJson(res, { success: true, ...history });
+    }
+
+    // 15.2 POST /api/visitors/form-opened (Registrar Abertura do Google Forms no Dia)
+    if (pathname === '/api/visitors/form-opened' && method === 'POST') {
+      const status = setFormOpenedToday();
+      return sendJson(res, {
+        success: true,
+        formulario_aberto_hoje: true,
+        message: 'Abertura do formulário registrada para hoje!',
+        ...status
+      });
+    }
+
+    // 16. POST /api/visitors (Cadastrar Novo Visitante / Empresa com Validação Estrita)
+    if (pathname === '/api/visitors' && method === 'POST') {
+      const body = await readBodyJson(req);
+      const dataVisita = (body.data || '').trim();
+      const empresa = (body.empresa || body.nome || '').trim();
+      const numPessoasRaw = parseInt(body.numero_pessoas, 10);
+      const responsavel = (body.responsavel || '').trim();
+
+      // Validação estrita de todos os 4 campos
+      if (!dataVisita) {
+        return sendJson(res, { success: false, message: 'A data da visita é obrigatória.' }, 400);
+      }
+      if (!empresa) {
+        return sendJson(res, { success: false, message: 'O nome da empresa ou instituição visitante é obrigatório.' }, 400);
+      }
+      if (isNaN(numPessoasRaw) || numPessoasRaw < 1) {
+        return sendJson(res, { success: false, message: 'O número de pessoas é obrigatório e deve ser no mínimo 1.' }, 400);
+      }
+      if (!responsavel) {
+        return sendJson(res, { success: false, message: 'O nome do responsável / anfitrião TOTVS é obrigatório.' }, 400);
+      }
+
+      const numero_pessoas = numPessoasRaw;
+      const visitorsFile = path.join(DATA_DIR, 'registro_visitantes.json');
+      let visitors = readJsonFile(visitorsFile, []);
+      if (!Array.isArray(visitors)) visitors = [];
+
+      const novoVisitante = {
+        id: `vis-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        data: dataVisita,
+        empresa,
+        nome: empresa, // retrocompatibilidade
+        numero_pessoas,
+        responsavel,
+        criado_em: new Date().toLocaleString('pt-BR'),
+        timestamp: Date.now(),
+        link_formulario: "https://docs.google.com/forms/d/e/1FAIpQLSfQWaQrpLcHNW1HkOhe2RQ2AnpNEzb-Duna6hyP1__FxGalmQ/viewform"
+      };
+
+      visitors.unshift(novoVisitante);
+      writeJsonFile(visitorsFile, visitors);
+
+      const metrics = calculateVisitorMetrics(visitors);
+      return sendJson(res, {
+        success: true,
+        message: 'Visita registrada com sucesso!',
+        registro: novoVisitante,
+        metrics
+      });
+    }
+
+    // 17. GET /api/visitors (Listar Visitantes Cadastrados)
+    if (pathname === '/api/visitors' && method === 'GET') {
+      const visitors = readJsonFile(path.join(DATA_DIR, 'registro_visitantes.json'), []);
+      return sendJson(res, Array.isArray(visitors) ? visitors : []);
+    }
+
+    // 18. DELETE /api/visitors/:id (Excluir Registro de Visitante)
+    const delVisMatch = pathname.match(/^\/api\/visitors\/([^/]+)$/);
+    if (delVisMatch && method === 'DELETE') {
+      const visId = delVisMatch[1];
+      const visitorsFile = path.join(DATA_DIR, 'registro_visitantes.json');
+      let visitors = readJsonFile(visitorsFile, []);
+      if (!Array.isArray(visitors)) visitors = [];
+
+      visitors = visitors.filter(v => v.id !== visId);
+      writeJsonFile(visitorsFile, visitors);
+
+      const metrics = calculateVisitorMetrics(visitors);
+      return sendJson(res, {
+        success: true,
+        message: 'Registro de visitante removido.',
+        metrics
+      });
     }
 
     // 10. Static files
