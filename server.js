@@ -320,6 +320,11 @@ const server = http.createServer(async (req, res) => {
   const method = req.method;
 
   try {
+    // 0. GET /api/health ou /health (Healthcheck & Keep-Alive Pinger)
+    if ((pathname === '/api/health' || pathname === '/health') && method === 'GET') {
+      return sendJson(res, { status: 'ok', service: 'espaco-experiencia', timestamp: Date.now() });
+    }
+
     // 1. GET /api/segmentos
     if (pathname === '/api/segmentos' && method === 'GET') {
       const segs = readJsonFile(path.join(DATA_DIR, 'segmentos.json'), []);
