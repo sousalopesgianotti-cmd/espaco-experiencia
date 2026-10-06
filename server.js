@@ -23,6 +23,7 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
   '.mp4': 'video/mp4',
+  '.mov': 'video/quicktime',
   '.webm': 'video/webm',
   '.woff': 'font/woff',
   '.woff2': 'font/woff2',
@@ -83,27 +84,59 @@ function readBodyJson(req) {
   });
 }
 
-function getTodayString() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+function getBrasiliaDateInfo(d = new Date()) {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  const todayStr = formatter.format(d); // "YYYY-MM-DD"
+  const [y, m, day] = todayStr.split('-').map(Number);
+
+  // Formatar dia da semana em Brasília (0 = Domingo, 1 = Segunda, ..., 6 = Sábado)
+  const dayOfWeekFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    weekday: 'short'
+  });
+  const weekdayShort = dayOfWeekFormatter.format(d);
+  const weekdayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  const dayOfWeek = weekdayMap[weekdayShort] !== undefined ? weekdayMap[weekdayShort] : d.getDay();
+
+  // Janela da semana útil: Segunda a Sexta-feira
+  // No fim de semana (Sábado ou Domingo), mantém visível a semana útil recém-concluída
+  const dt = new Date(Date.UTC(y, m - 1, day, 12, 0, 0));
+  let monOffset, friOffset;
+  if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+    monOffset = -(dayOfWeek - 1);
+    friOffset = 5 - dayOfWeek;
+  } else if (dayOfWeek === 6) { // Sábado
+    monOffset = -5;
+    friOffset = -1;
+  } else { // Domingo (0)
+    monOffset = -6;
+    friOffset = -2;
+  }
+
+  const mon = new Date(dt.getTime() + monOffset * 86400000);
+  const fri = new Date(dt.getTime() + friOffset * 86400000);
+  const fmt = date => date.toISOString().slice(0, 10);
+
+  return {
+    todayStr,
+    year: y,
+    month: m,
+    day,
+    dayOfWeek,
+    weekMonday: fmt(mon),
+    weekFriday: fmt(fri),
+    monthPrefix: `${y}-${String(m).padStart(2, '0')}`,
+    yearPrefix: `${y}`
+  };
 }
 
-function getStartAndEndOfWeek(d) {
-  const date = new Date(d);
-  const day = date.getDay();
-  const diffToMonday = (day === 0 ? -6 : 1) - day;
-  const monday = new Date(date);
-  monday.setDate(date.getDate() + diffToMonday);
-  monday.setHours(0, 0, 0, 0);
-
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
-
-  return { monday, sunday };
+function getTodayString() {
+  return getBrasiliaDateInfo().todayStr;
 }
 
 function getFormStatus() {
@@ -121,8 +154,13 @@ function getFormStatus() {
 function setFormOpenedToday() {
   const statusFile = path.join(DATA_DIR, 'status_formulario.json');
   const todayStr = getTodayString();
-  const now = new Date();
-  const horario = now.toLocaleTimeString('pt-BR');
+  const horario = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).format(new Date());
+
   const statusData = {
     ultima_data_abertura: todayStr,
     ultimo_horario: horario,
@@ -134,12 +172,8 @@ function setFormOpenedToday() {
 
 function calculateVisitorMetrics(visitors) {
   if (!Array.isArray(visitors)) visitors = [];
-  const now = new Date();
-  const todayStr = getTodayString();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-
-  const { monday, sunday } = getStartAndEndOfWeek(now);
+  const dateInfo = getBrasiliaDateInfo();
+  const { todayStr, year, monthPrefix, yearPrefix, weekMonday, weekFriday } = dateInfo;
 
   let hoje = 0;
   let semana = 0;
@@ -153,30 +187,26 @@ function calculateVisitorMetrics(visitors) {
     total += qtdPessoas;
 
     if (!v.data) continue;
-    const dataStr = v.data.slice(0, 10);
-    if (dataStr === todayStr) {
+    const vData = String(v.data).slice(0, 10);
+
+    // 1. Contador Dia: renova (zera) a cada dia à meia-noite em Brasília
+    if (vData === todayStr) {
       hoje += qtdPessoas;
     }
 
-    const parts = dataStr.split('-');
-    if (parts.length === 3) {
-      const vYear = parseInt(parts[0], 10);
-      const vMonth = parseInt(parts[1], 10) - 1;
-      const vDay = parseInt(parts[2], 10);
-      const vDate = new Date(vYear, vMonth, vDay, 12, 0, 0);
+    // 2. Contador Esta Semana: considera rigorosamente Segunda a Sexta-feira
+    if (vData >= weekMonday && vData <= weekFriday) {
+      semana += qtdPessoas;
+    }
 
-      // Acumulado do Ano Atual (na virada de ano, renova para o novo ano)
-      if (vYear === currentYear) {
-        ano += qtdPessoas;
-      }
+    // 3. Contador Mês: soma total e correta dos volumes do mês civil corrente
+    if (vData.startsWith(monthPrefix)) {
+      mes += qtdPessoas;
+    }
 
-      if (vYear === currentYear && vMonth === currentMonth) {
-        mes += qtdPessoas;
-      }
-
-      if (vDate >= monday && vDate <= sunday) {
-        semana += qtdPessoas;
-      }
+    // 4. Contador Ano: soma total e correta dos volumes do ano corrente
+    if (vData.startsWith(yearPrefix)) {
+      ano += qtdPessoas;
     }
   }
 
@@ -187,7 +217,7 @@ function calculateVisitorMetrics(visitors) {
     semana,
     mes,
     ano,
-    ano_atual: currentYear,
+    ano_atual: year,
     total,
     formulario_aberto_hoje: formStatus.formulario_aberto_hoje,
     ultimo_horario_formulario: formStatus.ultimo_horario
@@ -196,13 +226,14 @@ function calculateVisitorMetrics(visitors) {
 
 function getVisitorHistory(visitors, targetYear, targetMonth) {
   if (!Array.isArray(visitors)) visitors = [];
-  const currentYear = new Date().getFullYear();
+  const dateInfo = getBrasiliaDateInfo();
+  const currentYear = dateInfo.year;
   const yearToUse = parseInt(targetYear, 10) || currentYear;
 
   const anosSet = new Set([currentYear]);
   for (const v of visitors) {
     if (v && v.data) {
-      const y = parseInt(v.data.slice(0, 4), 10);
+      const y = parseInt(String(v.data).slice(0, 4), 10);
       if (!isNaN(y) && y >= 2020) anosSet.add(y);
     }
   }
@@ -227,7 +258,7 @@ function getVisitorHistory(visitors, targetYear, targetMonth) {
 
   for (const v of visitors) {
     if (!v || !v.data) continue;
-    const parts = v.data.slice(0, 10).split('-');
+    const parts = String(v.data).slice(0, 10).split('-');
     if (parts.length < 3) continue;
     const y = parseInt(parts[0], 10);
     const m = parseInt(parts[1], 10);
@@ -272,7 +303,7 @@ function serveStaticFile(req, res, filePath) {
 
     // Range requests for video/audio streaming
     const range = req.headers.range;
-    if (range && (ext === '.mp4' || ext === '.webm')) {
+    if (range && (ext === '.mp4' || ext === '.webm' || ext === '.mov')) {
       const parts = range.replace(/bytes=/, '').split('-');
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : totalSize - 1;
@@ -736,6 +767,114 @@ const server = http.createServer(async (req, res) => {
         success: true,
         message: 'Registro de visitante removido.',
         metrics
+      });
+    }
+
+    // 19. GET /api/video/gestao (Consulta Pública do Vídeo da Gestão)
+    if (pathname === '/api/video/gestao' && method === 'GET') {
+      const videoConfig = readJsonFile(path.join(DATA_DIR, 'video_gestao.json'), {
+        ativo: true,
+        tipo: 'link',
+        url: '',
+        titulo: 'Discurso da Gestão',
+        mensagem: 'Veja seu discurso aqui',
+        subtitulo: 'Mensagem institucional da liderança aos visitantes do Espaço Experiência',
+        nome_arquivo: null,
+        tamanho_mb: null
+      });
+      return sendJson(res, { success: true, video: videoConfig });
+    }
+
+    // 20. POST /api/admin/video/config (Atualizar Configuração do Vídeo da Gestão)
+    if (pathname === '/api/admin/video/config' && method === 'POST') {
+      const body = await readBodyJson(req);
+      const videoFile = path.join(DATA_DIR, 'video_gestao.json');
+      const current = readJsonFile(videoFile, {});
+      const updated = {
+        ativo: body.ativo !== undefined ? Boolean(body.ativo) : true,
+        tipo: body.tipo === 'arquivo' ? 'arquivo' : 'link',
+        url: (body.url || current.url || '').trim(),
+        titulo: (body.titulo || current.titulo || 'Discurso da Gestão').trim(),
+        mensagem: (body.mensagem || current.mensagem || 'Veja seu discurso aqui').trim(),
+        subtitulo: (body.subtitulo || current.subtitulo || 'Mensagem institucional da liderança aos visitantes').trim(),
+        nome_arquivo: body.nome_arquivo || current.nome_arquivo || null,
+        tamanho_mb: body.tamanho_mb !== undefined ? body.tamanho_mb : current.tamanho_mb,
+        atualizado_em: new Date().toLocaleString('pt-BR'),
+        atualizado_por: body.atualizado_por || 'Administrador'
+      };
+      writeJsonFile(videoFile, updated);
+      return sendJson(res, { success: true, video: updated, message: 'Configuração do vídeo atualizada com sucesso!' });
+    }
+
+    // 21. POST /api/admin/video/upload (Upload de Arquivo Pesado .MOV / .MP4 por Streaming)
+    if (pathname === '/api/admin/video/upload' && method === 'POST') {
+      // Estender timeouts para permitir upload de arquivos pesados (até 15 min)
+      req.setTimeout(900000);
+      res.setTimeout(900000);
+
+      const videosDir = path.join(BASE_DIR, 'uploads', 'videos');
+      if (!fs.existsSync(videosDir)) {
+        fs.mkdirSync(videosDir, { recursive: true });
+      }
+
+      const rawFilename = (req.headers['x-filename'] || parsedUrl.query.filename || 'discurso_gestao.mov');
+      const decodedFilename = decodeURIComponent(rawFilename);
+      const ext = path.extname(decodedFilename).toLowerCase() || '.mov';
+      const cleanBaseName = path.basename(decodedFilename, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
+      const safeFilename = `discurso_${Date.now()}_${cleanBaseName}${ext}`;
+      const targetFilePath = path.join(videosDir, safeFilename);
+
+      const writeStream = fs.createWriteStream(targetFilePath);
+
+      return new Promise((resolve) => {
+        req.pipe(writeStream);
+
+        writeStream.on('finish', () => {
+          let fileSizeMb = 0;
+          try {
+            const stats = fs.statSync(targetFilePath);
+            fileSizeMb = parseFloat((stats.size / (1024 * 1024)).toFixed(1));
+          } catch (e) {}
+
+          const videoUrl = `/uploads/videos/${safeFilename}`;
+          const videoFile = path.join(DATA_DIR, 'video_gestao.json');
+          const current = readJsonFile(videoFile, {});
+          const updated = {
+            ativo: true,
+            tipo: 'arquivo',
+            url: videoUrl,
+            titulo: current.titulo || 'Discurso da Gestão',
+            mensagem: current.mensagem || 'Veja seu discurso aqui',
+            subtitulo: current.subtitulo || 'Mensagem institucional da liderança aos visitantes',
+            nome_arquivo: decodedFilename,
+            tamanho_mb: fileSizeMb,
+            atualizado_em: new Date().toLocaleString('pt-BR'),
+            atualizado_por: decodeURIComponent(req.headers['x-admin'] || 'Administrador')
+          };
+          writeJsonFile(videoFile, updated);
+
+          sendJson(res, {
+            success: true,
+            message: 'Upload do vídeo realizado com sucesso!',
+            url: videoUrl,
+            nome_arquivo: decodedFilename,
+            tamanho_mb: fileSizeMb,
+            video: updated
+          });
+          resolve();
+        });
+
+        writeStream.on('error', (err) => {
+          console.error('Erro ao gravar arquivo de vídeo no disco:', err);
+          sendJson(res, { success: false, message: 'Falha ao gravar arquivo de vídeo: ' + err.message }, 500);
+          resolve();
+        });
+
+        req.on('error', (err) => {
+          console.error('Erro na transmissão do upload:', err);
+          sendJson(res, { success: false, message: 'Erro na transmissão do arquivo: ' + err.message }, 500);
+          resolve();
+        });
       });
     }
 

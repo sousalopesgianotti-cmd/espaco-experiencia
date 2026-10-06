@@ -84,6 +84,9 @@
       AlertCircle: () => <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
       Clock: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
       Video: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>,
+      Play: () => <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>,
+      Film: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" /></svg>,
+      Link: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>,
       Image: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
       X: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>,
       Plus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>,
@@ -945,6 +948,21 @@
           .catch(() => {});
       };
 
+      // Vídeo Institucional da Gestão ("Veja seu discurso aqui")
+      const [videoGestao, setVideoGestao] = useState(null);
+      const [showVideoModal, setShowVideoModal] = useState(false);
+
+      const carregarVideoGestao = () => {
+        fetch('/api/video/gestao')
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.success && data.video) {
+              setVideoGestao(data.video);
+            }
+          })
+          .catch(() => {});
+      };
+
       const handleOpenGoogleForm = async () => {
         const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfQWaQrpLcHNW1HkOhe2RQ2AnpNEzb-Duna6hyP1__FxGalmQ/viewform";
         window.open(formUrl, '_blank', 'noopener,noreferrer');
@@ -1006,6 +1024,7 @@
         // 4. Carregar métricas de visitantes presenciais
         carregarVisitorMetrics();
         carregarVisitantes();
+        carregarVideoGestao();
 
         // 5. Buscar segmentos
         fetch('/api/segmentos')
@@ -1178,6 +1197,7 @@
         fetch('/api/logs/audit').then(res => res.json()).then(setAuditLogs).catch(() => {});
         carregarVisitorMetrics();
         carregarVisitantes();
+        carregarVideoGestao();
       };
 
       // Filtro de busca
@@ -1347,15 +1367,61 @@
                   Guia interativo institucional e roteiro de visitação guiada pelas {segmentos.length || 11} estações tecnológicas do laboratório.
                 </p>
               </div>
-              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-lg">
-                <div className={`w-2.5 h-2.5 rounded-full ${admLogado ? 'bg-emerald-400' : 'bg-totvs-cyan'} animate-pulse`}></div>
-                <div className="text-xs">
-                  <span className="font-bold block text-white">
-                    {admLogado ? `Administrador Conectado: ${admLogado.nome}` : 'Vitrine Institucional Aberta'}
-                  </span>
-                  <span className="text-[11px] text-totvs-cyan font-medium">
-                    {admLogado ? '🛡️ Edição e Gerenciamento Liberados' : '✨ Modo Somente Leitura • Acesso Livre'}
-                  </span>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+                {/* MINIATURA SUGESTIVA: VÍDEO INSTITUCIONAL DA GESTÃO ("Veja seu discurso aqui") */}
+                {videoGestao && videoGestao.ativo !== false && (
+                  <div
+                    onClick={() => setShowVideoModal(true)}
+                    className="group relative cursor-pointer bg-slate-950/75 hover:bg-slate-950/95 border border-totvs-cyan/40 hover:border-totvs-cyan rounded-2xl p-2 sm:p-2.5 shadow-xl hover:shadow-[0_0_25px_rgba(0,229,255,0.35)] transition-all duration-300 transform hover:-translate-y-0.5 flex items-center gap-3 backdrop-blur-md"
+                    title="Clique para assistir ao discurso institucional da gestão em tela cheia"
+                  >
+                    {/* Frame Miniatura com Efeito Glow e Play Pulsante */}
+                    <div className="relative w-14 h-12 sm:w-16 sm:h-13 rounded-xl overflow-hidden bg-gradient-to-br from-slate-900 via-totvs-dark to-slate-950 border border-totvs-cyan/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-inner">
+                      <div className="absolute inset-0 bg-totvs-blue/20 group-hover:bg-totvs-cyan/20 transition-colors"></div>
+                      <div className="absolute -inset-1 bg-totvs-cyan/30 rounded-xl blur-xs group-hover:blur-sm opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                      
+                      <div className="relative z-10 w-7 h-7 rounded-full bg-gradient-to-tr from-totvs-cyan to-teal-200 text-slate-950 flex items-center justify-center font-black shadow-lg transform group-hover:scale-110 transition-transform">
+                        <span className="w-3.5 h-3.5 flex items-center justify-center translate-x-0.5">
+                          <Icons.Play />
+                        </span>
+                      </div>
+                      <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-totvs-cyan animate-ping"></div>
+                    </div>
+
+                    {/* Textos Convidativos */}
+                    <div className="text-left pr-1">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/40 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-totvs-cyan animate-pulse"></span>
+                          <span>Discurso Institucional</span>
+                        </span>
+                      </div>
+                      <h4 className="text-xs sm:text-sm font-black text-white group-hover:text-totvs-cyan transition-colors leading-tight">
+                        {videoGestao.mensagem || 'Veja seu discurso aqui'}
+                      </h4>
+                      <p className="text-[10px] text-slate-300 group-hover:text-white transition-colors flex items-center gap-1 mt-0.5">
+                        <span className="truncate max-w-[140px] sm:max-w-[180px]">{videoGestao.titulo || 'Palavra da Liderança'}</span>
+                        <span className="text-totvs-cyan font-bold">• Assistir</span>
+                      </p>
+                    </div>
+
+                    <div className="hidden md:flex items-center justify-center w-6 h-6 rounded-lg bg-white/10 group-hover:bg-totvs-cyan group-hover:text-slate-950 text-white/80 transition-all shrink-0">
+                      <Icons.ChevronRight />
+                    </div>
+                  </div>
+                )}
+
+                {/* Badge de Status ADM / Leitura */}
+                <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-lg">
+                  <div className={`w-2.5 h-2.5 rounded-full ${admLogado ? 'bg-emerald-400' : 'bg-totvs-cyan'} animate-pulse`}></div>
+                  <div className="text-xs">
+                    <span className="font-bold block text-white">
+                      {admLogado ? `Administrador Conectado: ${admLogado.nome}` : 'Vitrine Institucional Aberta'}
+                    </span>
+                    <span className="text-[11px] text-totvs-cyan font-medium">
+                      {admLogado ? '🛡️ Edição e Gerenciamento Liberados' : '✨ Modo Somente Leitura • Acesso Livre'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1672,6 +1738,8 @@
               onOpenVisitorModal={() => setShowVisitorModal(true)}
               onClose={() => setAdminModal(false)}
               onRefresh={carregarDadosAdmin}
+              videoGestao={videoGestao}
+              onVideoGestaoChange={carregarVideoGestao}
               showToast={showToast}
             />
           )}
@@ -1681,6 +1749,14 @@
             <PhotoLightboxModal
               segment={lightboxSegment}
               onClose={() => setLightboxSegment(null)}
+            />
+          )}
+
+          {/* MODAL VÍDEO INSTITUCIONAL DA GESTÃO (LIGHTBOX CINEMA 16:9) */}
+          {showVideoModal && (
+            <VideoGestaoModal
+              video={videoGestao}
+              onClose={() => setShowVideoModal(false)}
             />
           )}
 
@@ -3162,6 +3238,170 @@
       );
     }
 
+    // --- COMPONENTE: MODAL DO VÍDEO INSTITUCIONAL DA GESTÃO (LIGHTBOX CINEMA 16:9) ---
+    function VideoGestaoModal({ video, onClose }) {
+      useEffect(() => {
+        const originalBodyOverflow = document.body.style.overflow;
+        const originalHtmlOverflow = document.documentElement.style.overflow;
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+          window.removeEventListener('keydown', handleKeyDown);
+          document.body.style.overflow = originalBodyOverflow || '';
+          document.documentElement.style.overflow = originalHtmlOverflow || '';
+        };
+      }, [onClose]);
+
+      if (!video) return null;
+
+      // Detectar se é link de embed externo (YouTube, Google Drive, Vimeo)
+      const isEmbed = video.tipo === 'link' || (video.url && (
+        video.url.includes('drive.google.com') ||
+        video.url.includes('youtube.com') ||
+        video.url.includes('youtu.be') ||
+        video.url.includes('vimeo.com')
+      ));
+
+      let embedUrl = video.url || '';
+      if (isEmbed && video.url) {
+        if (video.url.includes('drive.google.com/file/d/')) {
+          embedUrl = video.url.replace(/\/view(\?.*)?$/, '/preview');
+        } else if (video.url.includes('youtube.com/watch')) {
+          try {
+            const vidId = new URL(video.url).searchParams.get('v');
+            if (vidId) embedUrl = `https://www.youtube.com/embed/${vidId}?autoplay=1`;
+          } catch(e) {}
+        } else if (video.url.includes('youtu.be/')) {
+          const vidId = video.url.split('youtu.be/')[1]?.split('?')[0];
+          if (vidId) embedUrl = `https://www.youtube.com/embed/${vidId}?autoplay=1`;
+        }
+      }
+
+      return (
+        <div 
+          className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden overscroll-none animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+        >
+          <div 
+            className="bg-slate-950 rounded-3xl shadow-2xl border border-slate-800 max-w-5xl w-full flex flex-col overflow-hidden max-h-[96vh] animate-in zoom-in-95 duration-150 my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header Cinema */}
+            <div className="p-3.5 sm:px-6 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-white shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-totvs-blue to-totvs-cyan text-slate-950 flex items-center justify-center font-black shadow-md shrink-0">
+                  <Icons.Play />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/40">
+                      Discurso Institucional
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium hidden sm:inline">Espaço Experiência TOTVS</span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-extrabold text-white leading-tight mt-0.5">
+                    {video.titulo || 'Discurso da Gestão'}
+                  </h3>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition cursor-pointer"
+                title="Fechar Player (ESC)"
+              >
+                <Icons.X />
+              </button>
+            </div>
+
+            {/* Video Player 16:9 Cinema Container */}
+            <div className="relative bg-black flex items-center justify-center aspect-video w-full overflow-hidden">
+              {video.url ? (
+                isEmbed ? (
+                  <iframe
+                    src={embedUrl}
+                    title={video.titulo || 'Vídeo Institucional'}
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video
+                    src={video.url}
+                    controls
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-contain bg-black"
+                  >
+                    Seu navegador não suporta a reprodução deste arquivo de vídeo.
+                  </video>
+                )
+              ) : (
+                <div className="text-center p-8 sm:p-12 text-slate-400 max-w-md mx-auto space-y-3">
+                  <div className="w-16 h-16 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-totvs-cyan shadow-inner">
+                    <Icons.Video />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-white">Nenhum Vídeo Vinculado Ainda</h4>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      O arquivo institucional (.MOV de 713 MB ou outro formato) pode ser carregado pelo administrador através do <strong>Painel ADM &gt; Vídeo da Gestão</strong>.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="mt-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition"
+                  >
+                    Entendido
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Footer com Metadados & Mensagem Convidativa */}
+            <div className="p-3.5 sm:px-6 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-300 shrink-0">
+              <div className="space-y-0.5">
+                <p className="font-semibold text-white flex items-center gap-2">
+                  <span className="text-totvs-cyan font-bold">📢 {video.mensagem || 'Veja seu discurso aqui'}</span>
+                </p>
+                <p className="text-slate-400 text-[11px]">
+                  {video.subtitulo || 'Mensagem institucional da liderança aos visitantes do Espaço Experiência.'}
+                </p>
+                {video.nome_arquivo && (
+                  <p className="text-[10px] text-slate-500 font-mono">
+                    Arquivo: {video.nome_arquivo} {video.tamanho_mb ? `(${video.tamanho_mb} MB)` : ''}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">
+                  Atualizado em {video.atualizado_em || '06/10/2026'}
+                </span>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
     // --- COMPONENTE: HISTÓRICO DE VISITANTES (MESES & ANOS ANTERIORES) ---
     function VisitorHistoryModal({ onClose, currentYear = new Date().getFullYear(), showToast }) {
       const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -3794,7 +4034,436 @@
       );
     }
 
-    // --- COMPONENTE: PAINEL ADMINISTRATIVO (ADMS, CONVITES, VISITAS & AUDITORIA) ---
+    // --- COMPONENTE: ABA DO VÍDEO INSTITUCIONAL DA GESTÃO (PAINEL ADM) ---
+    function AdminVideoTab({ videoGestao, admLogado, onVideoGestaoChange, showToast }) {
+      const [tipo, setTipo] = useState(videoGestao?.tipo || 'arquivo');
+      const [titulo, setTitulo] = useState(videoGestao?.titulo || 'Discurso da Gestão');
+      const [mensagem, setMensagem] = useState(videoGestao?.mensagem || 'Veja seu discurso aqui');
+      const [subtitulo, setSubtitulo] = useState(videoGestao?.subtitulo || 'Mensagem institucional da liderança aos visitantes do Espaço Experiência');
+      const [urlLink, setUrlLink] = useState(videoGestao?.tipo === 'link' ? (videoGestao?.url || '') : '');
+      const [videoAtivo, setVideoAtivo] = useState(videoGestao?.ativo !== false);
+      
+      const [arquivoSelecionado, setArquivoSelecionado] = useState(null);
+      const [uploadProgress, setUploadProgress] = useState(0);
+      const [uploading, setUploading] = useState(false);
+      const [uploadMsg, setUploadMsg] = useState('');
+      const [salvandoConfig, setSalvandoConfig] = useState(false);
+
+      useEffect(() => {
+        if (videoGestao) {
+          setTipo(videoGestao.tipo || 'arquivo');
+          setTitulo(videoGestao.titulo || 'Discurso da Gestão');
+          setMensagem(videoGestao.mensagem || 'Veja seu discurso aqui');
+          setSubtitulo(videoGestao.subtitulo || 'Mensagem institucional da liderança aos visitantes do Espaço Experiência');
+          if (videoGestao.tipo === 'link') setUrlLink(videoGestao.url || '');
+          setVideoAtivo(videoGestao.ativo !== false);
+        }
+      }, [videoGestao]);
+
+      // Upload com XHR (suporte a grandes arquivos de 713 MB com stream direto para disco e barra de progresso)
+      const handleUploadFile = () => {
+        if (!arquivoSelecionado) {
+          alert('Por favor, selecione um arquivo de vídeo do seu computador antes de iniciar o upload.');
+          return;
+        }
+
+        const fileSizeMB = (arquivoSelecionado.size / 1024 / 1024).toFixed(2);
+        setUploading(true);
+        setUploadProgress(0);
+        setUploadMsg(`Iniciando upload de "${arquivoSelecionado.name}" (${fileSizeMB} MB)...`);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/admin/video/upload', true);
+        xhr.setRequestHeader('X-Filename', encodeURIComponent(arquivoSelecionado.name));
+        xhr.setRequestHeader('X-Author', encodeURIComponent(admLogado?.nome || 'Administrador'));
+        xhr.setRequestHeader('Content-Type', arquivoSelecionado.type || 'application/octet-stream');
+        xhr.timeout = 15 * 60 * 1000; // 15 minutos de timeout para uploads pesados
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            const loadedMB = (e.loaded / 1024 / 1024).toFixed(1);
+            const totalMB = (e.total / 1024 / 1024).toFixed(1);
+            setUploadProgress(percent);
+            setUploadMsg(`Enviando: ${percent}% (${loadedMB} MB de ${totalMB} MB)...`);
+          }
+        };
+
+        xhr.onload = () => {
+          setUploading(false);
+          try {
+            const data = JSON.parse(xhr.responseText);
+            if (xhr.status >= 200 && xhr.status < 300 && data.success) {
+              setUploadProgress(100);
+              setUploadMsg(`✅ Upload de "${data.nome_arquivo}" concluído com sucesso (${data.tamanho_mb} MB)!`);
+              setArquivoSelecionado(null);
+              if (onVideoGestaoChange) onVideoGestaoChange();
+              if (showToast) showToast('Vídeo institucional carregado com sucesso! 🎬');
+            } else {
+              setUploadMsg(`❌ Erro no upload: ${data.message || data.error || 'Falha no processamento.'}`);
+              alert(data.message || data.error || 'Erro no upload.');
+            }
+          } catch (err) {
+            setUploadMsg('❌ Erro inesperado na resposta do servidor.');
+          }
+        };
+
+        xhr.onerror = () => {
+          setUploading(false);
+          setUploadMsg('❌ Erro de conexão ao enviar vídeo.');
+          alert('Falha na conexão durante o upload.');
+        };
+
+        xhr.ontimeout = () => {
+          setUploading(false);
+          setUploadMsg('❌ Tempo limite de envio excedido.');
+          alert('Tempo limite de upload excedido.');
+        };
+
+        xhr.send(arquivoSelecionado);
+      };
+
+      // Salvar Configurações (Textos, URL Externa, Status Ativo)
+      const handleSalvarConfig = async (e) => {
+        if (e) e.preventDefault();
+        setSalvandoConfig(true);
+        try {
+          const payload = {
+            ativo: videoAtivo,
+            tipo,
+            titulo: titulo.trim(),
+            mensagem: mensagem.trim(),
+            subtitulo: subtitulo.trim(),
+            autor: admLogado?.nome || 'Administrador'
+          };
+
+          if (tipo === 'link') {
+            if (!urlLink.trim()) {
+              alert('Por favor, informe a URL do vídeo externo (Google Drive, YouTube, etc.).');
+              setSalvandoConfig(false);
+              return;
+            }
+            payload.url = urlLink.trim();
+          }
+
+          const res = await fetch('/api/admin/video/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            if (onVideoGestaoChange) onVideoGestaoChange();
+            if (showToast) showToast('Configurações do vídeo da gestão atualizadas com sucesso! ✅');
+          } else {
+            alert(data.error || 'Erro ao salvar configurações do vídeo.');
+          }
+        } catch (err) {
+          alert('Erro de conexão ao salvar configurações.');
+        } finally {
+          setSalvandoConfig(false);
+        }
+      };
+
+      return (
+        <div className="space-y-6">
+          {/* Card de Apresentação e Boas Práticas */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-totvs-dark to-slate-900 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-totvs-cyan/30">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
+                  Vídeo Institucional da Liderança
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${videoAtivo ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-700 text-slate-300'}`}>
+                  {videoAtivo ? 'Exibição Ativa no Topo ✅' : 'Exibição Oculta ⏸️'}
+                </span>
+              </div>
+              <h4 className="font-black text-base text-white">
+                Gestão do Vídeo de Boas-Vindas & Discurso
+              </h4>
+              <p className="text-xs text-slate-300 mt-0.5 max-w-xl">
+                Configurado para exibir miniatura no topo com a mensagem <strong>"{mensagem}"</strong>. Suporta arquivo pesado (.MOV de 713 MB ou .MP4) com streaming HTTP 206 sem travamentos.
+              </p>
+            </div>
+
+            <label className="flex items-center gap-2.5 bg-white/10 hover:bg-white/15 px-3.5 py-2 rounded-xl border border-white/20 cursor-pointer select-none shrink-0 transition">
+              <input
+                type="checkbox"
+                checked={videoAtivo}
+                onChange={(e) => setVideoAtivo(e.target.checked)}
+                className="w-4 h-4 rounded text-totvs-cyan focus:ring-totvs-cyan"
+              />
+              <span className="text-xs font-bold text-white">Ativo no Topo</span>
+            </label>
+          </div>
+
+          {/* Seletor de Modo: Arquivo Local vs Link Externo */}
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-4">
+            <h5 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <Icons.Film />
+              <span>Origem do Vídeo Institucional</span>
+            </h5>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setTipo('arquivo')}
+                className={`p-3.5 rounded-xl border text-left transition flex items-start gap-3 cursor-pointer ${
+                  tipo === 'arquivo'
+                    ? 'border-totvs-blue bg-blue-50/70 text-totvs-blue shadow-xs ring-2 ring-totvs-blue/20'
+                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${tipo === 'arquivo' ? 'bg-totvs-blue text-white' : 'bg-slate-100 text-slate-500'}`}>
+                  <Icons.Upload />
+                </div>
+                <div>
+                  <span className="font-extrabold text-xs block">Arquivo no Servidor Local (Recomendado)</span>
+                  <span className="text-[11px] text-slate-500 block mt-0.5">
+                    Upload direto do arquivo .MOV (713 MB) ou .MP4. Armazenamento local seguro e reprodução ultra rápida.
+                  </span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTipo('link')}
+                className={`p-3.5 rounded-xl border text-left transition flex items-start gap-3 cursor-pointer ${
+                  tipo === 'link'
+                    ? 'border-totvs-blue bg-blue-50/70 text-totvs-blue shadow-xs ring-2 ring-totvs-blue/20'
+                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${tipo === 'link' ? 'bg-totvs-blue text-white' : 'bg-slate-100 text-slate-500'}`}>
+                  <Icons.Link />
+                </div>
+                <div>
+                  <span className="font-extrabold text-xs block">Link Externo / Nuvem</span>
+                  <span className="text-[11px] text-slate-500 block mt-0.5">
+                    Google Drive Corporativo TOTVS, YouTube não-listado, Vimeo ou CDN institucional.
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            {/* Painel do Modo Arquivo Local */}
+            {tipo === 'arquivo' && (
+              <div className="mt-4 p-4 rounded-xl bg-white border border-slate-200 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                  <div>
+                    <h6 className="font-bold text-xs text-slate-800">Upload de Arquivo Pesado (.MOV / .MP4)</h6>
+                    <p className="text-[11px] text-slate-500">
+                      Formatos aceitos: QuickTime (.MOV), MP4, WebM. Limite máximo: até 1.5 GB.
+                    </p>
+                  </div>
+                  {videoGestao?.url && videoGestao.tipo === 'arquivo' && (
+                    <span className="text-[11px] font-mono text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0">
+                      Arquivo atual: {videoGestao.nome_arquivo || 'video_gestao'} ({videoGestao.tamanho_mb || '—'} MB)
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-slate-300 hover:border-totvs-blue rounded-xl bg-slate-50/50 hover:bg-blue-50/30 text-xs font-semibold text-slate-600 cursor-pointer transition">
+                    <Icons.Upload />
+                    <span className="truncate">
+                      {arquivoSelecionado ? `${arquivoSelecionado.name} (${(arquivoSelecionado.size / 1024 / 1024).toFixed(2)} MB)` : 'Selecionar arquivo do computador (.MOV, .MP4)...'}
+                    </span>
+                    <input
+                      type="file"
+                      accept="video/quicktime,video/mp4,video/*,.mov,.mp4"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files && e.target.files[0];
+                        if (file) {
+                          setArquivoSelecionado(file);
+                          setUploadMsg('');
+                          setUploadProgress(0);
+                        }
+                      }}
+                      disabled={uploading}
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={handleUploadFile}
+                    disabled={!arquivoSelecionado || uploading}
+                    className={`px-5 py-3 rounded-xl font-bold text-xs text-white shadow-sm transition flex items-center justify-center gap-2 shrink-0 ${
+                      !arquivoSelecionado || uploading
+                        ? 'bg-slate-300 cursor-not-allowed opacity-70'
+                        : 'bg-totvs-blue hover:bg-totvs-dark cursor-pointer'
+                    }`}
+                  >
+                    <Icons.Upload />
+                    <span>{uploading ? 'Enviando...' : 'Iniciar Upload'}</span>
+                  </button>
+                </div>
+
+                {/* Barra de Progresso Real em % */}
+                {uploading && (
+                  <div className="space-y-1.5 animate-in fade-in duration-150">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                      <span>Progresso do Envio:</span>
+                      <span className="font-mono text-totvs-blue">{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200 p-0.5">
+                      <div
+                        className="h-full bg-gradient-to-r from-totvs-blue to-totvs-cyan rounded-full transition-all duration-150 ease-out shadow-xs"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
+                {uploadMsg && (
+                  <div className={`p-3 rounded-xl text-xs font-medium ${
+                    uploadMsg.includes('✅')
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : uploadMsg.includes('❌')
+                      ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                      : 'bg-blue-50 text-totvs-blue border border-blue-200'
+                  }`}>
+                    {uploadMsg}
+                  </div>
+                )}
+
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-700">
+                    <Icons.CheckCircle />
+                    <span>Compatibilidade e Proteção GitHub:</span>
+                  </div>
+                  <p>
+                    • Arquivos de vídeo enviados ficam armazenados em <code className="text-totvs-blue font-mono font-bold">uploads/videos/</code>, diretório já configurado no <code className="text-slate-800 font-mono">.gitignore</code> para proteger o limite de 100 MB do GitHub.
+                  </p>
+                  <p>
+                    • O servidor local entrega o vídeo via <strong>HTTP Range Requests (status 206)</strong>, permitindo adiantar, retroceder e reproduzir instantaneamente vídeos pesados sem travamentos.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Painel do Modo Link Externo */}
+            {tipo === 'link' && (
+              <div className="mt-4 p-4 rounded-xl bg-white border border-slate-200 space-y-3">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <Icons.Link />
+                  <span>URL do Vídeo Externo (Google Drive, YouTube ou CDN) *</span>
+                </label>
+                <input
+                  type="url"
+                  placeholder="Ex: https://drive.google.com/file/d/.../view ou https://youtu.be/..."
+                  value={urlLink}
+                  onChange={(e) => setUrlLink(e.target.value)}
+                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
+                />
+                <p className="text-[11px] text-slate-500">
+                  💡 <strong>Google Drive:</strong> Links de visualização compartilhada no padrão <code className="font-mono">drive.google.com/file/d/.../view</code> são automaticamente convertidos para exibição embutida no lightbox cinema.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Textos Institucionais & Mensagens do Topo */}
+          <form onSubmit={handleSalvarConfig} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-4">
+            <h5 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <Icons.Edit />
+              <span>Textos Institucionais e Chamadas no Topo</span>
+            </h5>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Mensagem em Destaque na Miniatura (Banner do Topo) *
+                </label>
+                <input
+                  type="text"
+                  value={mensagem}
+                  onChange={(e) => setMensagem(e.target.value)}
+                  required
+                  placeholder="Ex: Veja seu discurso aqui"
+                  className="w-full text-xs bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue transition"
+                />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">
+                  Exibida em destaque na miniatura ao lado do título da vitrine.
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Título Institucional do Vídeo *
+                </label>
+                <input
+                  type="text"
+                  value={titulo}
+                  onChange={(e) => setTitulo(e.target.value)}
+                  required
+                  placeholder="Ex: Discurso da Gestão"
+                  className="w-full text-xs bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue transition"
+                />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">
+                  Exibido no topo do player lightbox de cinema.
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Subtítulo / Descrição Explicativa
+              </label>
+              <textarea
+                rows="2"
+                value={subtitulo}
+                onChange={(e) => setSubtitulo(e.target.value)}
+                placeholder="Ex: Mensagem institucional da liderança aos visitantes do Espaço Experiência"
+                className="w-full text-xs bg-white border border-slate-200 rounded-xl p-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-totvs-blue transition"
+              ></textarea>
+            </div>
+
+            {/* Pré-visualização do Vídeo Atual se houver URL */}
+            {videoGestao?.url && (
+              <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-2">
+                <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Pré-visualização do Vídeo Ativo:
+                </span>
+                <div className="rounded-xl overflow-hidden bg-black max-w-md mx-auto aspect-video">
+                  {videoGestao.tipo === 'link' ? (
+                    <iframe
+                      src={videoGestao.url.includes('drive.google.com/file/d/') ? videoGestao.url.replace(/\/view(\?.*)?$/, '/preview') : videoGestao.url}
+                      title="Prévia"
+                      className="w-full h-full border-0"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <video
+                      src={videoGestao.url}
+                      controls
+                      className="w-full h-full object-contain bg-black"
+                    >
+                      Seu navegador não suporta este formato de vídeo.
+                    </video>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Botão Salvar Configurações */}
+            <div className="pt-2 flex items-center justify-end">
+              <button
+                type="submit"
+                disabled={salvandoConfig}
+                className="px-6 py-2.5 bg-totvs-blue hover:bg-totvs-dark text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <Icons.CheckCircle />
+                <span>{salvandoConfig ? 'Gravando Alterações...' : 'Salvar Configurações do Vídeo'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE: PAINEL ADMINISTRATIVO (ADMS, CONVITES, VISITAS, AUDITORIA & VÍDEO) ---
     function AdminModal({
       admLogado,
       activeTab = 'adms',
@@ -3813,6 +4482,8 @@
       onOpenVisitorModal,
       onClose,
       onRefresh,
+      videoGestao,
+      onVideoGestaoChange,
       showToast
     }) {
       // Bloquear rolagem do fundo e fechar com a tecla ESC
@@ -4066,6 +4737,18 @@
               >
                 <Icons.Edit />
                 <span>Auditoria ({auditLogs.length})</span>
+              </button>
+
+              <button
+                onClick={() => onTabChange('video')}
+                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
+                  activeTab === 'video'
+                    ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Icons.Video />
+                <span>Vídeo da Gestão {videoGestao?.url ? '🎬' : ''}</span>
               </button>
             </div>
 
@@ -4548,6 +5231,16 @@
                     </div>
                   )}
                 </div>
+              )}
+
+              {/* ABA 5: VÍDEO INSTITUCIONAL DA GESTÃO */}
+              {activeTab === 'video' && (
+                <AdminVideoTab
+                  videoGestao={videoGestao}
+                  admLogado={admLogado}
+                  onVideoGestaoChange={onVideoGestaoChange}
+                  showToast={showToast}
+                />
               )}
 
             </div>
