@@ -1,12 +1,12 @@
 {
   "ativo": true,
-  "tipo": "arquivo",
-  "url": "",
-  "titulo": "Discurso da Gestão",
-  "mensagem": "Veja seu discurso aqui",
+  "tipo": "link",
+  "url": "https://drive.google.com/file/d/1VOUtlK5WR5rn6T0LwbAffw3K-GWUDK3M/view?usp=sharing",
+  "titulo": "Video discurso",
+  "mensagem": "Veja seu discurso aqui !!!",
   "subtitulo": "Mensagem institucional da liderança aos visitantes do Espaço Experiência",
   "nome_arquivo": null,
   "tamanho_mb": null,
-  "atualizado_em": "06/10/2026, 17:09:00",
-  "atualizado_por": "Administrador TOTVS"
+  "atualizado_em": "06/10/2026, 17:20:00",
+  "atualizado_por": "Administrador"
 }

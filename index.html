@@ -3276,8 +3276,9 @@
 
       let embedUrl = video.url || '';
       if (isEmbed && video.url) {
-        if (video.url.includes('drive.google.com/file/d/')) {
-          embedUrl = video.url.replace(/\/view(\?.*)?$/, '/preview');
+        if (video.url.includes('drive.google.com')) {
+          const driveMatch = video.url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+          embedUrl = driveMatch ? `https://drive.google.com/file/d/${driveMatch[1]}/preview` : video.url.replace(/\/view(\?.*)?$/, '/preview');
         } else if (video.url.includes('youtube.com/watch')) {
           try {
             const vidId = new URL(video.url).searchParams.get('v');
@@ -3427,6 +3428,12 @@
                 {video.nome_arquivo && (
                   <p className="text-[10px] text-slate-500 font-mono">
                     Arquivo: {video.nome_arquivo} {video.tamanho_mb ? `(${video.tamanho_mb} MB)` : ''}
+                  </p>
+                )}
+                {video.url && video.url.includes('drive.google.com') && (
+                  <p className="text-[11px] text-amber-400 font-medium flex items-center gap-1 pt-0.5">
+                    <span>💡</span>
+                    <span>Hospedado no Google Drive: clique no botão <strong>▶ Play</strong> central para iniciar.</span>
                   </p>
                 )}
               </div>
@@ -4544,7 +4551,11 @@
                 <div className="rounded-xl overflow-hidden bg-black max-w-md mx-auto aspect-video relative flex items-center justify-center">
                   {videoGestao.tipo === 'link' ? (
                     <iframe
-                      src={videoGestao.url.includes('drive.google.com/file/d/') ? videoGestao.url.replace(/\/view(\?.*)?$/, '/preview') : videoGestao.url}
+                      src={videoGestao.url.includes('drive.google.com') ? (
+                        videoGestao.url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)
+                          ? `https://drive.google.com/file/d/${videoGestao.url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)[1]}/preview`
+                          : videoGestao.url.replace(/\/view(\?.*)?$/, '/preview')
+                      ) : videoGestao.url}
                       title="Prévia"
                       className="w-full h-full border-0"
                       allowFullScreen
