@@ -4,7 +4,9 @@
     "nome": "André Gianotti",
     "email": "andre.gianotti@totvs.com.br",
     "senha": "totvs123",
-    "cargo": "Administrador",
+    "cargo": "Dono do Produto",
+    "dono_produto": true,
+    "foto": "",
     "criado_em": "16/09/2026 15:30"
   }
 ]

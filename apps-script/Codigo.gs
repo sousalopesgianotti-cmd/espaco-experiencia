@@ -69,8 +69,11 @@ function obterUsuarioAtivo() {
   } catch (e) {}
   
   if (!email || email === "") {
-    email = "colaborador@totvs.com.br";
+    email = "andre.gianotti@totvs.com.br";
   }
+  
+  var emailLower = email.toLowerCase().trim();
+  var isDono = emailLower === "andre.gianotti@totvs.com.br";
   
   var parteNome = email.split('@')[0].replace(/[._-]/g, ' ');
   var nomeFormatado = parteNome.split(' ').map(function(palavra) {
@@ -79,9 +82,11 @@ function obterUsuarioAtivo() {
 
   return {
     email: email,
-    nome: nomeFormatado || "Especialista TOTVS",
-    cargo: "Colaborador TOTVS",
-    tipo: "administrador"
+    nome: isDono ? "André Gianotti" : (nomeFormatado || "Especialista TOTVS"),
+    cargo: isDono ? "Dono do Produto" : "Colaborador TOTVS",
+    tipo: "administrador",
+    dono_produto: isDono,
+    foto: ""
   };
 }
 

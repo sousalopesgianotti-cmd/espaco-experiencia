@@ -991,26 +991,40 @@
                     ? 'bg-totvs-blue/20 text-totvs-cyan border border-totvs-cyan/30 hover:bg-totvs-blue/30' 
                     : 'text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
-                title="Área Administrativa"
+                title={admLogado ? `Área ADM (${admLogado.nome})` : "Área Administrativa"}
               >
                 <span className="shrink-0 relative">
-                  <Icons.Shield />
+                  {admLogado && admLogado.foto ? (
+                    <img
+                      src={admLogado.foto}
+                      alt={admLogado.nome}
+                      className="w-7 h-7 rounded-full object-cover border-2 border-totvs-cyan shadow-sm"
+                    />
+                  ) : admLogado ? (
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-totvs-blue to-totvs-cyan text-white text-xs font-black flex items-center justify-center border border-totvs-cyan shadow-sm">
+                      {admLogado.nome ? admLogado.nome.charAt(0).toUpperCase() : 'A'}
+                    </div>
+                  ) : (
+                    <Icons.Shield />
+                  )}
                   {admLogado && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-pulse border border-[#07162c]"></span>
                   )}
                 </span>
                 {isExpanded && (
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold block truncate">Área ADM</span>
+                      <span className="text-xs font-bold block truncate">
+                        {admLogado ? admLogado.nome : 'Área ADM'}
+                      </span>
                       {admLogado && (
                         <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
-                          ON
+                          {admLogado.dono_produto ? 'DONO' : 'ON'}
                         </span>
                       )}
                     </div>
                     <span className="text-[9.5px] text-slate-400 block truncate">
-                      {admLogado ? admLogado.nome : 'Acesso Restrito'}
+                      {admLogado ? (admLogado.dono_produto ? '👑 Dono do Produto' : 'Administrador') : 'Acesso Restrito'}
                     </span>
                   </div>
                 )}
@@ -1640,7 +1654,16 @@
         // 3. Restaurar sessão salva de administrador deste navegador
         const savedAdm = localStorage.getItem('totvs_adm_session');
         if (savedAdm) {
-          try { setAdmLogado(JSON.parse(savedAdm)); } catch(e){}
+          try {
+            const parsed = JSON.parse(savedAdm);
+            setAdmLogado(parsed);
+            if (!sessionStorage.getItem('totvs_adm_welcome_shown')) {
+              sessionStorage.setItem('totvs_adm_welcome_shown', '1');
+              setTimeout(() => {
+                showToast(`Olá, ${parsed.nome}! Bem-vindo ao Espaço Experiência TOTVS. 👋`);
+              }, 700);
+            }
+          } catch(e){}
         }
 
         // 4. Carregar métricas de visitantes presenciais
@@ -1671,7 +1694,7 @@
         setAdmLogado(usuario);
         localStorage.setItem('totvs_adm_session', JSON.stringify(usuario));
         setShowLoginModal(false);
-        showToast(`Bem-vindo, ${usuario.nome}! Modo Administrador ativado. ✅`);
+        showToast(`Olá, ${usuario.nome}! Bem-vindo ao Espaço Experiência TOTVS. Modo Administrador ativado. 🚀`);
       };
 
       // Logout do Administrador
@@ -1688,7 +1711,13 @@
         setShowAcceptInviteModal(false);
         setConviteToken(null);
         window.history.replaceState({}, document.title, window.location.pathname);
-        showToast(`Perfil ativado com sucesso! Bem-vindo, ${usuario.nome}. 🛡️`);
+        showToast(`Olá, ${usuario.nome}! Bem-vindo ao Espaço Experiência TOTVS. Perfil de ADM ativado! 🎉`);
+      };
+
+      // Atualizar dados de perfil do Administrador (ex: upload de foto)
+      const handleUpdateAdmProfile = (usuarioAtualizado) => {
+        setAdmLogado(usuarioAtualizado);
+        localStorage.setItem('totvs_adm_session', JSON.stringify(usuarioAtualizado));
       };
 
       // Abrir Edição Completa (apenas ADM)
@@ -2197,6 +2226,7 @@
           {adminModal && (
             <AdminModal
               admLogado={admLogado}
+              onUpdateAdmProfile={handleUpdateAdmProfile}
               activeTab={adminTab}
               onTabChange={setAdminTab}
               admsList={admsList}
@@ -2389,12 +2419,11 @@
       
       const [nome, setNome] = useState('');
       const [email, setEmail] = useState('');
-      const [senhaProvisoria, setSenhaProvisoria] = useState('totvs123');
+      const [senhaProvisoria, setSenhaProvisoria] = useState('123');
       const [novaSenha, setNovaSenha] = useState('');
       const [confirmaSenha, setConfirmaSenha] = useState('');
       const [showNovaSenha, setShowNovaSenha] = useState(false);
       const [showConfirmaSenha, setShowConfirmaSenha] = useState(false);
-      const [emailTocado, setEmailTocado] = useState(false);
       const [salvando, setSalvando] = useState(false);
       const [formErro, setFormErro] = useState('');
 
@@ -2405,6 +2434,9 @@
           .then(data => {
             if (data.success && data.convite) {
               setConviteData(data.convite);
+              if (data.convite.nome) setNome(data.convite.nome);
+              if (data.convite.email) setEmail(data.convite.email);
+              setSenhaProvisoria('123');
             } else {
               setErroToken(data.message || 'Este link de convite é inválido ou já foi utilizado.');
             }
@@ -2417,20 +2449,28 @@
         e.preventDefault();
         setFormErro('');
 
+        const nomeTrim = nome.trim();
+        if (!nomeTrim || nomeTrim.length < 3) {
+          setFormErro('Por favor, informe seu nome completo (mínimo 3 caracteres).');
+          return;
+        }
+
         const emailTrim = email.trim();
-        const emailRegex = /^[^s@]+@[^s@]+.[^s@]{2,}$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
         if (!emailRegex.test(emailTrim)) {
-          setFormErro('Por favor, informe um endereço de e-mail corporativo válido (exemplo: usuario@empresa.com.br).');
+          setFormErro('Por favor, informe um endereço de e-mail corporativo válido (exemplo: usuario@totvs.com.br).');
           return;
         }
 
-        if (senhaProvisoria.trim() !== 'totvs123') {
-          setFormErro('A senha provisória padrão é totvs123.');
+        if (senhaProvisoria.trim() !== '123') {
+          setFormErro('Senha provisória incorreta. A senha padrão informada no convite é 123.');
           return;
         }
 
-        if (novaSenha.trim().length < 4) {
-          setFormErro('A nova senha deve possuir pelo menos 4 caracteres.');
+        // Validação obrigatória: letras E números, mínimo 6 caracteres
+        const senhaAlfanumerica = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(novaSenha.trim());
+        if (!senhaAlfanumerica) {
+          setFormErro('A nova senha deve possuir no mínimo 6 caracteres e conter obrigatoriamente letras e números.');
           return;
         }
 
@@ -2446,8 +2486,8 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               token,
-              nome: nome.trim(),
-              email: email.trim(),
+              nome: nomeTrim,
+              email: emailTrim,
               senhaProvisoria: senhaProvisoria.trim(),
               novaSenha: novaSenha.trim()
             })
@@ -2459,7 +2499,7 @@
             setFormErro(data.message || 'Erro ao ativar perfil de administrador.');
           }
         } catch (err) {
-          setFormErro('Erro de conexão ao ativar convite.');
+          setFormErro('Erro de conexão ao ativar convite. Verifique sua rede.');
         } finally {
           setSalvando(false);
         }
@@ -2471,7 +2511,7 @@
             {carregando ? (
               <div className="text-center py-12">
                 <div className="w-10 h-10 border-4 border-totvs-cyan border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                <p className="text-xs font-bold text-slate-600">Verificando link de convite...</p>
+                <p className="text-xs font-bold text-slate-600">Verificando link de convite exclusivo...</p>
               </div>
             ) : erroToken ? (
               <div className="text-center py-8 space-y-4">
@@ -2496,13 +2536,27 @@
                     🎉
                   </div>
                   <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-block mb-1">
-                    Convite de Administrador
+                    Convite Oficial de Administrador
                   </span>
                   <h3 className="font-black text-xl text-slate-800">Ative seu Perfil de ADM</h3>
                   <p className="text-xs text-slate-500 mt-1">
                     Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar o Espaço Experiência TOTVS.
                   </p>
                 </div>
+
+                {/* Card de Identificação Pré-cadastrada */}
+                {conviteData && (conviteData.nome || conviteData.email) && (
+                  <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Pré-cadastro confirmado:</span>
+                      <strong className="text-slate-800 block text-xs">{conviteData.nome || 'Novo Administrador'}</strong>
+                      <span className="text-[11px] text-totvs-blue font-mono block">{conviteData.email}</span>
+                    </div>
+                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold text-[10px] shrink-0">
+                      ✓ Validado
+                    </span>
+                  </div>
+                )}
 
                 {formErro && (
                   <div className="mb-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3 rounded-xl flex items-center gap-2">
@@ -2521,96 +2575,84 @@
                       onChange={e => setNome(e.target.value)}
                       className="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-medium text-slate-800 focus:ring-2 focus:ring-totvs-cyan"
                       required
-                      autoFocus
                     />
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-[11px] font-bold text-slate-700">Seu E-mail Corporativo:</label>
-                      {emailTocado && !/^[^s@]+@[^s@]+.[^s@]{2,}$/.test(email.trim()) && email.trim().length > 0 && (
-                        <span className="text-[10px] text-rose-500 font-bold">Formato inválido</span>
-                      )}
-                    </div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Seu E-mail Corporativo:</label>
                     <input
                       type="email"
-                      placeholder="seu.nome@empresa.com.br"
+                      placeholder="seu.nome@totvs.com.br"
                       value={email}
-                      onBlur={() => setEmailTocado(true)}
-                      onChange={e => {
-                        setEmail(e.target.value);
-                        if (!emailTocado && e.target.value.includes('@')) setEmailTocado(true);
-                      }}
-                      className={`w-full p-2.5 border rounded-xl bg-white font-medium text-slate-800 transition focus:ring-2 focus:ring-totvs-cyan ${
-                        emailTocado && !/^[^s@]+@[^s@]+.[^s@]{2,}$/.test(email.trim()) && email.trim().length > 0
-                          ? 'border-rose-400 focus:border-rose-500 bg-rose-50/20'
-                          : 'border-slate-300'
-                      }`}
+                      onChange={e => setEmail(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-medium text-slate-800 focus:ring-2 focus:ring-totvs-cyan"
                       required
                     />
-                    {emailTocado && !/^[^s@]+@[^s@]+.[^s@]{2,}$/.test(email.trim()) && email.trim().length > 0 && (
-                      <p className="text-[10px] text-rose-500 mt-1">
-                        Informe um e-mail válido (ex: nome@empresa.com.br).
-                      </p>
-                    )}
                   </div>
 
-                  <div className="bg-blue-50/60 p-3 rounded-2xl border border-blue-100 space-y-2">
+                  <div className="bg-blue-50/60 p-3 rounded-2xl border border-blue-100 space-y-2.5">
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-[11px] font-bold text-slate-700">Senha Provisória do Convite:</label>
-                        <span className="text-[10px] text-totvs-blue font-bold">Padrão: totvs123</span>
+                        <label className="text-[11px] font-bold text-slate-700">Senha Provisória Recebida:</label>
+                        <span className="text-[10px] text-totvs-blue font-bold">Padrão do convite: 123</span>
                       </div>
                       <input
                         type="text"
                         value={senhaProvisoria}
                         onChange={e => setSenhaProvisoria(e.target.value)}
+                        placeholder="123"
                         className="w-full p-2 border border-slate-300 rounded-lg bg-white font-mono text-slate-800 focus:ring-2 focus:ring-totvs-cyan"
                         required
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                      <div>
-                        <label className="block text-[10.5px] font-bold text-slate-700 mb-1">Nova Senha Definitiva:</label>
-                        <div className="relative">
-                          <input
-                            type={showNovaSenha ? 'text' : 'password'}
-                            placeholder="Mínimo 4 caracteres"
-                            value={novaSenha}
-                            onChange={e => setNovaSenha(e.target.value)}
-                            className="w-full p-2 pr-8 border border-slate-300 rounded-lg bg-white font-medium text-slate-800 focus:ring-2 focus:ring-totvs-cyan text-xs"
-                            required
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowNovaSenha(!showNovaSenha)}
-                            title={showNovaSenha ? "Ocultar senha" : "Visualizar senha"}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-0.5 rounded cursor-pointer"
-                          >
-                            {showNovaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
-                          </button>
+                    <div className="pt-1 border-t border-blue-100">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 block mb-1">
+                        Definir Senha Definitiva (Obrigatório: Letras e Números, mín. 6 caracteres):
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10.5px] font-bold text-slate-700 mb-1">Nova Senha:</label>
+                          <div className="relative">
+                            <input
+                              type={showNovaSenha ? 'text' : 'password'}
+                              placeholder="Ex: Totvs2026"
+                              value={novaSenha}
+                              onChange={e => setNovaSenha(e.target.value)}
+                              className="w-full p-2 pr-8 border border-slate-300 rounded-lg bg-white font-medium text-slate-800 focus:ring-2 focus:ring-totvs-cyan text-xs"
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNovaSenha(!showNovaSenha)}
+                              title={showNovaSenha ? "Ocultar senha" : "Visualizar senha"}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-0.5 rounded cursor-pointer"
+                            >
+                              {showNovaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <label className="block text-[10.5px] font-bold text-slate-700 mb-1">Confirmar Nova Senha:</label>
-                        <div className="relative">
-                          <input
-                            type={showConfirmaSenha ? 'text' : 'password'}
-                            placeholder="Repita a nova senha"
-                            value={confirmaSenha}
-                            onChange={e => setConfirmaSenha(e.target.value)}
-                            className="w-full p-2 pr-8 border border-slate-300 rounded-lg bg-white font-medium text-slate-800 focus:ring-2 focus:ring-totvs-cyan text-xs"
-                            required
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirmaSenha(!showConfirmaSenha)}
-                            title={showConfirmaSenha ? "Ocultar senha" : "Visualizar senha para confirmação"}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-0.5 rounded cursor-pointer"
-                          >
-                            {showConfirmaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
-                          </button>
+
+                        <div>
+                          <label className="block text-[10.5px] font-bold text-slate-700 mb-1">Confirmar Senha:</label>
+                          <div className="relative">
+                            <input
+                              type={showConfirmaSenha ? 'text' : 'password'}
+                              placeholder="Repita a senha"
+                              value={confirmaSenha}
+                              onChange={e => setConfirmaSenha(e.target.value)}
+                              className="w-full p-2 pr-8 border border-slate-300 rounded-lg bg-white font-medium text-slate-800 focus:ring-2 focus:ring-totvs-cyan text-xs"
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmaSenha(!showConfirmaSenha)}
+                              title={showConfirmaSenha ? "Ocultar senha" : "Visualizar senha"}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-0.5 rounded cursor-pointer"
+                            >
+                              {showConfirmaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -5152,6 +5194,7 @@
     // --- COMPONENTE: PAINEL ADMINISTRATIVO (ADMS, CONVITES, VISITAS, AUDITORIA & VÍDEO) ---
     function AdminModal({
       admLogado,
+      onUpdateAdmProfile,
       activeTab = 'adms',
       onTabChange,
       admsList = [],
@@ -5200,6 +5243,22 @@
       const [filterVisitors, setFilterVisitors] = useState('');
       const [deletingVisitorId, setDeletingVisitorId] = useState(null);
 
+      // Estados para Novo Convite com Nome e E-mail obrigatórios
+      const [novoAdmNome, setNovoAdmNome] = useState('');
+      const [novoAdmEmail, setNovoAdmEmail] = useState('');
+
+      // Estados e Ref para Upload de Foto de Perfil
+      const [uploadingAvatar, setUploadingAvatar] = useState(false);
+      const avatarInputRef = useRef(null);
+
+      // Validação estrita do formulário de convite
+      const formConviteValido = useMemo(() => {
+        const nomeValido = novoAdmNome.trim().length >= 3;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+        const emailValido = emailRegex.test(novoAdmEmail.trim());
+        return nomeValido && emailValido;
+      }, [novoAdmNome, novoAdmEmail]);
+
       const handleDeleteVisitor = async (vis) => {
         const nomeEmpresa = vis.empresa || vis.nome;
         if (!confirm(`Deseja realmente remover o registro de visita de "${nomeEmpresa}"?`)) return;
@@ -5231,27 +5290,94 @@
         );
       }, [visitorsList, filterVisitors]);
 
-      const handleGerarConvite = async () => {
+      // Gerar convite somente quando nome e email forem válidos
+      const handleGerarConvite = async (e) => {
+        if (e) e.preventDefault();
+        if (!formConviteValido) {
+          alert('Por favor, preencha o Nome Completo (mínimo 3 letras) e um E-mail Corporativo válido antes de gerar o convite.');
+          return;
+        }
+
         setGerandoConvite(true);
         try {
           const res = await fetch('/api/admin/invite', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ criado_por: admLogado?.nome || 'Administrador' })
+            body: JSON.stringify({
+              nome: novoAdmNome.trim(),
+              email: novoAdmEmail.trim(),
+              criado_por: admLogado?.nome || 'Administrador'
+            })
           });
           const data = await res.json();
           if (data.success && data.convite) {
             setConviteRecemCriado(data.convite);
+            setNovoAdmNome('');
+            setNovoAdmEmail('');
             if (onConvitesChange) onConvitesChange();
             if (showToast) showToast('Link de convite gerado com sucesso! 🔗');
           } else {
-            alert(data.error || 'Erro ao gerar convite.');
+            alert(data.message || data.error || 'Erro ao gerar convite.');
           }
         } catch (err) {
           alert('Falha de conexão ao gerar link de convite.');
         } finally {
           setGerandoConvite(false);
         }
+      };
+
+      // Upload de Foto de Perfil do Administrador
+      const handleUploadAvatar = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          alert('Por favor, selecione um arquivo de imagem válido (JPG, PNG ou WebM).');
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          alert('A foto selecionada deve ter no máximo 5 MB.');
+          return;
+        }
+
+        setUploadingAvatar(true);
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64Data = reader.result;
+          try {
+            const res = await fetch('/api/admin/avatar', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: admLogado.email,
+                foto: base64Data
+              })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+              if (onUpdateAdmProfile) {
+                onUpdateAdmProfile(data.usuario);
+              }
+              if (onAdmsChange) onAdmsChange();
+              if (showToast) showToast('Foto de perfil atualizada com sucesso! 📸');
+            } else {
+              alert(data.message || 'Erro ao atualizar foto de perfil.');
+            }
+          } catch (err) {
+            alert('Erro de conexão ao enviar foto de perfil.');
+          } finally {
+            setUploadingAvatar(false);
+            if (avatarInputRef.current) avatarInputRef.current.value = '';
+          }
+        };
+
+        reader.onerror = () => {
+          alert('Falha ao processar o arquivo de imagem.');
+          setUploadingAvatar(false);
+        };
+
+        reader.readAsDataURL(file);
       };
 
       const handleCopyLink = (tokenOrLink) => {
@@ -5273,6 +5399,18 @@
       };
 
       const handleDeleteAdm = async (adm) => {
+        // Blindagem do Dono do Produto
+        if (adm.dono_produto === true || adm.email?.toLowerCase().trim() === 'andre.gianotti@totvs.com.br') {
+          alert('Ação bloqueada: O Dono do Produto (andre.gianotti@totvs.com.br) possui imunidade absoluta e não pode ser excluído.');
+          return;
+        }
+
+        // Apenas o Dono do Produto pode excluir outros ADMs
+        if (!admLogado?.dono_produto && admLogado?.email?.toLowerCase().trim() !== 'andre.gianotti@totvs.com.br') {
+          alert('Ação restrita: Somente o Dono do Produto (andre.gianotti@totvs.com.br) tem permissão para remover administradores.');
+          return;
+        }
+
         if (!admsList || admsList.length <= 1) {
           alert('Ação bloqueada: Não é permitido remover o único administrador do sistema!');
           return;
@@ -5296,7 +5434,7 @@
               window.location.reload();
             }
           } else {
-            alert(data.error || 'Erro ao remover administrador.');
+            alert(data.message || data.error || 'Erro ao remover administrador.');
           }
         } catch (err) {
           alert('Erro de conexão ao remover administrador.');
@@ -5338,26 +5476,68 @@
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8">
             
-            {/* Header Modal */}
-            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-totvs-blue/20 border border-totvs-cyan/40 text-totvs-cyan flex items-center justify-center font-bold">
-                  <Icons.Shield />
+            {/* Header Modal com Avatar e Upload de Foto */}
+            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="relative group shrink-0">
+                  {admLogado?.foto ? (
+                    <img
+                      src={admLogado.foto}
+                      alt={admLogado.nome}
+                      className="w-12 h-12 rounded-2xl object-cover border-2 border-totvs-cyan shadow-md"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-totvs-blue to-totvs-cyan border border-totvs-cyan/40 text-white flex items-center justify-center font-black text-base shadow-md">
+                      {admLogado?.nome ? admLogado.nome.charAt(0).toUpperCase() : 'A'}
+                    </div>
+                  )}
+
+                  {/* Botão de upload/troca de foto de perfil */}
+                  <label
+                    className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-totvs-blue hover:bg-totvs-dark text-white flex items-center justify-center cursor-pointer shadow-md transition border border-white"
+                    title="Subir / Alterar foto de perfil"
+                  >
+                    <input
+                      type="file"
+                      ref={avatarInputRef}
+                      accept="image/*"
+                      onChange={handleUploadAvatar}
+                      disabled={uploadingAvatar}
+                      className="hidden"
+                    />
+                    <span className="text-[10px]">📷</span>
+                  </label>
                 </div>
+
                 <div>
-                  <h3 className="font-extrabold text-lg text-white flex items-center gap-2">
-                    Painel Administrativo
-                    <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
-                      Acesso Exclusivo ADM
-                    </span>
-                  </h3>
-                  <p className="text-xs text-slate-400">
-                    Logado como <strong className="text-white">{admLogado?.nome || 'Administrador'}</strong> ({admLogado?.email})
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-extrabold text-lg text-white">
+                      Painel Administrativo
+                    </h3>
+                    {admLogado?.dono_produto ? (
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                        👑 Dono do Produto
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
+                        Administrador
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-300 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    <span>Logado como:</span>
+                    <strong className="text-white">{admLogado?.nome || 'Administrador'}</strong>
+                    <span className="text-slate-400 font-mono text-[11px]">({admLogado?.email})</span>
+                    {uploadingAvatar && (
+                      <span className="text-totvs-cyan text-[11px] animate-pulse font-bold ml-1">
+                        • Salvando foto...
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 self-end sm:self-center">
                 <button
                   type="button"
                   onClick={onRefresh}
@@ -5467,13 +5647,13 @@
                         </span>
                       </h4>
                       <p className="text-xs text-slate-600 mt-1">
-                        Somente administradores autenticados podem editar cartões, fazer upload de fotos/vídeos e gerenciar estações. Visitantes acessam de modo aberto e leitura.
+                        Todos os administradores cadastrados possuem acesso total a todas as edições do showroom (estações, fotos, vídeos, visitantes e plantonistas).
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => onTabChange('convites')}
-                      className="px-4 py-2.5 rounded-xl bg-totvs-blue hover:bg-totvs-blue/90 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm shrink-0 transition"
+                      className="px-4 py-2.5 rounded-xl bg-totvs-blue hover:bg-totvs-blue/90 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm shrink-0 transition cursor-pointer"
                     >
                       <Icons.Plus />
                       <span>Convidar Outro ADM</span>
@@ -5482,59 +5662,90 @@
 
                   {/* Lista de Administradores */}
                   <div className="space-y-3">
-                    <h5 className="font-bold text-xs uppercase tracking-wider text-slate-500">
-                      Administradores Cadastrados ({admsList.length})
-                    </h5>
+                    <div className="flex items-center justify-between">
+                      <h5 className="font-bold text-xs uppercase tracking-wider text-slate-500">
+                        Administradores Cadastrados ({admsList.length})
+                      </h5>
+                      {!admLogado?.dono_produto && (
+                        <span className="text-[11px] text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200 font-medium">
+                          🔒 Exclusão restrita ao Dono do Produto
+                        </span>
+                      )}
+                    </div>
 
                     <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
                       {admsList.map((adm) => {
                         const isSelf = adm.id === admLogado?.id || adm.email === admLogado?.email;
-                        const isOnlyOne = admsList.length <= 1;
+                        const isDono = adm.dono_produto === true || adm.email?.toLowerCase().trim() === 'andre.gianotti@totvs.com.br';
+                        const podeExcluir = admLogado?.dono_produto === true && !isDono && admsList.length > 1;
 
                         return (
                           <div key={adm.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-totvs-blue to-totvs-cyan text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
-                                {adm.nome ? adm.nome.charAt(0).toUpperCase() : 'A'}
-                              </div>
+                              {adm.foto ? (
+                                <img
+                                  src={adm.foto}
+                                  alt={adm.nome}
+                                  className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-sm shrink-0"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-totvs-blue to-totvs-cyan text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
+                                  {adm.nome ? adm.nome.charAt(0).toUpperCase() : 'A'}
+                                </div>
+                              )}
                               <div>
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className="font-bold text-slate-900 text-sm">{adm.nome}</span>
+                                  {isDono && (
+                                    <span className="text-[10px] bg-amber-100 text-amber-900 font-extrabold px-2.5 py-0.5 rounded-full border border-amber-300 flex items-center gap-1 shadow-xs">
+                                      👑 Dono do Produto
+                                    </span>
+                                  )}
                                   {isSelf && (
                                     <span className="text-[10px] bg-slate-900 text-totvs-cyan font-semibold px-2 py-0.5 rounded-full">
                                       Você
                                     </span>
                                   )}
-                                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
-                                    ADM Ativo
-                                  </span>
+                                  {!isDono && (
+                                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
+                                      ADM Ativo
+                                    </span>
+                                  )}
                                 </div>
                                 <span className="text-xs text-slate-500 font-mono block">{adm.email}</span>
                                 <span className="text-[10px] text-slate-400 block mt-0.5">
-                                  {adm.criado_em ? `Cadastrado em: ${new Date(adm.criado_em).toLocaleString('pt-BR')}` : 'Administrador principal'}
+                                  {adm.criado_em ? `Cadastrado em: ${adm.criado_em}` : 'Administrador principal'}
                                 </span>
                               </div>
                             </div>
 
                             <div className="flex items-center gap-2 self-end sm:self-center">
-                              {isOnlyOne ? (
+                              {isDono ? (
                                 <span
-                                  className="text-xs text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 cursor-not-allowed"
-                                  title="Não é permitido remover o único administrador cadastrado"
+                                  className="text-xs text-amber-800 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 font-bold flex items-center gap-1"
+                                  title="O Dono do Produto é blindado e não pode ser excluído por nenhum administrador"
                                 >
-                                  Único ADM (Protegido)
+                                  🛡️ Imunidade Total
                                 </span>
-                              ) : (
+                              ) : podeExcluir ? (
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteAdm(adm)}
                                   disabled={deletingId === adm.id}
-                                  className="px-3 py-1.5 rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 hover:border-rose-300 font-semibold text-xs flex items-center gap-1.5 transition disabled:opacity-50"
+                                  className="px-3 py-1.5 rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 hover:border-rose-300 font-semibold text-xs flex items-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
                                   title="Remover este administrador"
                                 >
                                   <Icons.Trash />
                                   <span>{deletingId === adm.id ? 'Removendo...' : 'Excluir ADM'}</span>
                                 </button>
+                              ) : !admLogado?.dono_produto ? (
+                                <span className="text-[11px] text-slate-400 bg-slate-50 px-2.5 py-1 rounded-xl">
+                                  Apenas Leitura
+                                </span>
+                              ) : (
+                                <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                                  Único ADM
+                                </span>
                               )}
                             </div>
                           </div>
@@ -5548,40 +5759,80 @@
               {/* ABA 2: CONVITES DE ADM */}
               {activeTab === 'convites' && (
                 <div className="space-y-6">
-                  {/* Card Gerador de Convite */}
-                  <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-md">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div>
-                        <h4 className="font-extrabold text-base text-white flex items-center gap-2">
-                          <Icons.Plus />
-                          <span>Gerar Link de Convite para Novo Administrador</span>
-                        </h4>
-                        <p className="text-xs text-slate-300 mt-1 max-w-xl">
-                          Gera um link seguro exclusivo. O novo administrador acessa o link, digita a senha inicial provisória <strong className="text-totvs-cyan font-mono">totvs123</strong>, preenche seus dados e define sua senha definitiva.
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleGerarConvite}
-                        disabled={gerandoConvite}
-                        className="px-5 py-3 rounded-xl bg-gradient-to-r from-totvs-blue to-totvs-cyan text-slate-900 font-extrabold text-xs shadow-lg hover:shadow-cyan-500/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
-                      >
+                  {/* Card Gerador de Convite com Formulário Obrigatório */}
+                  <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-md border border-slate-700">
+                    <div>
+                      <h4 className="font-extrabold text-base text-white flex items-center gap-2">
                         <Icons.Plus />
-                        <span>{gerandoConvite ? 'Gerando Link...' : 'Gerar Novo Link'}</span>
-                      </button>
+                        <span>Novo Convite de Administrador</span>
+                      </h4>
+                      <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                        Preencha o nome completo e o e-mail corporativo do colega para gerar um link exclusivo com a senha provisória padrão <strong className="text-totvs-cyan font-mono">123</strong>. O link só pode ser gerado após o preenchimento completo dos campos.
+                      </p>
                     </div>
 
-                    {/* Destaque do Convite Recém-Criado */}
+                    <form onSubmit={handleGerarConvite} className="mt-4 pt-4 border-t border-slate-700/80 space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                            Nome Completo do Novo ADM *
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Ex: Carlos Silva"
+                            value={novoAdmNome}
+                            onChange={(e) => setNovoAdmNome(e.target.value)}
+                            className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-totvs-cyan"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                            E-mail Corporativo Válido *
+                          </label>
+                          <input
+                            type="email"
+                            placeholder="carlos.silva@totvs.com.br"
+                            value={novoAdmEmail}
+                            onChange={(e) => setNovoAdmEmail(e.target.value)}
+                            className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-totvs-cyan"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                        <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                          <span>Senha Provisória Configurada:</span>
+                          <span className="font-mono font-bold text-totvs-cyan bg-totvs-blue/20 px-2 py-0.5 rounded-lg border border-totvs-cyan/30">
+                            123
+                          </span>
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={!formConviteValido || gerandoConvite}
+                          className={`px-5 py-2.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer ${
+                            formConviteValido && !gerandoConvite
+                              ? 'bg-gradient-to-r from-totvs-blue to-totvs-cyan text-slate-900 hover:shadow-cyan-500/20 hover:scale-[1.02] active:scale-[0.98]'
+                              : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-60'
+                          }`}
+                        >
+                          <Icons.Plus />
+                          <span>{gerandoConvite ? 'Gerando Link...' : 'Gerar Link de Convite (Senha 123)'}</span>
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Destaque do Convite Recém-Criado com texto pronto para compartilhar */}
                     {conviteRecemCriado && (
-                      <div className="mt-5 p-4 rounded-xl bg-slate-800/90 border border-totvs-cyan/40 space-y-3">
-                        <div className="flex items-center justify-between">
+                      <div className="mt-5 p-4 rounded-xl bg-slate-800/90 border border-totvs-cyan/40 space-y-3 animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
                           <span className="text-xs font-bold text-totvs-cyan flex items-center gap-1.5">
                             <Icons.CheckCircle />
-                            Link Pronto para Envio:
+                            Link Pronto para Envio a {conviteRecemCriado.nome}:
                           </span>
-                          <span className="text-[10px] text-slate-400 font-mono">
-                            Senha provisória: totvs123
+                          <span className="text-[11px] text-slate-300 font-mono">
+                            Senha Provisória: <strong className="text-totvs-cyan">123</strong>
                           </span>
                         </div>
 
@@ -5595,16 +5846,34 @@
                           <button
                             type="button"
                             onClick={() => handleCopyLink(conviteRecemCriado.token)}
-                            className="px-4 py-2.5 bg-totvs-blue hover:bg-totvs-blue/90 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0 transition"
+                            className="px-4 py-2.5 bg-totvs-blue hover:bg-totvs-blue/90 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0 transition cursor-pointer"
                           >
                             <Icons.Copy />
                             <span>{copiedToken === conviteRecemCriado.token ? 'Copiado!' : 'Copiar Link'}</span>
                           </button>
                         </div>
 
-                        <p className="text-[11px] text-slate-300">
-                          ℹ️ Copie e envie esse link ao colega. Ao abrir, ele verá a tela de ativação de administrador com troca imediata da senha inicial.
-                        </p>
+                        <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                          <p className="text-[11px] text-slate-300">
+                            ℹ️ O novo ADM acessará o link com a senha provisória <strong>123</strong> e cadastrará sua nova senha definitiva.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const linkCompleto = `${window.location.origin}${window.location.pathname}?convite=${conviteRecemCriado.token}`;
+                              const textoPronto = `Olá, ${conviteRecemCriado.nome}! Você foi convidado para ser Administrador do Espaço Experiência TOTVS.\nLink de ativação: ${linkCompleto}\nSenha provisória: 123 (no primeiro acesso, cadastre sua senha definitiva com letras e números).`;
+                              if (navigator.clipboard && navigator.clipboard.writeText) {
+                                navigator.clipboard.writeText(textoPronto);
+                                if (showToast) showToast('Mensagem formatada copiada para WhatsApp/Teams! 📋');
+                              } else {
+                                prompt('Copie o texto para envio:', textoPronto);
+                              }
+                            }}
+                            className="text-xs text-totvs-cyan hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <span>Copiar Mensagem Pronta (Teams / WhatsApp)</span>
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -5617,7 +5886,7 @@
 
                     {(!convitesList || convitesList.length === 0) ? (
                       <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs">
-                        Nenhum convite gerado até o momento. Clique em "Gerar Novo Link" acima.
+                        Nenhum convite gerado até o momento. Preencha o formulário acima para gerar um novo convite.
                       </div>
                     ) : (
                       <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
@@ -5629,8 +5898,11 @@
                             <div key={convite.token} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition">
                               <div>
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-mono text-xs font-bold text-slate-800">
-                                    ?convite={convite.token.slice(0, 8)}...
+                                  <strong className="text-xs text-slate-900 font-bold">
+                                    {convite.nome || 'Convidado'}
+                                  </strong>
+                                  <span className="text-[11px] text-totvs-blue font-mono">
+                                    ({convite.email || '—'})
                                   </span>
                                   {isUsado ? (
                                     <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
@@ -5638,16 +5910,16 @@
                                     </span>
                                   ) : (
                                     <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">
-                                      Pendente de Ativação
+                                      Pendente (Senha 123)
                                     </span>
                                   )}
                                 </div>
 
                                 <div className="text-[11px] text-slate-500 mt-1 space-y-0.5">
-                                  <span>Criado em: {new Date(convite.criado_em).toLocaleString('pt-BR')} por {convite.criado_por}</span>
+                                  <span>Criado em: {convite.criado_em} por {convite.criado_por}</span>
                                   {isUsado && (
                                     <span className="block text-emerald-700 font-medium">
-                                      Ativado por: {convite.utilizado_por || convite.nome_utilizado} {convite.email_utilizado ? `(${convite.email_utilizado})` : ''} em {new Date(convite.utilizado_em).toLocaleString('pt-BR')}
+                                      Ativado por: {convite.utilizado_por || convite.nome_utilizado} {convite.email_utilizado ? `(${convite.email_utilizado})` : ''} em {convite.utilizado_em}
                                     </span>
                                   )}
                                 </div>
@@ -5658,7 +5930,7 @@
                                   <button
                                     type="button"
                                     onClick={() => handleCopyLink(convite.token)}
-                                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1.5 transition"
+                                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer"
                                   >
                                     <Icons.Copy />
                                     <span>{isCopied ? 'Copiado!' : 'Copiar Link'}</span>

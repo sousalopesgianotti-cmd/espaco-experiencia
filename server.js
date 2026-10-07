@@ -481,7 +481,9 @@ const server = http.createServer(async (req, res) => {
           id: adm.id,
           nome: adm.nome,
           email: adm.email,
-          cargo: adm.cargo || 'Administrador'
+          cargo: adm.cargo || (adm.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br' ? 'Dono do Produto' : 'Administrador'),
+          dono_produto: adm.dono_produto === true || adm.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br',
+          foto: adm.foto || ''
         }
       });
     }
@@ -504,9 +506,27 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    // 7. POST /api/admin/invite (Gerar Link de Convite)
+    // 7. POST /api/admin/invite (Gerar Link de Convite com Pré-cadastro de Nome e E-mail)
     if (pathname === '/api/admin/invite' && method === 'POST') {
       const body = await readBodyJson(req);
+      const nome = (body.nome || '').trim();
+      const email = (body.email || '').trim().toLowerCase();
+      const criadoPor = body.criado_por || 'Administrador';
+
+      if (!nome || nome.length < 3) {
+        return sendJson(res, { success: false, message: 'O nome completo do novo administrador é obrigatório (mínimo 3 letras).' }, 400);
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+      if (!email || !emailRegex.test(email)) {
+        return sendJson(res, { success: false, message: 'Informe um endereço de e-mail corporativo válido (exemplo: usuario@totvs.com.br).' }, 400);
+      }
+
+      const usrFile = path.join(DATA_DIR, 'usuarios.json');
+      const usuarios = readJsonFile(usrFile, []);
+      if (Array.isArray(usuarios) && usuarios.some(u => u.email.toLowerCase().trim() === email)) {
+        return sendJson(res, { success: false, message: 'Já existe um administrador cadastrado com este e-mail no sistema.' }, 400);
+      }
+
       const convitesFile = path.join(DATA_DIR, 'convites.json');
       let convites = readJsonFile(convitesFile, []);
       if (!Array.isArray(convites)) convites = [];
@@ -515,7 +535,10 @@ const server = http.createServer(async (req, res) => {
       const novoConvite = {
         id: `conv-${Date.now()}`,
         token,
-        criado_por: body.criado_por || 'Administrador',
+        nome,
+        email,
+        senha_provisoria: '123',
+        criado_por: criadoPor,
         criado_em: new Date().toLocaleString('pt-BR'),
         utilizado: false
       };
@@ -541,27 +564,28 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, { success: false, message: 'Link de convite inválido ou não encontrado.' }, 404);
       }
       if (convite.utilizado) {
-        return sendJson(res, { success: false, message: 'Este link de convite já foi utilizado.' }, 410);
+        return sendJson(res, { success: false, message: 'Este link de convite já foi utilizado e não é mais válido.' }, 410);
       }
 
       return sendJson(res, { success: true, convite });
     }
 
-    // 9. POST /api/admin/accept-invite (Ativação do Novo ADM com troca de totvs123)
+    // 9. POST /api/admin/accept-invite (Ativação do Novo ADM com troca de senha provisória 123)
     if (pathname === '/api/admin/accept-invite' && method === 'POST') {
       const body = await readBodyJson(req);
-      const { token, nome, email, senhaProvisoria, novaSenha } = body;
+      const { token, senhaProvisoria, novaSenha } = body;
 
-      if (!token || !nome || !email || !senhaProvisoria || !novaSenha) {
+      if (!token || !senhaProvisoria || !novaSenha) {
         return sendJson(res, { success: false, message: 'Todos os campos são obrigatórios.' }, 400);
       }
 
-      if (senhaProvisoria.trim() !== 'totvs123') {
-        return sendJson(res, { success: false, message: 'Senha provisória incorreta. A senha padrão do convite é totvs123.' }, 400);
+      if (senhaProvisoria.trim() !== '123') {
+        return sendJson(res, { success: false, message: 'Senha provisória incorreta. A senha padrão do convite é 123.' }, 400);
       }
 
-      if (novaSenha.trim().length < 4) {
-        return sendJson(res, { success: false, message: 'A nova senha deve possuir pelo menos 4 caracteres.' }, 400);
+      const senhaValida = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(novaSenha.trim());
+      if (!senhaValida) {
+        return sendJson(res, { success: false, message: 'A nova senha deve possuir no mínimo 6 caracteres e conter obrigatoriamente letras e números.' }, 400);
       }
 
       const convitesFile = path.join(DATA_DIR, 'convites.json');
@@ -570,31 +594,32 @@ const server = http.createServer(async (req, res) => {
 
       const conviteIdx = convites.findIndex(c => c.token === token);
       if (conviteIdx === -1) {
-        return sendJson(res, { success: false, message: 'Convite não encontrado.' }, 404);
+        return sendJson(res, { success: false, message: 'Convite não encontrado ou inválido.' }, 404);
       }
       if (convites[conviteIdx].utilizado) {
         return sendJson(res, { success: false, message: 'Este convite já foi utilizado.' }, 410);
       }
 
+      const convite = convites[conviteIdx];
+      const nome = (body.nome || convite.nome || '').trim();
+      const email = (body.email || convite.email || '').trim().toLowerCase();
+
       const usrFile = path.join(DATA_DIR, 'usuarios.json');
       let usuarios = readJsonFile(usrFile, []);
       if (!Array.isArray(usuarios)) usuarios = [usuarios];
 
-      const emailNormalized = email.trim().toLowerCase();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-      if (!emailRegex.test(emailNormalized)) {
-        return sendJson(res, { success: false, message: 'O endereço de e-mail informado não possui um formato válido (exemplo: usuario@empresa.com.br).' }, 400);
-      }
-      if (usuarios.some(u => u.email.toLowerCase().trim() === emailNormalized)) {
+      if (usuarios.some(u => u.email.toLowerCase().trim() === email)) {
         return sendJson(res, { success: false, message: 'Já existe um administrador cadastrado com este e-mail.' }, 400);
       }
 
       const novoAdm = {
         id: `adm-${Date.now()}`,
-        nome: nome.trim(),
-        email: emailNormalized,
+        nome: nome,
+        email: email,
         senha: novaSenha.trim(),
         cargo: 'Administrador',
+        dono_produto: false,
+        foto: '',
         criado_em: new Date().toLocaleString('pt-BR')
       };
 
@@ -604,6 +629,7 @@ const server = http.createServer(async (req, res) => {
       convites[conviteIdx].utilizado = true;
       convites[conviteIdx].utilizado_em = new Date().toLocaleString('pt-BR');
       convites[conviteIdx].utilizado_por = novoAdm.nome;
+      convites[conviteIdx].email_utilizado = novoAdm.email;
       writeJsonFile(convitesFile, convites);
 
       return sendJson(res, {
@@ -613,7 +639,9 @@ const server = http.createServer(async (req, res) => {
           id: novoAdm.id,
           nome: novoAdm.nome,
           email: novoAdm.email,
-          cargo: novoAdm.cargo
+          cargo: novoAdm.cargo,
+          dono_produto: false,
+          foto: ''
         }
       });
     }
@@ -626,19 +654,31 @@ const server = http.createServer(async (req, res) => {
         id: u.id,
         nome: u.nome,
         email: u.email,
-        cargo: u.cargo || 'Administrador',
+        cargo: u.cargo || (u.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br' ? 'Dono do Produto' : 'Administrador'),
+        dono_produto: u.dono_produto === true || u.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br',
+        foto: u.foto || '',
         criado_em: u.criado_em
       }));
       return sendJson(res, listaSegura);
     }
 
-    // 11. DELETE /api/admin/users/:id & /api/usuarios/:id (Remover ADM com proteção do último)
+    // 11. DELETE /api/admin/users/:id & /api/usuarios/:id (Remover ADM com proteção do Dono do Produto)
     const delMatch = pathname.match(/^\/api\/(?:admin\/users|usuarios)\/([^/]+)$/);
     if (delMatch && method === 'DELETE') {
       const usrId = delMatch[1];
       const usrFile = path.join(DATA_DIR, 'usuarios.json');
       let usuarios = readJsonFile(usrFile, []);
       if (!Array.isArray(usuarios)) usuarios = [usuarios];
+
+      const alvo = usuarios.find(u => u.id === usrId);
+      if (!alvo) {
+        return sendJson(res, { success: false, message: 'Administrador não encontrado.' }, 404);
+      }
+
+      // Proteção absoluta do Dono do Produto (andre.gianotti@totvs.com.br)
+      if (alvo.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br' || alvo.dono_produto === true) {
+        return sendJson(res, { success: false, message: 'Operação não permitida: o Dono do Produto (andre.gianotti@totvs.com.br) possui imunidade e não pode ser excluído.' }, 403);
+      }
 
       if (usuarios.length <= 1) {
         return sendJson(res, { success: false, message: 'Operação não permitida: não é possível remover o único administrador cadastrado no sistema.' }, 400);
@@ -647,6 +687,42 @@ const server = http.createServer(async (req, res) => {
       usuarios = usuarios.filter(u => u.id !== usrId);
       writeJsonFile(usrFile, usuarios);
       return sendJson(res, { success: true, message: 'Administrador removido com sucesso.' });
+    }
+
+    // 11.1 POST /api/admin/avatar (Atualizar Foto de Perfil do Administrador)
+    if (pathname === '/api/admin/avatar' && method === 'POST') {
+      const body = await readBodyJson(req);
+      const email = (body.email || '').trim().toLowerCase();
+      const foto = (body.foto || '').trim();
+
+      if (!email || !foto) {
+        return sendJson(res, { success: false, message: 'E-mail e foto são obrigatórios.' }, 400);
+      }
+
+      const usrFile = path.join(DATA_DIR, 'usuarios.json');
+      let usuarios = readJsonFile(usrFile, []);
+      if (!Array.isArray(usuarios)) usuarios = [usuarios];
+
+      const userIdx = usuarios.findIndex(u => u.email.toLowerCase().trim() === email);
+      if (userIdx === -1) {
+        return sendJson(res, { success: false, message: 'Administrador não encontrado.' }, 404);
+      }
+
+      usuarios[userIdx].foto = foto;
+      writeJsonFile(usrFile, usuarios);
+
+      return sendJson(res, {
+        success: true,
+        message: 'Foto de perfil atualizada com sucesso!',
+        usuario: {
+          id: usuarios[userIdx].id,
+          nome: usuarios[userIdx].nome,
+          email: usuarios[userIdx].email,
+          cargo: usuarios[userIdx].cargo,
+          dono_produto: usuarios[userIdx].dono_produto === true || usuarios[userIdx].email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br',
+          foto: foto
+        }
+      });
     }
 
     // 12. GET /api/logs/access
