@@ -25,17 +25,38 @@ function doGet(e) {
 }
 
 /**
- * Conexão com a Planilha Google
+ * Conexão com a Planilha Google (ou criação 100% automática no Drive da TOTVS!)
  */
 function getSpreadsheet() {
+  // 1. Se foi salva previamente nas propriedades do projeto
+  var propId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+  if (propId && propId.trim() !== "") {
+    try { return SpreadsheetApp.openById(propId.trim()); } catch (e) {}
+  }
+
+  // 2. Se você colou o ID manualmente na linha 15
   if (SPREADSHEET_ID && SPREADSHEET_ID !== "COLE_O_ID_DA_SUA_PLANILHA_AQUI" && SPREADSHEET_ID.trim() !== "") {
-    return SpreadsheetApp.openById(SPREADSHEET_ID.trim());
+    try { return SpreadsheetApp.openById(SPREADSHEET_ID.trim()); } catch (e) {}
   }
-  try {
-    return SpreadsheetApp.getActiveSpreadsheet();
-  } catch (err) {
-    throw new Error("Configure o SPREADSHEET_ID no topo do arquivo Código.gs com o ID da sua planilha Google.");
-  }
+
+  // 3. Se não tiver ID nenhum: cria a planilha automaticamente no seu Google Drive da TOTVS!
+  var novaPlanilha = SpreadsheetApp.create("TOTVS Espaço Experiência - Banco de Dados");
+  var novoId = novaPlanilha.getId();
+  PropertiesService.getScriptProperties().setProperty("SPREADSHEET_ID", novoId);
+  Logger.log("Planilha criada automaticamente no seu Google Drive!");
+  Logger.log("ID: " + novoId);
+  Logger.log("Link: " + novaPlanilha.getUrl());
+  return novaPlanilha;
+}
+
+/**
+ * Função utilitária para consultar o link e ID da sua planilha criada
+ */
+function verLinkDaMinhaPlanilha() {
+  var ss = getSpreadsheet();
+  var msg = "Sua planilha está pronta!\nLink: " + ss.getUrl() + "\nID: " + ss.getId();
+  Logger.log(msg);
+  return msg;
 }
 
 /**
