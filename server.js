@@ -699,15 +699,20 @@ const server = http.createServer(async (req, res) => {
       const body = await readBodyJson(req);
       const dataVisita = (body.data || '').trim();
       const empresa = (body.empresa || body.nome || '').trim();
+      const tipoVisitante = (body.tipo_visitante || '').trim().toLowerCase();
       const numPessoasRaw = parseInt(body.numero_pessoas, 10);
       const responsavel = (body.responsavel || '').trim();
 
-      // Validação estrita de todos os 4 campos
+      // Validação estrita de todos os 5 campos
       if (!dataVisita) {
         return sendJson(res, { success: false, message: 'A data da visita é obrigatória.' }, 400);
       }
       if (!empresa) {
         return sendJson(res, { success: false, message: 'O nome da empresa ou instituição visitante é obrigatório.' }, 400);
+      }
+      const tiposValidos = ['cliente', 'prospect', 'visitante_externo'];
+      if (!tipoVisitante || !tiposValidos.includes(tipoVisitante)) {
+        return sendJson(res, { success: false, message: 'A classificação do visitante (Cliente, Prospect ou Visitante externo) é obrigatória.' }, 400);
       }
       if (isNaN(numPessoasRaw) || numPessoasRaw < 1) {
         return sendJson(res, { success: false, message: 'O número de pessoas é obrigatório e deve ser no mínimo 1.' }, 400);
@@ -726,6 +731,7 @@ const server = http.createServer(async (req, res) => {
         data: dataVisita,
         empresa,
         nome: empresa, // retrocompatibilidade
+        tipo_visitante: tipoVisitante,
         numero_pessoas,
         responsavel,
         criado_em: new Date().toLocaleString('pt-BR'),
@@ -936,6 +942,60 @@ const server = http.createServer(async (req, res) => {
         message: 'Vídeo institucional excluído com sucesso!',
         video: resetConfig
       });
+    }
+
+    // 23. GET /api/plantonistas (Listar especialistas e escalas do ano)
+    if (pathname === '/api/plantonistas' && method === 'GET') {
+      const plantonistasFile = path.join(DATA_DIR, 'plantonistas.json');
+      const data = readJsonFile(plantonistasFile, { especialistas: [], escalas: {} });
+      return sendJson(res, { success: true, ...data });
+    }
+
+    // 24. POST /api/plantonistas/escala (Atribuir / Atualizar plantonista para uma data)
+    if (pathname === '/api/plantonistas/escala' && method === 'POST') {
+      const body = await readBodyJson(req);
+      const { data, especialista_id, nome, turno, observacoes, autor } = body;
+      if (!data) {
+        return sendJson(res, { success: false, message: 'Data é obrigatória (formato YYYY-MM-DD)' }, 400);
+      }
+
+      const plantonistasFile = path.join(DATA_DIR, 'plantonistas.json');
+      let current = readJsonFile(plantonistasFile, { especialistas: [], escalas: {} });
+      if (!current.escalas) current.escalas = {};
+
+      if (!especialista_id && !nome) {
+        delete current.escalas[data];
+      } else {
+        current.escalas[data] = {
+          especialista_id: especialista_id || null,
+          nome: nome || 'Especialista TOTVS',
+          turno: turno || '09:00 - 18:00',
+          observacoes: observacoes || ''
+        };
+      }
+
+      writeJsonFile(plantonistasFile, current);
+
+      // Log de Auditoria
+      const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+      let logs = readJsonFile(auditFile, []);
+      if (Array.isArray(logs)) {
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: autor?.nome || 'Administrador',
+          analista_email: autor?.email || 'admin@totvs.com.br',
+          segmento_id: 'plantonistas',
+          segmento_nome: 'Escala de Plantonistas',
+          acao: 'Atualização de escala de plantonista',
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `Escala da data ${data} atualizada para ${nome || 'Sem escala'} por ${autor?.nome || 'Administrador'}.`
+        });
+        writeJsonFile(auditFile, logs);
+      }
+
+      return sendJson(res, { success: true, message: 'Escala atualizada com sucesso!', escalas: current.escalas });
     }
 
     // 10. Static files

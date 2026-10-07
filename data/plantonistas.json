@@ -1,0 +1,201 @@
+{
+  "especialistas": [
+    {
+      "id": "esp-1",
+      "nome": "André Gianotti",
+      "cargo": "Curador & Especialista Chefe do Espaço",
+      "email": "andre.gianotti@totvs.com.br",
+      "ramal": "4102",
+      "avatar_cor": "bg-totvs-blue",
+      "estacao_foco": "Visão Geral & Curadoria Executiva"
+    },
+    {
+      "id": "esp-2",
+      "nome": "Camila Santana",
+      "cargo": "Especialista em Manufatura & MES PPI",
+      "email": "camila.santana@totvs.com.br",
+      "ramal": "4103",
+      "avatar_cor": "bg-cyan-600",
+      "estacao_foco": "Estação 02 (Manufatura) & Estação 04 (MES)"
+    },
+    {
+      "id": "esp-3",
+      "nome": "Lucas Ferreira",
+      "cargo": "Especialista em Agro & Logística",
+      "email": "lucas.ferreira@totvs.com.br",
+      "ramal": "4104",
+      "avatar_cor": "bg-emerald-600",
+      "estacao_foco": "Estação 01 (Agro) & Estação 05 (Logística)"
+    },
+    {
+      "id": "esp-4",
+      "nome": "Mariana Lima",
+      "cargo": "Especialista em Varejo & Moda",
+      "email": "mariana.lima@totvs.com.br",
+      "ramal": "4105",
+      "avatar_cor": "bg-pink-600",
+      "estacao_foco": "Estação 06 (Moda) & Estação 08 (Varejo Online)"
+    },
+    {
+      "id": "esp-5",
+      "nome": "Rafael Duarte",
+      "cargo": "Especialista em Saúde & Backoffice",
+      "email": "rafael.duarte@totvs.com.br",
+      "ramal": "4106",
+      "avatar_cor": "bg-sky-600",
+      "estacao_foco": "Estação 03 (Backoffice) & Estação 09 (Clínicas)"
+    },
+    {
+      "id": "esp-6",
+      "nome": "Fernanda Torres",
+      "cargo": "Especialista em Supermercados & Distribuição",
+      "email": "fernanda.torres@totvs.com.br",
+      "ramal": "4107",
+      "avatar_cor": "bg-rose-600",
+      "estacao_foco": "Estação 07 (Consinco) & Soluções Cross"
+    },
+    {
+      "id": "esp-7",
+      "nome": "Bruno Carvalho",
+      "cargo": "Especialista em Mesa Interativa & Soluções Cross",
+      "email": "bruno.carvalho@totvs.com.br",
+      "ramal": "4108",
+      "avatar_cor": "bg-indigo-600",
+      "estacao_foco": "Estação 10 (Cross) & Estação 11 (Mesa Interativa)"
+    }
+  ],
+  "escalas": {
+    "2026-10-01": {
+      "especialista_id": "esp-1",
+      "nome": "André Gianotti",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Abertura do Mês & Plantão Geral"
+    },
+    "2026-10-02": {
+      "especialista_id": "esp-2",
+      "nome": "Camila Santana",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Demonstração MES & Linha de Produção"
+    },
+    "2026-10-05": {
+      "especialista_id": "esp-3",
+      "nome": "Lucas Ferreira",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Bancada Agro e Cadeia Logística"
+    },
+    "2026-10-06": {
+      "especialista_id": "esp-4",
+      "nome": "Mariana Lima",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Omnichannel e Totem de Moda"
+    },
+    "2026-10-07": {
+      "especialista_id": "esp-1",
+      "nome": "André Gianotti",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Plantão Geral do Espaço Experiência & Curadoria"
+    },
+    "2026-10-08": {
+      "especialista_id": "esp-2",
+      "nome": "Camila Santana",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Foco Manufatura & MES PPI"
+    },
+    "2026-10-09": {
+      "especialista_id": "esp-3",
+      "nome": "Lucas Ferreira",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Foco Agro, Balança & Distribuição"
+    },
+    "2026-10-12": {
+      "especialista_id": null,
+      "nome": "Espaço Fechado",
+      "turno": "Feriado",
+      "observacoes": "Feriado Nacional (Nossa Senhora Aparecida)"
+    },
+    "2026-10-13": {
+      "especialista_id": "esp-4",
+      "nome": "Mariana Lima",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Varejo, Moda & RFID"
+    },
+    "2026-10-14": {
+      "especialista_id": "esp-5",
+      "nome": "Rafael Duarte",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Saúde, Clínicas & Prontuário Eletrônico"
+    },
+    "2026-10-15": {
+      "especialista_id": "esp-1",
+      "nome": "André Gianotti",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Visitas Executivas VIP"
+    },
+    "2026-10-16": {
+      "especialista_id": "esp-6",
+      "nome": "Fernanda Torres",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Supermercados Consinco & Checkout"
+    },
+    "2026-10-19": {
+      "especialista_id": "esp-7",
+      "nome": "Bruno Carvalho",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Mesa Interativa & Soluções Cross"
+    },
+    "2026-10-20": {
+      "especialista_id": "esp-2",
+      "nome": "Camila Santana",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Manufatura & Gestão de Fábrica"
+    },
+    "2026-10-21": {
+      "especialista_id": "esp-3",
+      "nome": "Lucas Ferreira",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Rastreabilidade Agro & Logística"
+    },
+    "2026-10-22": {
+      "especialista_id": "esp-4",
+      "nome": "Mariana Lima",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Live Commerce & E-commerce"
+    },
+    "2026-10-23": {
+      "especialista_id": "esp-5",
+      "nome": "Rafael Duarte",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Backoffice, ERP & Inteligência Fiscal"
+    },
+    "2026-10-26": {
+      "especialista_id": "esp-1",
+      "nome": "André Gianotti",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Plantão e Coordenação Semanal"
+    },
+    "2026-10-27": {
+      "especialista_id": "esp-6",
+      "nome": "Fernanda Torres",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Distribuição e Varejo Supermercadista"
+    },
+    "2026-10-28": {
+      "especialista_id": "esp-7",
+      "nome": "Bruno Carvalho",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Demonstração na Mesa Interativa"
+    },
+    "2026-10-29": {
+      "especialista_id": "esp-2",
+      "nome": "Camila Santana",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Manufatura e Eficiência Operacional"
+    },
+    "2026-10-30": {
+      "especialista_id": "esp-3",
+      "nome": "Lucas Ferreira",
+      "turno": "09:00 - 18:00",
+      "observacoes": "Fechamento Mensal Agro & Operações"
+    }
+  }
+}

@@ -107,7 +107,12 @@
       UserPlus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>,
       Calendar: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
       ExternalLink: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>,
-      Menu: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+      Menu: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>,
+      Home: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
+      CalendarDays: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+      BarChart: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+      ChevronLeft: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>,
+      Phone: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
     };
 
     // Grafismo Geométrico Tech inspirado na identidade corporativa TOTVS (referência enviada)
@@ -882,217 +887,615 @@
       );
     }
 
-    // Componente da Barra Lateral Retrátil (Drawer) para Área ADM e Futuro Login
-    function SidebarDrawer({
-      isOpen,
-      onClose,
-      admLogado,
+    // Barra Lateral de Menu Retrátil (Estilo SaaS Quirons / TOTVS)
+    function SidebarNav({
+      isExpanded,
+      onToggle,
+      onOpenShowroom,
+      onOpenPlantonistas,
+      onOpenHistorico,
       onOpenAdmin,
-      onOpenLogin,
       onLogoutAdm,
-      onOpenGoogleForm
+      admLogado
     }) {
-      if (!isOpen) return null;
-
       return (
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          {/* Backdrop escurecido com blur suave */}
-          <div
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300"
-            onClick={onClose}
-          />
+        <aside
+          className={`fixed left-0 top-0 bottom-0 z-40 bg-[#07162c] text-white border-r border-slate-800 transition-all duration-300 ease-in-out flex flex-col justify-between select-none shadow-2xl ${
+            isExpanded ? 'w-60 sm:w-64' : 'w-16'
+          }`}
+        >
+          {/* Topo da Sidebar: Botão Hambúrguer + Branding */}
+          <div>
+            <div className="h-16 flex items-center px-3 border-b border-slate-800/80 justify-between overflow-hidden">
+              <button
+                type="button"
+                onClick={onToggle}
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer shrink-0"
+                title={isExpanded ? "Recolher menu lateral" : "Expandir menu lateral"}
+              >
+                <Icons.Menu />
+              </button>
 
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-            <div className="w-screen max-w-sm sm:max-w-md bg-slate-900 border-l border-slate-700/80 text-white shadow-2xl flex flex-col justify-between transform transition-all duration-300 ease-in-out animate-in slide-in-from-right">
-              
-              {/* CABEÇALHO DO DRAWER */}
-              <div className="p-5 sm:p-6 border-b border-slate-800 bg-gradient-to-r from-slate-900 via-totvs-dark to-slate-900 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-totvs-blue to-totvs-cyan flex items-center justify-center font-black text-white text-base shadow-md">
+              {isExpanded && (
+                <div className="flex items-center gap-2 pl-2 overflow-hidden truncate animate-in fade-in duration-200">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-totvs-blue to-totvs-cyan flex items-center justify-center font-black text-xs text-white shadow-sm shrink-0">
                     T
                   </div>
-                  <div>
-                    <h3 className="font-extrabold text-base tracking-tight text-white flex items-center gap-2">
-                      <span>Central de Acesso</span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
-                        TOTVS
-                      </span>
-                    </h3>
-                    <p className="text-[11px] text-slate-400">Espaço Experiência • Gestão & Governança</p>
+                  <div className="leading-tight truncate">
+                    <span className="font-extrabold text-sm tracking-tight text-white block">TOTVS</span>
+                    <span className="text-[9.5px] font-black uppercase text-totvs-cyan tracking-wider block">Espaço Exp.</span>
                   </div>
                 </div>
+              )}
+            </div>
+
+            {/* Lista de Navegação / Funcionalidades */}
+            <nav className="p-2 space-y-1.5 mt-2">
+              {/* 1. Showroom (Início) */}
+              <button
+                type="button"
+                onClick={onOpenShowroom}
+                className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer text-slate-300 hover:text-white hover:bg-white/10 group"
+                title="Showroom (11 Estações)"
+              >
+                <span className="shrink-0 text-slate-300 group-hover:text-totvs-cyan transition-colors">
+                  <Icons.Home />
+                </span>
+                {isExpanded && (
+                  <span className="text-xs font-bold truncate">Showroom (Início)</span>
+                )}
+              </button>
+
+              {/* 2. Calendário dos Plantonistas */}
+              <button
+                type="button"
+                onClick={onOpenPlantonistas}
+                className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer text-slate-300 hover:text-white hover:bg-white/10 group"
+                title="Calendário dos Plantonistas do Espaço"
+              >
+                <span className="shrink-0 text-slate-300 group-hover:text-totvs-cyan transition-colors">
+                  <Icons.CalendarDays />
+                </span>
+                {isExpanded && (
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs font-bold block truncate">Plantonistas</span>
+                    <span className="text-[9.5px] text-slate-400 block truncate">Gestão de Escalas 2026</span>
+                  </div>
+                )}
+              </button>
+
+              {/* 3. Histórico de Visitas */}
+              <button
+                type="button"
+                onClick={onOpenHistorico}
+                className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer text-slate-300 hover:text-white hover:bg-white/10 group"
+                title="Histórico de Visitas Detalhado"
+              >
+                <span className="shrink-0 text-slate-300 group-hover:text-totvs-cyan transition-colors">
+                  <Icons.BarChart />
+                </span>
+                {isExpanded && (
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs font-bold block truncate">Histórico de Visitas</span>
+                    <span className="text-[9.5px] text-slate-400 block truncate">Métricas Consolidadas</span>
+                  </div>
+                )}
+              </button>
+
+              {/* 4. Área ADM */}
+              <button
+                type="button"
+                onClick={onOpenAdmin}
+                className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
+                  admLogado 
+                    ? 'bg-totvs-blue/20 text-totvs-cyan border border-totvs-cyan/30 hover:bg-totvs-blue/30' 
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                }`}
+                title="Área Administrativa"
+              >
+                <span className="shrink-0 relative">
+                  <Icons.Shield />
+                  {admLogado && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  )}
+                </span>
+                {isExpanded && (
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold block truncate">Área ADM</span>
+                      {admLogado && (
+                        <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
+                          ON
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[9.5px] text-slate-400 block truncate">
+                      {admLogado ? admLogado.nome : 'Acesso Restrito'}
+                    </span>
+                  </div>
+                )}
+              </button>
+
+              {/* 4.1 Opção discreta de Deslogar / Voltar à área comum (visível apenas quando logado) */}
+              {admLogado && (
                 <button
                   type="button"
-                  onClick={onClose}
-                  className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
-                  title="Fechar Menu"
+                  onClick={onLogoutAdm}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition text-left cursor-pointer group text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 ${
+                    isExpanded ? 'pl-4' : 'justify-center'
+                  }`}
+                  title="Deslogar e voltar à área comum"
                 >
-                  <Icons.X />
-                </button>
-              </div>
-
-              {/* CORPO DO DRAWER (SCROLLABLE) */}
-              <div className="p-5 sm:p-6 space-y-6 overflow-y-auto flex-1">
-                
-                {/* SEÇÃO 1: ÁREA ADM / GOVERNANÇA */}
-                <div className="bg-slate-800/90 rounded-2xl border border-slate-700/80 p-4.5 space-y-3.5 shadow-md">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-lg bg-totvs-blue/30 text-totvs-cyan flex items-center justify-center text-sm">
-                        <Icons.Shield />
-                      </span>
-                      <span className="text-xs font-black uppercase tracking-wider text-slate-200">
-                        Área Administrativa
-                      </span>
+                  <span className="shrink-0 text-slate-400 group-hover:text-rose-400 transition-colors">
+                    <Icons.LogOut />
+                  </span>
+                  {isExpanded && (
+                    <div className="min-w-0 flex-1">
+                      <span className="text-xs font-semibold block truncate">Deslogar</span>
+                      <span className="text-[9px] text-slate-400 block truncate">Voltar à área comum</span>
                     </div>
-                    {admLogado ? (
-                      <span className="flex items-center gap-1.5 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Autenticado
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-700 text-slate-400 border border-slate-600">
-                        Modo Somente Leitura
-                      </span>
-                    )}
+                  )}
+                </button>
+              )}
+            </nav>
+          </div>
+
+          {/* Rodapé da Sidebar */}
+          <div className="p-3 border-t border-slate-800/80 overflow-hidden">
+            {isExpanded ? (
+              <div className="text-center text-[10px] text-slate-500 truncate">
+                TOTVS Espaço Exp. • v2.7
+              </div>
+            ) : (
+              <div className="flex justify-center text-[10px] font-mono text-slate-500">
+                v2.7
+              </div>
+            )}
+          </div>
+        </aside>
+      );
+    }
+
+    // Modal Híbrido: Calendário dos Plantonistas do Espaço Experiência
+    function PlantonistasModal({
+      onClose,
+      admLogado,
+      showToast
+    }) {
+      const [loading, setLoading] = useState(true);
+      const [especialistas, setEspecialistas] = useState([]);
+      const [escalas, setEscalas] = useState({});
+      
+      // Data atual do sistema em Brasília
+      const today = new Date();
+      const [viewYear, setViewYear] = useState(today.getFullYear());
+      const [viewMonth, setViewMonth] = useState(today.getMonth());
+
+      // Estado para edição de plantão pelo ADM
+      const [editingDate, setEditingDate] = useState(null);
+      const [selectedEspId, setSelectedEspId] = useState('');
+      const [customTurno, setCustomTurno] = useState('09:00 - 18:00');
+      const [customObs, setCustomObs] = useState('');
+      const [savingEscala, setSavingEscala] = useState(false);
+
+      const nomesMeses = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      ];
+      const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+      const carregarDados = () => {
+        setLoading(true);
+        fetch('/api/plantonistas')
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.success) {
+              setEspecialistas(data.especialistas || []);
+              setEscalas(data.escalas || {});
+            }
+            setLoading(false);
+          })
+          .catch(() => {
+            setLoading(false);
+          });
+      };
+
+      useEffect(() => {
+        carregarDados();
+      }, []);
+
+      const formatIsoDate = (y, m, d) => {
+        const mm = String(m + 1).padStart(2, '0');
+        const dd = String(d).padStart(2, '0');
+        return `${y}-${mm}-${dd}`;
+      };
+
+      const todayIso = formatIsoDate(today.getFullYear(), today.getMonth(), today.getDate());
+      const plantonistaHoje = escalas[todayIso];
+      const especialistaHoje = plantonistaHoje?.especialista_id 
+        ? especialistas.find(e => e.id === plantonistaHoje.especialista_id)
+        : null;
+
+      const daysMatrix = useMemo(() => {
+        const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay();
+        const totalDays = new Date(viewYear, viewMonth + 1, 0).getDate();
+        const matrix = [];
+        for (let i = 0; i < firstDayIndex; i++) {
+          matrix.push(null);
+        }
+        for (let d = 1; d <= totalDays; d++) {
+          matrix.push(d);
+        }
+        return matrix;
+      }, [viewYear, viewMonth]);
+
+      const handlePrevMonth = () => {
+        if (viewMonth === 0) {
+          setViewMonth(11);
+          setViewYear(prev => prev - 1);
+        } else {
+          setViewMonth(prev => prev - 1);
+        }
+      };
+
+      const handleNextMonth = () => {
+        if (viewMonth === 11) {
+          setViewMonth(0);
+          setViewYear(prev => prev + 1);
+        } else {
+          setViewMonth(prev => prev + 1);
+        }
+      };
+
+      const handleGoToday = () => {
+        setViewYear(today.getFullYear());
+        setViewMonth(today.getMonth());
+      };
+
+      const handleOpenEditDate = (d) => {
+        if (!admLogado) return;
+        const iso = formatIsoDate(viewYear, viewMonth, d);
+        setEditingDate(iso);
+        const currentEscala = escalas[iso];
+        setSelectedEspId(currentEscala?.especialista_id || '');
+        setCustomTurno(currentEscala?.turno || '09:00 - 18:00');
+        setCustomObs(currentEscala?.observacoes || '');
+      };
+
+      const handleSaveEscala = async (e) => {
+        e.preventDefault();
+        if (!editingDate) return;
+        setSavingEscala(true);
+
+        const espSelected = especialistas.find(esp => esp.id === selectedEspId);
+        const nomeFinal = espSelected ? espSelected.nome : '';
+
+        try {
+          const res = await fetch('/api/plantonistas/escala', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              data: editingDate,
+              especialista_id: selectedEspId || null,
+              nome: nomeFinal,
+              turno: customTurno,
+              observacoes: customObs,
+              autor: {
+                nome: admLogado?.nome || 'Administrador',
+                email: admLogado?.email || 'admin@totvs.com.br'
+              }
+            })
+          });
+          const result = await res.json();
+          if (result && result.success) {
+            setEscalas(result.escalas);
+            setEditingDate(null);
+            if (showToast) showToast('Escala de plantão atualizada com sucesso! ✅');
+          }
+        } catch (err) {
+          if (showToast) showToast('Erro ao atualizar escala de plantão.');
+        } finally {
+          setSavingEscala(false);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+            
+            {/* CABEÇALHO DO MODAL */}
+            <div className="bg-gradient-to-r from-totvs-dark via-[#002654] to-[#003B8E] text-white p-5 sm:p-6 flex items-center justify-between border-b border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-totvs-blue to-totvs-cyan flex items-center justify-center text-white shadow-md">
+                  <Icons.CalendarDays />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base sm:text-lg font-black tracking-tight text-white">
+                      Calendário dos Plantonistas
+                    </h2>
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
+                      Espaço Experiência
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300">
+                    Gestão da escala anual dos especialistas de atendimento e demonstrações
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-2 text-slate-300 hover:text-white rounded-xl hover:bg-white/10 transition cursor-pointer"
+                title="Fechar"
+              >
+                <Icons.X />
+              </button>
+            </div>
+
+            {/* CORPO DO MODAL (SCROLLABLE) */}
+            <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1 bg-slate-50">
+
+              {/* CARD DE DESTAQUE: PLANTONISTA DE HOJE */}
+              <div className="bg-gradient-to-r from-totvs-blue via-[#0047BA] to-totvs-cyan p-0.5 rounded-2xl shadow-md">
+                <div className="bg-slate-900 rounded-[15px] p-4 sm:p-5 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-4 text-center sm:text-left">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-totvs-blue via-blue-600 to-totvs-cyan text-white font-black text-xl flex items-center justify-center shadow-lg shrink-0">
+                      {especialistaHoje ? especialistaHoje.nome.charAt(0) : 'P'}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 justify-center sm:justify-start">
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                          Plantonista de Hoje ({today.toLocaleDateString('pt-BR')})
+                        </span>
+                      </div>
+                      <h3 className="text-base sm:text-lg font-black text-white mt-1">
+                        {plantonistaHoje ? plantonistaHoje.nome : 'Sem especialista escalado para hoje'}
+                      </h3>
+                      <p className="text-xs text-slate-300">
+                        {especialistaHoje ? especialistaHoje.cargo : 'Consulte a programação do mês abaixo'}
+                      </p>
+                    </div>
                   </div>
 
-                  {admLogado ? (
-                    <div className="space-y-3 pt-1">
-                      <div className="bg-slate-900/80 rounded-xl p-3 border border-slate-700 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-totvs-blue to-totvs-cyan text-white font-black flex items-center justify-center text-sm shadow-inner shrink-0">
-                          {admLogado.nome ? admLogado.nome.charAt(0).toUpperCase() : 'A'}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-white truncate">{admLogado.nome}</p>
-                          <p className="text-[11px] text-slate-400 truncate">{admLogado.email || 'admin@totvs.com.br'}</p>
-                          <span className="inline-block mt-0.5 text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-totvs-cyan/15 text-totvs-cyan">
-                            {admLogado.role === 'master' ? 'Administrador Master' : 'Gestor de Estações'}
+                  {plantonistaHoje && (
+                    <div className="bg-white/10 rounded-xl p-3 border border-white/15 flex flex-wrap items-center gap-3 sm:gap-4 text-xs shrink-0 justify-center">
+                      <div className="text-left">
+                        <span className="text-[10px] uppercase text-totvs-cyan font-extrabold block">Horário</span>
+                        <span className="font-bold text-white">{plantonistaHoje.turno || '09:00 - 18:00'}</span>
+                      </div>
+                      {especialistaHoje?.ramal && (
+                        <div className="text-left border-l border-white/20 pl-3">
+                          <span className="text-[10px] uppercase text-totvs-cyan font-extrabold block">Ramal</span>
+                          <span className="font-bold text-white flex items-center gap-1">
+                            <Icons.Phone />
+                            <span>{especialistaHoje.ramal}</span>
                           </span>
                         </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onClose();
-                            onOpenAdmin();
-                          }}
-                          className="flex items-center justify-center gap-1.5 bg-totvs-blue hover:bg-[#003B8E] text-white text-xs font-bold py-2.5 px-3 rounded-xl transition shadow-sm cursor-pointer"
-                        >
-                          <Icons.Shield />
-                          <span>Painel ADM</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onLogoutAdm();
-                            onClose();
-                          }}
-                          className="flex items-center justify-center gap-1.5 bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-bold py-2.5 px-3 rounded-xl border border-rose-500/30 transition shadow-sm cursor-pointer"
-                        >
-                          <Icons.LogOut />
-                          <span>Sair</span>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-3 pt-1">
-                      <p className="text-xs text-slate-300 leading-relaxed">
-                        Acesso restrito para administradores e curadores do Espaço Experiência realizarem alterações nas bancadas e conteúdos.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onClose();
-                          onOpenLogin();
-                        }}
-                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-totvs-blue to-[#0047BA] hover:from-[#0047BA] hover:to-[#00D2ED] text-white text-xs font-black py-2.5 px-4 rounded-xl transition shadow-md cursor-pointer transform active:scale-98"
-                      >
-                        <Icons.Shield />
-                        <span>Acessar Modo Administrador</span>
-                      </button>
+                      )}
+                      {especialistaHoje?.estacao_foco && (
+                        <div className="text-left border-l border-white/20 pl-3 hidden md:block">
+                          <span className="text-[10px] uppercase text-totvs-cyan font-extrabold block">Foco</span>
+                          <span className="font-bold text-slate-200 text-[11px] truncate max-w-[140px] block">{especialistaHoje.estacao_foco}</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
+              </div>
 
-                {/* SEÇÃO 2: FUTURO LOGIN DE USUÁRIO (PRÓXIMA AÇÃO) */}
-                <div className="bg-slate-800/60 rounded-2xl border border-slate-700/60 p-4.5 space-y-3 relative overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-lg bg-totvs-cyan/15 text-totvs-cyan flex items-center justify-center text-sm">
-                        <Icons.Users />
-                      </span>
-                      <span className="text-xs font-black uppercase tracking-wider text-slate-200">
-                        Login de Usuário
-                      </span>
-                    </div>
-                    <span className="text-[9.5px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                      Próxima Ação
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    Em breve, consultores, especialistas e visitantes poderão efetuar login para salvar roteiros de visitas, favoritos e notas de atendimento.
-                  </p>
-
-                  {/* Mockup elegante desabilitado dos campos */}
-                  <div className="space-y-2 pt-1 opacity-60 pointer-events-none select-none">
-                    <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">E-mail corporativo</label>
-                      <input
-                        type="text"
-                        disabled
-                        placeholder="usuario@totvs.com.br"
-                        className="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Senha</label>
-                      <input
-                        type="password"
-                        disabled
-                        placeholder="••••••••"
-                        className="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-400"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      disabled
-                      className="w-full bg-slate-700 text-slate-400 text-xs font-bold py-2 rounded-lg cursor-not-allowed"
-                    >
-                      Entrar (Disponível em breve)
-                    </button>
-                  </div>
-                </div>
-
-                {/* SEÇÃO 3: ATALHOS & LINKS OFICIAIS */}
-                <div className="bg-slate-800/40 rounded-2xl border border-slate-800 p-4 space-y-2.5">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                    Atalhos Rápidos
-                  </span>
+              {/* NAVEGAÇÃO ENTRE MESES E ANO */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={onOpenGoogleForm}
-                    className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 border border-slate-700 text-xs font-semibold text-slate-200 hover:text-white transition cursor-pointer"
+                    onClick={handlePrevMonth}
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer font-bold"
+                    title="Mês Anterior"
                   >
-                    <div className="flex items-center gap-2">
-                      <Icons.ExternalLink />
-                      <span>Formulário Oficial de Visitas</span>
-                    </div>
+                    <Icons.ChevronLeft />
+                  </button>
+                  <h3 className="text-base sm:text-lg font-black text-slate-800 min-w-[170px] text-center">
+                    {nomesMeses[viewMonth]} {viewYear}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={handleNextMonth}
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer font-bold"
+                    title="Próximo Mês"
+                  >
                     <Icons.ChevronRight />
                   </button>
                 </div>
 
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleGoToday}
+                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+                  >
+                    Ir para Hoje
+                  </button>
+                  {admLogado && (
+                    <span className="text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
+                      <Icons.Shield />
+                      <span>Modo Edição Ativo (Clique no dia para alterar)</span>
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* RODAPÉ DO DRAWER */}
-              <div className="p-4 border-t border-slate-800 bg-slate-950/60 text-center text-[11px] text-slate-500">
-                TOTVS Espaço Experiência • v2.6
+              {/* GRADE DO CALENDÁRIO */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                {/* Cabeçalho dos Dias da Semana */}
+                <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-100/80 text-center font-bold text-xs text-slate-600">
+                  {diasSemana.map((dia, idx) => (
+                    <div key={idx} className={`py-2.5 ${idx === 0 || idx === 6 ? 'text-slate-400 bg-slate-100/50' : ''}`}>
+                      {dia}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Células dos Dias */}
+                <div className="grid grid-cols-7 divide-x divide-y divide-slate-100">
+                  {daysMatrix.map((dayNum, idx) => {
+                    if (!dayNum) {
+                      return <div key={idx} className="min-h-[85px] bg-slate-50/50"></div>;
+                    }
+
+                    const isoDate = formatIsoDate(viewYear, viewMonth, dayNum);
+                    const isToday = isoDate === todayIso;
+                    const escalaDoDia = escalas[isoDate];
+                    const isWeekend = (idx % 7 === 0) || (idx % 7 === 6);
+
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => admLogado && handleOpenEditDate(dayNum)}
+                        className={`min-h-[85px] p-2 flex flex-col justify-between transition relative ${
+                          isWeekend ? 'bg-slate-50/70' : 'bg-white hover:bg-slate-50'
+                        } ${isToday ? 'ring-2 ring-totvs-cyan ring-inset bg-cyan-50/30' : ''} ${
+                          admLogado ? 'cursor-pointer hover:border-totvs-cyan/60' : ''
+                        }`}
+                      >
+                        {/* Topo da Célula: Número do Dia */}
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black ${
+                              isToday
+                                ? 'bg-totvs-cyan text-slate-950 font-black shadow-xs'
+                                : isWeekend ? 'text-slate-400' : 'text-slate-700'
+                            }`}
+                          >
+                            {dayNum}
+                          </span>
+                          {admLogado && (
+                            <span className="text-[9px] text-slate-400 hover:text-totvs-cyan transition">
+                              ✏️
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Conteúdo do Plantão */}
+                        <div className="mt-1">
+                          {escalaDoDia ? (
+                            <div
+                              className={`p-1 rounded-md text-[10px] leading-tight font-bold border ${
+                                escalaDoDia.turno === 'Feriado'
+                                  ? 'bg-amber-50 text-amber-900 border-amber-200'
+                                  : isToday
+                                  ? 'bg-totvs-blue text-white border-totvs-blue shadow-xs'
+                                  : 'bg-blue-50 text-totvs-blue border-blue-200'
+                              }`}
+                              title={`${escalaDoDia.nome} • ${escalaDoDia.turno || '09:00 - 18:00'}${escalaDoDia.observacoes ? ` (${escalaDoDia.observacoes})` : ''}`}
+                            >
+                              <p className="truncate">{escalaDoDia.nome}</p>
+                              <span className="text-[8.5px] opacity-80 block truncate">
+                                {escalaDoDia.turno}
+                              </span>
+                            </div>
+                          ) : isWeekend ? (
+                            <span className="text-[9px] text-slate-300 italic block">
+                              Final de semana
+                            </span>
+                          ) : (
+                            <span className="text-[9px] text-slate-300 italic block">
+                              Livre
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
             </div>
+
+            {/* PAINEL FLUTUANTE DE EDIÇÃO DE ESCALA (APENAS QUANDO ADM CLICA EM UM DIA) */}
+            {editingDate && admLogado && (
+              <div className="p-4 bg-slate-900 text-white border-t border-slate-700 animate-in slide-in-from-bottom duration-200">
+                <form onSubmit={handleSaveEscala} className="max-w-4xl mx-auto flex flex-col sm:flex-row items-end gap-3">
+                  <div className="flex-1 w-full sm:w-auto">
+                    <label className="text-[10px] uppercase font-bold text-totvs-cyan block mb-1">
+                      Data Selecionada: <span className="text-white">{editingDate}</span>
+                    </label>
+                    <select
+                      value={selectedEspId}
+                      onChange={(e) => setSelectedEspId(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-2 focus:ring-2 focus:ring-totvs-cyan"
+                    >
+                      <option value="">-- Selecione o Especialista --</option>
+                      {especialistas.map((esp) => (
+                        <option key={esp.id} value={esp.id}>
+                          {esp.nome} ({esp.cargo})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="w-full sm:w-44">
+                    <label className="text-[10px] uppercase font-bold text-slate-300 block mb-1">
+                      Turno / Horário
+                    </label>
+                    <input
+                      type="text"
+                      value={customTurno}
+                      onChange={(e) => setCustomTurno(e.target.value)}
+                      placeholder="09:00 - 18:00"
+                      className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-2 focus:ring-2 focus:ring-totvs-cyan"
+                    />
+                  </div>
+
+                  <div className="flex-1 w-full sm:w-auto">
+                    <label className="text-[10px] uppercase font-bold text-slate-300 block mb-1">
+                      Observações / Foco
+                    </label>
+                    <input
+                      type="text"
+                      value={customObs}
+                      onChange={(e) => setCustomObs(e.target.value)}
+                      placeholder="Ex: Foco Manufatura & MES"
+                      className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-2 focus:ring-2 focus:ring-totvs-cyan"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                    <button
+                      type="submit"
+                      disabled={savingEscala}
+                      className="flex-1 sm:flex-initial bg-gradient-to-r from-totvs-cyan to-teal-300 text-slate-950 font-black text-xs px-4 py-2 rounded-xl hover:opacity-90 transition cursor-pointer"
+                    >
+                      {savingEscala ? 'Salvando...' : 'Salvar'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingDate(null)}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* RODAPÉ DO MODAL */}
+            <div className="p-4 bg-white border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>Plantonistas atualizados diariamente pela gestão do Espaço Experiência.</span>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition cursor-pointer"
+              >
+                Fechar
+              </button>
+            </div>
+
           </div>
         </div>
       );
@@ -1206,21 +1609,11 @@
         !visitorMetrics.formulario_aberto_hoje && 
         !dismissedReminderToday;
 
-      // Busca e Barra Lateral
+      // Busca, Barra Lateral e Calendário dos Plantonistas
       const [searchTerm, setSearchTerm] = useState('');
-      const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+      const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+      const [showPlantonistasModal, setShowPlantonistasModal] = useState(false);
       const [toastMsg, setToastMsg] = useState(null);
-
-      // Fechar menu lateral com tecla Escape
-      useEffect(() => {
-        const handleKeyDown = (e) => {
-          if (e.key === 'Escape' && isSidebarOpen) {
-            setIsSidebarOpen(false);
-          }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-      }, [isSidebarOpen]);
 
       const showToast = (msg) => {
         setToastMsg(msg);
@@ -1442,142 +1835,122 @@
       }, [segmentos, searchTerm]);
 
       return (
-        <div className="min-h-screen flex flex-col bg-slate-50">
+        <div className="min-h-screen flex bg-slate-50">
           
-          {/* TOAST NOTIFICAÇÃO */}
-          {toastMsg && (
-            <div className="fixed bottom-6 right-6 z-50 bg-totvs-blue text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-totvs-cyan/40 animate-bounce">
-              <Icons.CheckCircle />
-              <span className="text-sm font-medium">{toastMsg}</span>
-            </div>
-          )}
+          {/* BARRA LATERAL RETRÁTIL (SAAS RAIL À ESQUERDA) */}
+          <SidebarNav
+            isExpanded={isSidebarExpanded}
+            onToggle={() => setIsSidebarExpanded(prev => !prev)}
+            onOpenShowroom={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onOpenPlantonistas={() => setShowPlantonistasModal(true)}
+            onOpenHistorico={() => setShowVisitorHistoryModal(true)}
+            onOpenAdmin={handleOpenAdmin}
+            onLogoutAdm={handleLogoutAdm}
+            admLogado={admLogado}
+          />
 
-          {/* HEADER PRINCIPAL NOBRE COM DESTAQUE PARA VÍDEO & CONTADORES */}
-          <header className="bg-totvs-dark text-white border-b border-slate-700/80 sticky top-0 z-30 shadow-md">
-            <div className="max-w-[1720px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-              
-              {/* 1. Lado Esquerdo: Logo TOTVS + Espaço Experiência + Subtítulo */}
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-totvs-blue via-[#0047BA] to-totvs-cyan flex items-center justify-center font-black text-lg text-white shadow-md border border-white/10">
-                  T
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-black text-lg tracking-tight text-white leading-none">TOTVS</span>
-                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/40 shadow-2xs">
-                      Espaço Experiência
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-300 font-medium flex items-center gap-1.5 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>Showroom Inteligente • {segmentos.length || 11} Estações de Tecnologia</span>
-                  </p>
-                </div>
+          {/* CONTEÚDO PRINCIPAL (COM MARGEM DINÂMICA PARA ACOMODAR A SIDEBAR) */}
+          <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${
+            isSidebarExpanded ? 'pl-60 sm:pl-64' : 'pl-16'
+          }`}>
+          
+            {/* TOAST NOTIFICAÇÃO */}
+            {toastMsg && (
+              <div className="fixed bottom-6 right-6 z-50 bg-totvs-blue text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-totvs-cyan/40 animate-bounce">
+                <Icons.CheckCircle />
+                <span className="text-sm font-medium">{toastMsg}</span>
               </div>
+            )}
 
-              {/* 2. Centro: Link / Card Nobre do Vídeo Institucional da Liderança (Maior e em Destaque) */}
-              {videoGestao && videoGestao.ativo !== false ? (
-                <div className="flex-1 flex justify-center max-w-xl order-3 xl:order-2 w-full xl:w-auto">
-                  <button
-                    type="button"
-                    onClick={() => setShowVideoModal(true)}
-                    className="w-full sm:w-auto flex items-center gap-3.5 bg-gradient-to-r from-totvs-blue/35 via-slate-800/85 to-totvs-cyan/20 hover:from-totvs-blue/55 hover:to-totvs-cyan/35 border border-totvs-cyan/50 hover:border-totvs-cyan px-4 py-2 rounded-2xl transition-all duration-300 group shadow-md hover:shadow-totvs-cyan/20 cursor-pointer transform hover:-translate-y-0.5"
-                    title="Assistir ao Discurso Institucional da Liderança em Vídeo"
-                  >
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-totvs-cyan to-teal-300 text-slate-950 flex items-center justify-center font-black text-sm shrink-0 shadow-md group-hover:scale-110 group-hover:rotate-3 transition-transform">
-                      <Icons.Play />
-                    </div>
-                    <div className="text-left leading-tight pr-1">
-                      <span className="text-[9.5px] font-black uppercase text-totvs-cyan tracking-wider flex items-center gap-1">
-                        <span>Discurso da Liderança</span>
-                        <span className="text-[8.5px] px-1 py-0.2 rounded bg-totvs-cyan/20 text-totvs-cyan font-bold">16:9</span>
-                      </span>
-                      <span className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[260px] sm:max-w-[340px] block mt-0.5 group-hover:text-cyan-100 transition-colors">
-                        {videoGestao.mensagem || 'Assistir Discurso Institucional'}
-                      </span>
-                    </div>
-                  </button>
-                </div>
-              ) : (
-                <div className="flex-1 hidden xl:block"></div>
-              )}
-
-              {/* 3. Lado Direito: Contadores de Visitantes + Botão de Abertura do Menu Lateral */}
-              <div className="flex items-center gap-2 sm:gap-3 shrink-0 order-2 xl:order-3 ml-auto xl:ml-0">
+            {/* HEADER PRINCIPAL NOBRE (MANTÉM APENAS: BRANDING, VÍDEO & CONTADORES) */}
+            <header className="bg-totvs-dark text-white border-b border-slate-700/80 sticky top-0 z-30 shadow-md">
+              <div className="max-w-[1720px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
                 
-                {/* Pílulas de Métricas de Visitantes */}
-                <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-800/80 p-1 rounded-xl border border-slate-700/80 shadow-xs">
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
-                    <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Hoje:</span>
-                    <span className="font-black text-white">{visitorMetrics.hoje}</span>
+                {/* 1. Lado Esquerdo: Logo TOTVS + Espaço Experiência + Subtítulo */}
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-totvs-blue via-[#0047BA] to-totvs-cyan flex items-center justify-center font-black text-lg text-white shadow-md border border-white/10">
+                    T
                   </div>
-
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
-                    <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Sem:</span>
-                    <span className="font-black text-white">{visitorMetrics.semana}</span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-lg tracking-tight text-white leading-none">TOTVS</span>
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/40 shadow-2xs">
+                        Espaço Experiência
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 font-medium flex items-center gap-1.5 mt-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span>Showroom Inteligente • {segmentos.length || 11} Estações de Tecnologia</span>
+                    </p>
                   </div>
-
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
-                    <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Mês:</span>
-                    <span className="font-black text-white">{visitorMetrics.mes}</span>
-                  </div>
-
-                  <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
-                    <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Ano:</span>
-                    <span className="font-black text-white">{visitorMetrics.ano !== undefined ? visitorMetrics.ano : (visitorMetrics.total || 0)}</span>
-                  </div>
-
-                  {/* Botão Histórico */}
-                  <button
-                    type="button"
-                    onClick={() => setShowVisitorHistoryModal(true)}
-                    className="flex items-center gap-1 bg-white/10 hover:bg-white/20 px-2 py-1 rounded-lg text-slate-200 hover:text-white transition text-xs font-bold cursor-pointer"
-                    title="Consultar total de visitantes de meses e anos anteriores"
-                  >
-                    <Icons.Calendar />
-                    <span className="hidden md:inline text-[11px]">Histórico</span>
-                  </button>
-
-                  {/* Botão + Registrar Visitante */}
-                  <button
-                    type="button"
-                    onClick={() => setShowVisitorModal(true)}
-                    className="flex items-center gap-1 bg-gradient-to-r from-totvs-cyan to-teal-300 hover:from-cyan-300 hover:to-teal-200 text-slate-900 font-black px-2.5 py-1 rounded-lg text-xs shadow-xs transition transform hover:scale-102 active:scale-98 cursor-pointer"
-                    title="Registrar visita presencial no Espaço Experiência TOTVS"
-                  >
-                    <Icons.UserPlus />
-                    <span className="hidden md:inline">+ Visitante</span>
-                    <span className="md:hidden">+</span>
-                  </button>
                 </div>
 
-                {/* Botão de Disparo do Menu Lateral (Drawer) */}
-                <button
-                  type="button"
-                  onClick={() => setIsSidebarOpen(true)}
-                  className="flex items-center gap-2 bg-gradient-to-r from-slate-800 to-slate-850 hover:from-slate-750 hover:to-slate-800 text-white font-bold text-xs px-3 py-2 rounded-xl border border-slate-600/80 hover:border-totvs-cyan/60 transition shadow-md cursor-pointer group"
-                  title="Abrir Central de Acesso e Área Administrativa"
-                >
-                  {admLogado ? (
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
-                  ) : (
-                    <span className="w-2.5 h-2.5 rounded-full bg-slate-500 shrink-0"></span>
-                  )}
-                  <div className="flex items-center gap-1.5">
-                    <Icons.Shield />
-                    <span className="hidden sm:inline font-bold">
-                      {admLogado ? 'Menu ADM' : 'Acesso ADM'}
-                    </span>
+                {/* 2. Centro: Link Discurso da Liderança (16:9 • Veja seu discurso aqui !!!) */}
+                {videoGestao && videoGestao.ativo !== false ? (
+                  <div className="flex-1 flex justify-center max-w-xl order-3 xl:order-2 w-full xl:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setShowVideoModal(true)}
+                      className="w-full sm:w-auto flex items-center gap-3.5 bg-gradient-to-r from-totvs-blue/35 via-slate-800/85 to-totvs-cyan/20 hover:from-totvs-blue/55 hover:to-totvs-cyan/35 border border-totvs-cyan/50 hover:border-totvs-cyan px-4 py-2 rounded-2xl transition-all duration-300 group shadow-md hover:shadow-totvs-cyan/20 cursor-pointer transform hover:-translate-y-0.5"
+                      title="Assistir ao Discurso Institucional da Liderança em Vídeo"
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-totvs-cyan to-teal-300 text-slate-950 flex items-center justify-center font-black text-sm shrink-0 shadow-md group-hover:scale-110 group-hover:rotate-3 transition-transform">
+                        <Icons.Play />
+                      </div>
+                      <div className="text-left leading-tight pr-1">
+                        <span className="text-[9.5px] font-black uppercase text-totvs-cyan tracking-wider flex items-center gap-1">
+                          <span>Discurso da Liderança</span>
+                          <span className="text-[8.5px] px-1 py-0.2 rounded bg-totvs-cyan/20 text-totvs-cyan font-bold">16:9</span>
+                        </span>
+                        <span className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[260px] sm:max-w-[340px] block mt-0.5 group-hover:text-cyan-100 transition-colors">
+                          {videoGestao.mensagem || 'Assistir Discurso Institucional'}
+                        </span>
+                      </div>
+                    </button>
                   </div>
-                  <span className="text-slate-400 group-hover:text-white transition-colors">
-                    <Icons.Menu />
-                  </span>
-                </button>
+                ) : (
+                  <div className="flex-1 hidden xl:block"></div>
+                )}
+
+                {/* 3. Lado Direito: Contadores de Visitantes */}
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0 order-2 xl:order-3 ml-auto xl:ml-0">
+                  <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-800/80 p-1 rounded-xl border border-slate-700/80 shadow-xs">
+                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
+                      <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Hoje:</span>
+                      <span className="font-black text-white">{visitorMetrics.hoje}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
+                      <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Sem:</span>
+                      <span className="font-black text-white">{visitorMetrics.semana}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
+                      <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Mês:</span>
+                      <span className="font-black text-white">{visitorMetrics.mes}</span>
+                    </div>
+
+                    <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
+                      <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Ano:</span>
+                      <span className="font-black text-white">{visitorMetrics.ano !== undefined ? visitorMetrics.ano : (visitorMetrics.total || 0)}</span>
+                    </div>
+
+                    {/* Botão Registrar Visitante */}
+                    <button
+                      type="button"
+                      onClick={() => setShowVisitorModal(true)}
+                      className="flex items-center gap-1.5 bg-gradient-to-r from-totvs-cyan to-teal-300 hover:from-cyan-300 hover:to-teal-200 text-slate-900 font-black px-2.5 sm:px-3 py-1 rounded-lg text-xs shadow-xs transition transform hover:scale-102 active:scale-98 cursor-pointer ml-0.5"
+                      title="Registrar visita presencial no Espaço Experiência TOTVS"
+                    >
+                      <Icons.UserPlus />
+                      <span className="hidden md:inline">Registrar Visitante</span>
+                      <span className="md:hidden">Registrar</span>
+                    </button>
+                  </div>
+                </div>
 
               </div>
-
-            </div>
-          </header>
+            </header>
 
           {/* LEMBRETE INTELIGENTE DAS 17:00 (FORMULÁRIO NÃO PREENCHIDO HOJE) */}
           {shouldShowFormReminder && (
@@ -1840,6 +2213,7 @@
               onOpenVisitorModal={() => setShowVisitorModal(true)}
               onClose={() => setAdminModal(false)}
               onRefresh={carregarDadosAdmin}
+              onLogout={handleLogoutAdm}
               videoGestao={videoGestao}
               onVideoGestaoChange={carregarVideoGestao}
               showToast={showToast}
@@ -1862,16 +2236,14 @@
             />
           )}
 
-          {/* BARRA LATERAL RETRÁTIL (DRAWER) PARA ÁREA ADM E FUTURO LOGIN */}
-          <SidebarDrawer
-            isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
-            admLogado={admLogado}
-            onOpenAdmin={handleOpenAdmin}
-            onOpenLogin={() => setShowLoginModal(true)}
-            onLogoutAdm={handleLogoutAdm}
-            onOpenGoogleForm={handleOpenGoogleForm}
-          />
+          {/* MODAL DO CALENDÁRIO DOS PLANTONISTAS DO ESPAÇO */}
+          {showPlantonistasModal && (
+            <PlantonistasModal
+              onClose={() => setShowPlantonistasModal(false)}
+              admLogado={admLogado}
+              showToast={showToast}
+            />
+          )}
 
           {/* FOOTER CORPORATIVO */}
           <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
@@ -1881,6 +2253,7 @@
             </div>
           </footer>
 
+          </div>
         </div>
       );
     }
@@ -3876,6 +4249,7 @@
         return `${yyyy}-${mm}-${dd}`;
       });
       const [empresa, setEmpresa] = useState('');
+      const [tipoVisitante, setTipoVisitante] = useState('');
       const [numeroPessoas, setNumeroPessoas] = useState(1);
       const [responsavel, setResponsavel] = useState(admLogado ? admLogado.nome : '');
       const [salvando, setSalvando] = useState(false);
@@ -3937,6 +4311,10 @@
           alert('Por favor, informe o Nome da Empresa ou Instituição visitante.');
           return;
         }
+        if (!tipoVisitante) {
+          alert('Por favor, selecione a Classificação do Visitante (Cliente, Prospect ou Visitante externo).');
+          return;
+        }
         const qtd = parseInt(numeroPessoas, 10);
         if (isNaN(qtd) || qtd < 1) {
           alert('Por favor, informe o Número de Pessoas (mínimo 1).');
@@ -3955,6 +4333,7 @@
               data: dataVisita,
               empresa: empresa.trim(),
               nome: empresa.trim(),
+              tipo_visitante: tipoVisitante,
               numero_pessoas: qtd,
               responsavel: responsavel.trim()
             })
@@ -4068,6 +4447,59 @@
                     required
                     className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
                   />
+                </div>
+
+                {/* Campo Classificação do Visitante (Cliente, Prospect, Visitante externo) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                      <Icons.Tag />
+                      <span>Classificação do Visitante *</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      (Selecione 1 opção)
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTipoVisitante('cliente')}
+                      className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
+                        tipoVisitante === 'cliente'
+                          ? 'bg-totvs-blue text-white border-totvs-blue shadow-sm ring-2 ring-totvs-blue/30 scale-101'
+                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-800'
+                      }`}
+                    >
+                      <span className="text-sm">🏢</span>
+                      <span>Cliente</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setTipoVisitante('prospect')}
+                      className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
+                        tipoVisitante === 'prospect'
+                          ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-500/30 scale-101'
+                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-800'
+                      }`}
+                    >
+                      <span className="text-sm">🎯</span>
+                      <span>Prospect</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setTipoVisitante('visitante_externo')}
+                      className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
+                        tipoVisitante === 'visitante_externo'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm ring-2 ring-indigo-500/30 scale-101'
+                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-800'
+                      }`}
+                    >
+                      <span className="text-sm">🌐</span>
+                      <span className="text-[11px] sm:text-xs truncate">Visitante ext.</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Campo Número de Pessoas */}
@@ -4187,7 +4619,7 @@
                 </button>
                 <button
                   type="submit"
-                  disabled={salvando || !empresa.trim() || !responsavel.trim() || !dataVisita || !numeroPessoas}
+                  disabled={salvando || !empresa.trim() || !tipoVisitante || !responsavel.trim() || !dataVisita || !numeroPessoas}
                   className="flex-1 bg-gradient-to-r from-totvs-blue to-[#003B8E] hover:from-[#003B8E] hover:to-totvs-dark text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   <Icons.UserPlus />
@@ -4736,6 +5168,7 @@
       onOpenVisitorModal,
       onClose,
       onRefresh,
+      onLogout,
       videoGestao,
       onVideoGestaoChange,
       showToast
@@ -4929,14 +5362,27 @@
                   type="button"
                   onClick={onRefresh}
                   title="Atualizar dados"
-                  className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition text-xs flex items-center gap-1"
+                  className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition text-xs flex items-center gap-1 cursor-pointer"
                 >
                   <Icons.Clock />
                   <span className="hidden sm:inline">Atualizar</span>
                 </button>
                 <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onLogout) onLogout();
+                  }}
+                  title="Deslogar e voltar à área comum"
+                  className="p-2 text-slate-400 hover:text-rose-400 rounded-xl hover:bg-slate-800 transition text-xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Icons.LogOut />
+                  <span className="hidden sm:inline">Deslogar</span>
+                </button>
+                <button
                   onClick={onClose}
-                  className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition"
+                  className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition cursor-pointer"
+                  title="Fechar modal"
                 >
                   <Icons.X />
                 </button>
@@ -5346,6 +5792,21 @@
                                       <Icons.Users />
                                       <span>{vis.numero_pessoas || 1} { (vis.numero_pessoas || 1) === 1 ? 'pessoa' : 'pessoas' }</span>
                                     </span>
+                                    {vis.tipo_visitante === 'cliente' && (
+                                      <span className="text-[10px] font-extrabold bg-blue-50 text-totvs-blue px-2 py-0.5 rounded-full border border-blue-200 flex items-center gap-1">
+                                        <span>🏢 Cliente</span>
+                                      </span>
+                                    )}
+                                    {vis.tipo_visitante === 'prospect' && (
+                                      <span className="text-[10px] font-extrabold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-200 flex items-center gap-1">
+                                        <span>🎯 Prospect</span>
+                                      </span>
+                                    )}
+                                    {vis.tipo_visitante === 'visitante_externo' && (
+                                      <span className="text-[10px] font-extrabold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200 flex items-center gap-1">
+                                        <span>🌐 Visitante ext.</span>
+                                      </span>
+                                    )}
                                     <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">
                                       {vis.data ? vis.data.split('-').reverse().join('/') : '—'}
                                     </span>
