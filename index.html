@@ -106,7 +106,8 @@
       Tag: () => <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>,
       UserPlus: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>,
       Calendar: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
-      ExternalLink: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+      ExternalLink: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>,
+      Menu: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
     };
 
     // Grafismo Geométrico Tech inspirado na identidade corporativa TOTVS (referência enviada)
@@ -294,34 +295,34 @@
       };
 
       return (
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-3 space-y-2">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-2.5 space-y-1.5">
           {/* Topo do Box: Identificação do Equipamento */}
-          <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+          <div className="flex items-center justify-between pb-1 border-b border-slate-100">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="w-5 h-5 rounded-md bg-totvs-blue/10 text-totvs-blue flex items-center justify-center shrink-0">
+              <span className="w-4.5 h-4.5 rounded-md bg-totvs-blue/10 text-totvs-blue flex items-center justify-center shrink-0">
                 <Icons.Monitor />
               </span>
-              <span className="font-bold text-[11px] text-slate-800 truncate" title={credenciais.equipamento}>
+              <span className="font-bold text-[10.5px] text-slate-800 truncate" title={credenciais.equipamento}>
                 {credenciais.equipamento || 'Computador da Bancada'}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                Acesso Bancada
+            <div className="flex items-center gap-1 shrink-0">
+              <span className="text-[8.5px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Bancada
               </span>
             </div>
           </div>
 
           {/* Bloco do Usuário (Valor Completo Sem Cortes) */}
-          <div className="bg-slate-50/90 hover:bg-slate-50 p-2 rounded-lg border border-slate-200/60 transition space-y-1">
+          <div className="bg-slate-50/90 hover:bg-slate-50 p-1.5 rounded-lg border border-slate-200/60 transition space-y-0.5">
             <div className="flex items-center justify-between">
-              <span className="text-[9.5px] font-extrabold text-slate-500 uppercase tracking-wider">
+              <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">
                 Usuário:
               </span>
               <button
                 type="button"
                 onClick={() => copyToClipboard(credenciais.usuario, 'user')}
-                className={`p-1 px-1.5 rounded-md transition flex items-center gap-1 text-[10px] font-semibold ${
+                className={`p-0.5 px-1.5 rounded-md transition flex items-center gap-1 text-[9.5px] font-semibold ${
                   copied === 'user'
                     ? 'bg-emerald-500 text-white shadow-xs'
                     : 'text-slate-400 hover:text-totvs-blue hover:bg-slate-200/60'
@@ -331,18 +332,18 @@
                 {copied === 'user' ? (
                   <>
                     <Icons.Check />
-                    <span className="text-[9px]">Copiado!</span>
+                    <span className="text-[8.5px]">Copiado!</span>
                   </>
                 ) : (
                   <>
                     <Icons.Copy />
-                    <span className="text-[9px] text-slate-500 hover:text-totvs-blue">Copiar</span>
+                    <span className="text-[8.5px] text-slate-500 hover:text-totvs-blue">Copiar</span>
                   </>
                 )}
               </button>
             </div>
             <div
-              className="font-mono text-slate-800 text-[11px] font-semibold select-all break-all leading-tight"
+              className="font-mono text-slate-800 text-[10.5px] font-semibold select-all break-all leading-tight"
               title={credenciais.usuario}
             >
               {credenciais.usuario || '—'}
@@ -350,15 +351,15 @@
           </div>
 
           {/* Bloco da Senha (Sempre Visível Sem Cortes) */}
-          <div className="bg-slate-50/90 hover:bg-slate-50 p-2 rounded-lg border border-slate-200/60 transition space-y-1">
+          <div className="bg-slate-50/90 hover:bg-slate-50 p-1.5 rounded-lg border border-slate-200/60 transition space-y-0.5">
             <div className="flex items-center justify-between">
-              <span className="text-[9.5px] font-extrabold text-slate-500 uppercase tracking-wider">
+              <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">
                 Senha:
               </span>
               <button
                 type="button"
                 onClick={() => copyToClipboard(credenciais.senha, 'pass')}
-                className={`p-1 px-1.5 rounded-md transition flex items-center gap-1 text-[10px] font-semibold ${
+                className={`p-0.5 px-1.5 rounded-md transition flex items-center gap-1 text-[9.5px] font-semibold ${
                   copied === 'pass'
                     ? 'bg-emerald-500 text-white shadow-xs'
                     : 'text-slate-400 hover:text-totvs-blue hover:bg-slate-200/60'
@@ -368,12 +369,12 @@
                 {copied === 'pass' ? (
                   <>
                     <Icons.Check />
-                    <span className="text-[9px]">Copiada!</span>
+                    <span className="text-[8.5px]">Copiada!</span>
                   </>
                 ) : (
                   <>
                     <Icons.Copy />
-                    <span className="text-[9px] text-slate-500 hover:text-totvs-blue">Copiar</span>
+                    <span className="text-[8.5px] text-slate-500 hover:text-totvs-blue">Copiar</span>
                   </>
                 )}
               </button>
@@ -418,8 +419,8 @@
           className="relative bg-slate-900 border-b border-slate-200/80 group/photo select-none cursor-pointer overflow-hidden"
           title={`Clique para ampliar a foto da bancada (${seg.nome})`}
         >
-          {/* Thumbnail Normal no Card */}
-          <div className="relative h-48 w-full overflow-hidden bg-slate-950">
+          {/* Thumbnail Normal no Card Otimizado */}
+          <div className="relative h-28 sm:h-32 w-full overflow-hidden bg-slate-950">
             <img
               src={seg.foto_bancada}
               alt={`Bancada física ${seg.nome}`}
@@ -428,14 +429,14 @@
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent pointer-events-none" />
 
             {/* Badge identificador da Bancada */}
-            <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-bold border border-white/20 shadow-sm pointer-events-none">
+            <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-900/85 backdrop-blur-md text-white text-[9px] font-bold border border-white/20 shadow-sm pointer-events-none">
               <span>📸 Bancada Física</span>
             </div>
 
-            {/* Indicador visual de clique com cursor de mão (sem explosão) */}
-            <div className="absolute bottom-2 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/70 backdrop-blur-xs text-white/95 text-[10px] font-semibold border border-white/10 shadow-sm transition-colors duration-200 group-hover/photo:bg-totvs-blue group-hover/photo:text-white pointer-events-none">
+            {/* Indicador visual de clique com cursor de mão */}
+            <div className="absolute bottom-1.5 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-white/95 text-[9px] font-semibold border border-white/10 shadow-sm transition-colors duration-200 group-hover/photo:bg-totvs-blue group-hover/photo:text-white pointer-events-none">
               <Icons.ZoomIn />
-              <span>Clique para ampliar foto</span>
+              <span>Ampliar foto</span>
             </div>
           </div>
         </div>
@@ -881,6 +882,222 @@
       );
     }
 
+    // Componente da Barra Lateral Retrátil (Drawer) para Área ADM e Futuro Login
+    function SidebarDrawer({
+      isOpen,
+      onClose,
+      admLogado,
+      onOpenAdmin,
+      onOpenLogin,
+      onLogoutAdm,
+      onOpenGoogleForm
+    }) {
+      if (!isOpen) return null;
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Backdrop escurecido com blur suave */}
+          <div
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300"
+            onClick={onClose}
+          />
+
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+            <div className="w-screen max-w-sm sm:max-w-md bg-slate-900 border-l border-slate-700/80 text-white shadow-2xl flex flex-col justify-between transform transition-all duration-300 ease-in-out animate-in slide-in-from-right">
+              
+              {/* CABEÇALHO DO DRAWER */}
+              <div className="p-5 sm:p-6 border-b border-slate-800 bg-gradient-to-r from-slate-900 via-totvs-dark to-slate-900 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-totvs-blue to-totvs-cyan flex items-center justify-center font-black text-white text-base shadow-md">
+                    T
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base tracking-tight text-white flex items-center gap-2">
+                      <span>Central de Acesso</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
+                        TOTVS
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-slate-400">Espaço Experiência • Gestão & Governança</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition cursor-pointer"
+                  title="Fechar Menu"
+                >
+                  <Icons.X />
+                </button>
+              </div>
+
+              {/* CORPO DO DRAWER (SCROLLABLE) */}
+              <div className="p-5 sm:p-6 space-y-6 overflow-y-auto flex-1">
+                
+                {/* SEÇÃO 1: ÁREA ADM / GOVERNANÇA */}
+                <div className="bg-slate-800/90 rounded-2xl border border-slate-700/80 p-4.5 space-y-3.5 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-7 h-7 rounded-lg bg-totvs-blue/30 text-totvs-cyan flex items-center justify-center text-sm">
+                        <Icons.Shield />
+                      </span>
+                      <span className="text-xs font-black uppercase tracking-wider text-slate-200">
+                        Área Administrativa
+                      </span>
+                    </div>
+                    {admLogado ? (
+                      <span className="flex items-center gap-1.5 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Autenticado
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-700 text-slate-400 border border-slate-600">
+                        Modo Somente Leitura
+                      </span>
+                    )}
+                  </div>
+
+                  {admLogado ? (
+                    <div className="space-y-3 pt-1">
+                      <div className="bg-slate-900/80 rounded-xl p-3 border border-slate-700 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-totvs-blue to-totvs-cyan text-white font-black flex items-center justify-center text-sm shadow-inner shrink-0">
+                          {admLogado.nome ? admLogado.nome.charAt(0).toUpperCase() : 'A'}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-white truncate">{admLogado.nome}</p>
+                          <p className="text-[11px] text-slate-400 truncate">{admLogado.email || 'admin@totvs.com.br'}</p>
+                          <span className="inline-block mt-0.5 text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-totvs-cyan/15 text-totvs-cyan">
+                            {admLogado.role === 'master' ? 'Administrador Master' : 'Gestor de Estações'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onClose();
+                            onOpenAdmin();
+                          }}
+                          className="flex items-center justify-center gap-1.5 bg-totvs-blue hover:bg-[#003B8E] text-white text-xs font-bold py-2.5 px-3 rounded-xl transition shadow-sm cursor-pointer"
+                        >
+                          <Icons.Shield />
+                          <span>Painel ADM</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onLogoutAdm();
+                            onClose();
+                          }}
+                          className="flex items-center justify-center gap-1.5 bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-bold py-2.5 px-3 rounded-xl border border-rose-500/30 transition shadow-sm cursor-pointer"
+                        >
+                          <Icons.LogOut />
+                          <span>Sair</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 pt-1">
+                      <p className="text-xs text-slate-300 leading-relaxed">
+                        Acesso restrito para administradores e curadores do Espaço Experiência realizarem alterações nas bancadas e conteúdos.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onOpenLogin();
+                        }}
+                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-totvs-blue to-[#0047BA] hover:from-[#0047BA] hover:to-[#00D2ED] text-white text-xs font-black py-2.5 px-4 rounded-xl transition shadow-md cursor-pointer transform active:scale-98"
+                      >
+                        <Icons.Shield />
+                        <span>Acessar Modo Administrador</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* SEÇÃO 2: FUTURO LOGIN DE USUÁRIO (PRÓXIMA AÇÃO) */}
+                <div className="bg-slate-800/60 rounded-2xl border border-slate-700/60 p-4.5 space-y-3 relative overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-7 h-7 rounded-lg bg-totvs-cyan/15 text-totvs-cyan flex items-center justify-center text-sm">
+                        <Icons.Users />
+                      </span>
+                      <span className="text-xs font-black uppercase tracking-wider text-slate-200">
+                        Login de Usuário
+                      </span>
+                    </div>
+                    <span className="text-[9.5px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      Próxima Ação
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Em breve, consultores, especialistas e visitantes poderão efetuar login para salvar roteiros de visitas, favoritos e notas de atendimento.
+                  </p>
+
+                  {/* Mockup elegante desabilitado dos campos */}
+                  <div className="space-y-2 pt-1 opacity-60 pointer-events-none select-none">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">E-mail corporativo</label>
+                      <input
+                        type="text"
+                        disabled
+                        placeholder="usuario@totvs.com.br"
+                        className="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Senha</label>
+                      <input
+                        type="password"
+                        disabled
+                        placeholder="••••••••"
+                        className="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-400"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      disabled
+                      className="w-full bg-slate-700 text-slate-400 text-xs font-bold py-2 rounded-lg cursor-not-allowed"
+                    >
+                      Entrar (Disponível em breve)
+                    </button>
+                  </div>
+                </div>
+
+                {/* SEÇÃO 3: ATALHOS & LINKS OFICIAIS */}
+                <div className="bg-slate-800/40 rounded-2xl border border-slate-800 p-4 space-y-2.5">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                    Atalhos Rápidos
+                  </span>
+                  <button
+                    type="button"
+                    onClick={onOpenGoogleForm}
+                    className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 border border-slate-700 text-xs font-semibold text-slate-200 hover:text-white transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icons.ExternalLink />
+                      <span>Formulário Oficial de Visitas</span>
+                    </div>
+                    <Icons.ChevronRight />
+                  </button>
+                </div>
+
+              </div>
+
+              {/* RODAPÉ DO DRAWER */}
+              <div className="p-4 border-t border-slate-800 bg-slate-950/60 text-center text-[11px] text-slate-500">
+                TOTVS Espaço Experiência • v2.6
+              </div>
+
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     function App() {
       const [segmentos, setSegmentos] = useState([]);
       const [loading, setLoading] = useState(true);
@@ -989,22 +1206,21 @@
         !visitorMetrics.formulario_aberto_hoje && 
         !dismissedReminderToday;
 
-      // Busca e Filtros
+      // Busca e Barra Lateral
       const [searchTerm, setSearchTerm] = useState('');
-      const [searchNoticeOpen, setSearchNoticeOpen] = useState(false);
-      const searchContainerRef = useRef(null);
+      const [isSidebarOpen, setIsSidebarOpen] = useState(false);
       const [toastMsg, setToastMsg] = useState(null);
 
-      // Fechar aviso de busca ao clicar fora
+      // Fechar menu lateral com tecla Escape
       useEffect(() => {
-        const handleClickOutside = (e) => {
-          if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
-            setSearchNoticeOpen(false);
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape' && isSidebarOpen) {
+            setIsSidebarOpen(false);
           }
         };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-      }, []);
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [isSidebarOpen]);
 
       const showToast = (msg) => {
         setToastMsg(msg);
@@ -1236,155 +1452,128 @@
             </div>
           )}
 
-          {/* HEADER PRINCIPAL */}
-          <header className="bg-totvs-dark text-white border-b border-slate-700 sticky top-0 z-30 shadow-md">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+          {/* HEADER PRINCIPAL NOBRE COM DESTAQUE PARA VÍDEO & CONTADORES */}
+          <header className="bg-totvs-dark text-white border-b border-slate-700/80 sticky top-0 z-30 shadow-md">
+            <div className="max-w-[1720px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
               
-              {/* Logo & Título */}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-totvs-blue to-totvs-cyan flex items-center justify-center font-black text-xl text-white shadow-inner">
+              {/* 1. Lado Esquerdo: Logo TOTVS + Espaço Experiência + Subtítulo */}
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-totvs-blue via-[#0047BA] to-totvs-cyan flex items-center justify-center font-black text-lg text-white shadow-md border border-white/10">
                   T
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-lg tracking-tight text-white">TOTVS</span>
-                    <span className="text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
+                    <span className="font-black text-lg tracking-tight text-white leading-none">TOTVS</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/40 shadow-2xs">
                       Espaço Experiência
                     </span>
                   </div>
-                  <p className="text-xs text-slate-300 font-medium">Plataforma Multiusuário de Segmentos</p>
+                  <p className="text-[11px] text-slate-300 font-medium flex items-center gap-1.5 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Showroom Inteligente • {segmentos.length || 11} Estações de Tecnologia</span>
+                  </p>
                 </div>
               </div>
 
-              {/* Barra de Busca */}
-              <div 
-                ref={searchContainerRef}
-                className="flex items-center gap-3 w-full order-3 sm:order-2 sm:w-auto sm:flex-1 max-w-md relative"
-              >
-                <div className="relative w-full">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <Icons.Search />
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Buscar soluções (ex: MES, RFID, Consinco, PEP)..."
-                    value={searchTerm}
-                    onFocus={() => setSearchNoticeOpen(true)}
-                    onClick={() => setSearchNoticeOpen(true)}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-9 pr-14 py-1.5 text-xs bg-slate-800/80 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-cyan focus:border-transparent transition"
-                  />
-                  <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center gap-1.5">
-                    {searchTerm && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSearchTerm('');
-                        }}
-                        className="text-slate-400 hover:text-white p-0.5 rounded cursor-pointer"
-                        title="Limpar busca"
-                      >
-                        <Icons.X />
-                      </button>
-                    )}
-                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30 pointer-events-none tracking-wider">
-                      Beta
+              {/* 2. Centro: Link / Card Nobre do Vídeo Institucional da Liderança (Maior e em Destaque) */}
+              {videoGestao && videoGestao.ativo !== false ? (
+                <div className="flex-1 flex justify-center max-w-xl order-3 xl:order-2 w-full xl:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setShowVideoModal(true)}
+                    className="w-full sm:w-auto flex items-center gap-3.5 bg-gradient-to-r from-totvs-blue/35 via-slate-800/85 to-totvs-cyan/20 hover:from-totvs-blue/55 hover:to-totvs-cyan/35 border border-totvs-cyan/50 hover:border-totvs-cyan px-4 py-2 rounded-2xl transition-all duration-300 group shadow-md hover:shadow-totvs-cyan/20 cursor-pointer transform hover:-translate-y-0.5"
+                    title="Assistir ao Discurso Institucional da Liderança em Vídeo"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-totvs-cyan to-teal-300 text-slate-950 flex items-center justify-center font-black text-sm shrink-0 shadow-md group-hover:scale-110 group-hover:rotate-3 transition-transform">
+                      <Icons.Play />
+                    </div>
+                    <div className="text-left leading-tight pr-1">
+                      <span className="text-[9.5px] font-black uppercase text-totvs-cyan tracking-wider flex items-center gap-1">
+                        <span>Discurso da Liderança</span>
+                        <span className="text-[8.5px] px-1 py-0.2 rounded bg-totvs-cyan/20 text-totvs-cyan font-bold">16:9</span>
+                      </span>
+                      <span className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[260px] sm:max-w-[340px] block mt-0.5 group-hover:text-cyan-100 transition-colors">
+                        {videoGestao.mensagem || 'Assistir Discurso Institucional'}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex-1 hidden xl:block"></div>
+              )}
+
+              {/* 3. Lado Direito: Contadores de Visitantes + Botão de Abertura do Menu Lateral */}
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0 order-2 xl:order-3 ml-auto xl:ml-0">
+                
+                {/* Pílulas de Métricas de Visitantes */}
+                <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-800/80 p-1 rounded-xl border border-slate-700/80 shadow-xs">
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
+                    <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Hoje:</span>
+                    <span className="font-black text-white">{visitorMetrics.hoje}</span>
+                  </div>
+
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
+                    <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Sem:</span>
+                    <span className="font-black text-white">{visitorMetrics.semana}</span>
+                  </div>
+
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
+                    <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Mês:</span>
+                    <span className="font-black text-white">{visitorMetrics.mes}</span>
+                  </div>
+
+                  <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
+                    <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Ano:</span>
+                    <span className="font-black text-white">{visitorMetrics.ano !== undefined ? visitorMetrics.ano : (visitorMetrics.total || 0)}</span>
+                  </div>
+
+                  {/* Botão Histórico */}
+                  <button
+                    type="button"
+                    onClick={() => setShowVisitorHistoryModal(true)}
+                    className="flex items-center gap-1 bg-white/10 hover:bg-white/20 px-2 py-1 rounded-lg text-slate-200 hover:text-white transition text-xs font-bold cursor-pointer"
+                    title="Consultar total de visitantes de meses e anos anteriores"
+                  >
+                    <Icons.Calendar />
+                    <span className="hidden md:inline text-[11px]">Histórico</span>
+                  </button>
+
+                  {/* Botão + Registrar Visitante */}
+                  <button
+                    type="button"
+                    onClick={() => setShowVisitorModal(true)}
+                    className="flex items-center gap-1 bg-gradient-to-r from-totvs-cyan to-teal-300 hover:from-cyan-300 hover:to-teal-200 text-slate-900 font-black px-2.5 py-1 rounded-lg text-xs shadow-xs transition transform hover:scale-102 active:scale-98 cursor-pointer"
+                    title="Registrar visita presencial no Espaço Experiência TOTVS"
+                  >
+                    <Icons.UserPlus />
+                    <span className="hidden md:inline">+ Visitante</span>
+                    <span className="md:hidden">+</span>
+                  </button>
+                </div>
+
+                {/* Botão de Disparo do Menu Lateral (Drawer) */}
+                <button
+                  type="button"
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="flex items-center gap-2 bg-gradient-to-r from-slate-800 to-slate-850 hover:from-slate-750 hover:to-slate-800 text-white font-bold text-xs px-3 py-2 rounded-xl border border-slate-600/80 hover:border-totvs-cyan/60 transition shadow-md cursor-pointer group"
+                  title="Abrir Central de Acesso e Área Administrativa"
+                >
+                  {admLogado ? (
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                  ) : (
+                    <span className="w-2.5 h-2.5 rounded-full bg-slate-500 shrink-0"></span>
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    <Icons.Shield />
+                    <span className="hidden sm:inline font-bold">
+                      {admLogado ? 'Menu ADM' : 'Acesso ADM'}
                     </span>
                   </div>
-                </div>
+                  <span className="text-slate-400 group-hover:text-white transition-colors">
+                    <Icons.Menu />
+                  </span>
+                </button>
 
-                {/* Popover / Balão Suspenso Informativo de Teste */}
-                {searchNoticeOpen && (
-                  <div 
-                    className="absolute top-full left-0 right-0 mt-2 z-50 bg-slate-900/95 backdrop-blur-md border border-totvs-cyan/40 rounded-2xl shadow-2xl p-3.5 text-slate-200 text-xs animate-in fade-in slide-in-from-top-1 duration-150"
-                  >
-                    <div className="flex items-start justify-between gap-3 pb-2 border-b border-slate-800">
-                      <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-lg bg-totvs-cyan/20 text-totvs-cyan flex items-center justify-center text-xs font-black shrink-0">
-                          🧪
-                        </span>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-extrabold text-white text-xs">Busca Global em Homologação</span>
-                            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                              Versão Beta
-                            </span>
-                          </div>
-                          <span className="text-[10px] text-slate-400">Funcionalidade em fase de testes e aprimoramento</span>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setSearchNoticeOpen(false)}
-                        className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
-                        title="Fechar aviso"
-                      >
-                        <Icons.X />
-                      </button>
-                    </div>
-
-                    <div className="mt-2.5 space-y-1.5 text-[11px] text-slate-300">
-                      <p className="leading-relaxed">
-                        Esta ferramenta de busca rápida está sendo calibrada para o catálogo unificado de soluções TOTVS.
-                      </p>
-                      <p className="text-slate-400 leading-relaxed">
-                        • <strong>Você já pode testar:</strong> digite termos como <code className="text-totvs-cyan font-bold font-mono">MES</code>, <code className="text-totvs-cyan font-bold font-mono">RFID</code>, <code className="text-totvs-cyan font-bold font-mono">Consinco</code>, <code className="text-totvs-cyan font-bold font-mono">Agro</code> ou <code className="text-totvs-cyan font-bold font-mono">Saúde</code> para filtrar os cards em tempo real.
-                      </p>
-                    </div>
-
-                    <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-[10px]">
-                      <span className="text-slate-500 italic">Espaço Experiência TOTVS</span>
-                      <button
-                        type="button"
-                        onClick={() => setSearchNoticeOpen(false)}
-                        className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-totvs-cyan font-bold rounded-lg transition cursor-pointer border border-slate-700"
-                      >
-                        Entendido
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Botões de Usuário Conectado e ADM */}
-              <div className="flex items-center gap-3">
-                {admLogado ? (
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 bg-slate-800/95 text-slate-200 text-xs px-3.5 py-1.5 rounded-xl border border-totvs-cyan/40 shadow-sm">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                      <div className="text-left">
-                        <span className="font-bold text-white block leading-tight">{admLogado.nome}</span>
-                        <span className="text-[10px] text-totvs-cyan font-bold block">Administrador</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleOpenAdmin}
-                      className="flex items-center gap-1.5 bg-totvs-blue hover:bg-[#003B8E] text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm cursor-pointer"
-                      title="Painel de Gestão ADM"
-                    >
-                      <Icons.Shield />
-                      <span>Painel ADM</span>
-                    </button>
-                    <button
-                      onClick={handleLogoutAdm}
-                      className="flex items-center gap-1 bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-bold px-2.5 py-2 rounded-xl border border-rose-500/30 transition shadow-sm cursor-pointer"
-                      title="Sair do modo administrador"
-                    >
-                      <Icons.LogOut />
-                      <span>Sair</span>
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowLoginModal(true)}
-                    className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3.5 py-2 rounded-xl border border-white/25 transition shadow-sm backdrop-blur-md cursor-pointer hover:border-totvs-cyan/60"
-                    title="Acesso restrito para Administradores com permissão de edição"
-                  >
-                    <Icons.Shield />
-                    <span>Área ADM</span>
-                  </button>
-                )}
               </div>
 
             </div>
@@ -1392,18 +1581,18 @@
 
           {/* LEMBRETE INTELIGENTE DAS 17:00 (FORMULÁRIO NÃO PREENCHIDO HOJE) */}
           {shouldShowFormReminder && (
-            <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 px-4 py-2.5 shadow-lg border-b border-amber-300/60 relative z-30 animate-in slide-in-from-top duration-300">
-              <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 text-center sm:text-left">
-                  <span className="w-8 h-8 rounded-xl bg-slate-950/20 text-slate-950 flex items-center justify-center shrink-0 font-bold text-base shadow-inner">
+            <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 px-4 py-2 shadow-md border-b border-amber-300/60 relative z-30 animate-in slide-in-from-top duration-300">
+              <div className="max-w-[1720px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2 text-center sm:text-left">
+                  <span className="w-6 h-6 rounded-lg bg-slate-950/20 text-slate-950 flex items-center justify-center shrink-0 font-bold text-xs shadow-inner">
                     <Icons.Clock />
                   </span>
                   <div>
-                    <p className="text-xs sm:text-sm font-black text-slate-950 leading-tight">
+                    <p className="text-xs font-black text-slate-950 leading-tight">
                       ⚠️ Você ainda não preencheu o Formulário hoje!
                     </p>
-                    <p className="text-[11px] font-medium text-slate-900/80">
-                      Lembrete diário das 17:00 • Ajude a manter os dados de visitação atualizados no Espaço Experiência.
+                    <p className="text-[10.5px] font-medium text-slate-900/85">
+                      Lembrete diário das 17:00 • Ajude a manter os dados de visitação atualizados.
                     </p>
                   </div>
                 </div>
@@ -1411,15 +1600,15 @@
                   <button
                     type="button"
                     onClick={handleOpenGoogleForm}
-                    className="flex-1 sm:flex-initial bg-slate-950 hover:bg-slate-900 text-white font-black text-xs px-4 py-2 rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="flex-1 sm:flex-initial bg-slate-950 hover:bg-slate-900 text-white font-black text-[11px] px-3 py-1.5 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <span>Abrir Formulário Agora</span>
+                    <span>Abrir Formulário</span>
                     <Icons.ExternalLink />
                   </button>
                   <button
                     type="button"
                     onClick={() => setDismissedReminderToday(true)}
-                    className="p-2 text-slate-950/80 hover:text-slate-950 rounded-xl hover:bg-slate-950/10 transition cursor-pointer"
+                    className="p-1.5 text-slate-950/80 hover:text-slate-950 rounded-lg hover:bg-slate-950/10 transition cursor-pointer"
                     title="Dispensar lembrete por hoje"
                   >
                     <Icons.X />
@@ -1429,183 +1618,8 @@
             </div>
           )}
 
-          {/* BANNER INSTITUCIONAL */}
-          <section className="relative overflow-hidden bg-gradient-to-r from-totvs-dark via-totvs-blue to-[#003B8E] text-white py-7 px-4 border-b border-totvs-cyan/20">
-            {/* Grafismo sutil de fundo */}
-            <div className="absolute inset-0 pointer-events-none opacity-20 select-none">
-              <svg className="w-full h-full" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                <line x1="0" y1="120" x2="280" y2="0" stroke="#00E5FF" strokeWidth="2" strokeDasharray="6 6" />
-                <line x1="180" y1="120" x2="460" y2="0" stroke="#00E5FF" strokeWidth="2.5" />
-                <line x1="750" y1="120" x2="1050" y2="0" stroke="#00E5FF" strokeWidth="1.5" />
-                <rect x="400" y="25" width="100" height="18" rx="9" transform="rotate(-24 400 25)" fill="#00E5FF" fillOpacity="0.8" />
-              </svg>
-            </div>
-
-            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[11px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/40">
-                    Showroom Inteligente
-                  </span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-sm">
-                  Espaço Experiência TOTVS
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-200 mt-1 max-w-2xl font-normal leading-relaxed">
-                  Guia interativo institucional e roteiro de visitação guiada pelas {segmentos.length || 11} estações tecnológicas do laboratório.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
-                {/* MINIATURA SUGESTIVA: VÍDEO INSTITUCIONAL DA GESTÃO ("Veja seu discurso aqui") */}
-                {videoGestao && videoGestao.ativo !== false && (
-                  <div
-                    onClick={() => setShowVideoModal(true)}
-                    className="group relative cursor-pointer bg-slate-950/75 hover:bg-slate-950/95 border border-totvs-cyan/40 hover:border-totvs-cyan rounded-2xl p-2 sm:p-2.5 shadow-xl hover:shadow-[0_0_25px_rgba(0,229,255,0.35)] transition-all duration-300 transform hover:-translate-y-0.5 flex items-center gap-3 backdrop-blur-md"
-                    title="Clique para assistir ao discurso institucional da gestão em tela cheia"
-                  >
-                    {/* Frame Miniatura com Efeito Glow e Play Pulsante */}
-                    <div className="relative w-14 h-12 sm:w-16 sm:h-13 rounded-xl overflow-hidden bg-gradient-to-br from-slate-900 via-totvs-dark to-slate-950 border border-totvs-cyan/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-inner">
-                      <div className="absolute inset-0 bg-totvs-blue/20 group-hover:bg-totvs-cyan/20 transition-colors"></div>
-                      <div className="absolute -inset-1 bg-totvs-cyan/30 rounded-xl blur-xs group-hover:blur-sm opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                      
-                      <div className="relative z-10 w-7 h-7 rounded-full bg-gradient-to-tr from-totvs-cyan to-teal-200 text-slate-950 flex items-center justify-center font-black shadow-lg transform group-hover:scale-110 transition-transform">
-                        <span className="w-3.5 h-3.5 flex items-center justify-center translate-x-0.5">
-                          <Icons.Play />
-                        </span>
-                      </div>
-                      <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-totvs-cyan animate-ping"></div>
-                    </div>
-
-                    {/* Textos Convidativos */}
-                    <div className="text-left pr-1">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/40 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-totvs-cyan animate-pulse"></span>
-                          <span>Discurso Institucional</span>
-                        </span>
-                      </div>
-                      <h4 className="text-xs sm:text-sm font-black text-white group-hover:text-totvs-cyan transition-colors leading-tight">
-                        {videoGestao.mensagem || 'Veja seu discurso aqui'}
-                      </h4>
-                      <p className="text-[10px] text-slate-300 group-hover:text-white transition-colors flex items-center gap-1 mt-0.5">
-                        <span className="truncate max-w-[140px] sm:max-w-[180px]">{videoGestao.titulo || 'Palavra da Liderança'}</span>
-                        <span className="text-totvs-cyan font-bold">• Assistir</span>
-                      </p>
-                    </div>
-
-                    <div className="hidden md:flex items-center justify-center w-6 h-6 rounded-lg bg-white/10 group-hover:bg-totvs-cyan group-hover:text-slate-950 text-white/80 transition-all shrink-0">
-                      <Icons.ChevronRight />
-                    </div>
-                  </div>
-                )}
-
-                {/* Badge de Status ADM / Leitura */}
-                <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 shadow-lg">
-                  <div className={`w-2.5 h-2.5 rounded-full ${admLogado ? 'bg-emerald-400' : 'bg-totvs-cyan'} animate-pulse`}></div>
-                  <div className="text-xs">
-                    <span className="font-bold block text-white">
-                      {admLogado ? `Administrador Conectado: ${admLogado.nome}` : 'Vitrine Institucional Aberta'}
-                    </span>
-                    <span className="text-[11px] text-totvs-cyan font-medium">
-                      {admLogado ? '🛡️ Edição e Gerenciamento Liberados' : '✨ Modo Somente Leitura • Acesso Livre'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* PAINEL À VISTA - CONTABILIZAÇÃO DE VISITANTES DO ESPAÇO EXPERIÊNCIA */}
-            <div className="max-w-7xl mx-auto mt-6 pt-5 border-t border-white/15 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 relative z-10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-totvs-cyan/20 border border-totvs-cyan/40 text-totvs-cyan flex items-center justify-center font-bold shadow-inner shrink-0">
-                  <Icons.Users />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black uppercase tracking-wider text-totvs-cyan">
-                      Painel de Visitantes
-                    </span>
-                    <span className="text-[10px] font-semibold bg-white/15 px-2 py-0.5 rounded-full text-slate-200">
-                      Visualização Aberta
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-300">
-                    Contabilização de público no Espaço Experiência TOTVS
-                  </p>
-                </div>
-              </div>
-
-              {/* 4 Indicadores à Vista + Botão de Consulta Histórica + Botão de Registro */}
-              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
-                {/* Indicador 1: Hoje */}
-                <div className="flex-1 sm:flex-initial min-w-[95px] bg-white/10 hover:bg-white/15 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 shadow-sm transition">
-                  <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider block">Hoje</span>
-                  <div className="text-2xl font-black text-white flex items-baseline gap-1">
-                    <span>{visitorMetrics.hoje}</span>
-                    <span className="text-[10px] font-medium text-totvs-cyan">pessoas</span>
-                  </div>
-                </div>
-
-                {/* Indicador 2: Esta Semana */}
-                <div className="flex-1 sm:flex-initial min-w-[105px] bg-white/10 hover:bg-white/15 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 shadow-sm transition">
-                  <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider block">Esta Semana</span>
-                  <div className="text-2xl font-black text-white flex items-baseline gap-1">
-                    <span>{visitorMetrics.semana}</span>
-                    <span className="text-[10px] font-medium text-totvs-cyan">pessoas</span>
-                  </div>
-                </div>
-
-                {/* Indicador 3: Este Mês */}
-                <div className="flex-1 sm:flex-initial min-w-[105px] bg-white/10 hover:bg-white/15 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 shadow-sm transition">
-                  <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider block">Este Mês</span>
-                  <div className="text-2xl font-black text-white flex items-baseline gap-1">
-                    <span>{visitorMetrics.mes}</span>
-                    <span className="text-[10px] font-medium text-totvs-cyan">pessoas</span>
-                  </div>
-                </div>
-
-                {/* Indicador 4: Este Ano (Acumulativo do ano corrente) */}
-                <div className="flex-1 sm:flex-initial min-w-[110px] bg-white/10 hover:bg-white/15 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 shadow-sm transition">
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider block">Ano</span>
-                    <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/40">
-                      {visitorMetrics.ano_atual || new Date().getFullYear()}
-                    </span>
-                  </div>
-                  <div className="text-2xl font-black text-white flex items-baseline gap-1">
-                    <span>{visitorMetrics.ano !== undefined ? visitorMetrics.ano : (visitorMetrics.total || 0)}</span>
-                    <span className="text-[10px] font-medium text-totvs-cyan">pessoas</span>
-                  </div>
-                </div>
-
-                {/* Botão de Histórico e Consulta de Meses Anteriores */}
-                <button
-                  type="button"
-                  onClick={() => setShowVisitorHistoryModal(true)}
-                  className="flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-3.5 py-3 rounded-2xl border border-white/25 shadow-sm transition backdrop-blur-md cursor-pointer hover:border-totvs-cyan/50"
-                  title="Consultar total de visitantes de meses e anos anteriores"
-                >
-                  <Icons.Calendar />
-                  <span className="hidden sm:inline">Outros Meses</span>
-                  <span className="sm:hidden">Meses</span>
-                </button>
-
-                {/* Botão de Registro Facilitado (Acesso livre para todos os perfis) */}
-                <button
-                  type="button"
-                  onClick={() => setShowVisitorModal(true)}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-totvs-cyan to-teal-300 hover:from-cyan-300 hover:to-teal-200 text-slate-900 font-black text-xs px-4 py-3 rounded-2xl shadow-lg hover:shadow-cyan-400/25 transition transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-                  title="Registrar visita no Espaço Experiência TOTVS (liberado para todos os perfis)"
-                >
-                  <Icons.UserPlus />
-                  <span>+ Registrar Visitante</span>
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {/* GRID DE CARDS NA ORDEM DA JORNADA */}
-          <main className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+          {/* GRID DE CARDS NA ORDEM DA JORNADA (EXPANDIDO PARA ATÉ 5 COLUNAS COMPACTAS) */}
+          <main className="max-w-[1720px] mx-auto px-3 sm:px-4 lg:px-6 py-4 flex-1 w-full">
             {loading ? (
               <div className="text-center py-20">
                 <div className="w-12 h-12 border-4 border-totvs-cyan border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -1622,7 +1636,7 @@
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3.5 sm:gap-4">
                 {filteredSegmentos.map((seg) => {
                   const IconComp = Icons[seg.icone] || Icons.Factory;
                   const theme = SegmentThemes[seg.id] || defaultTheme;
@@ -1630,23 +1644,23 @@
                   return (
                     <div
                       key={seg.id}
-                      className={`bg-white rounded-2xl border border-slate-200/90 shadow-sm transition-all duration-300 flex flex-col relative group hover:-translate-y-1.5 hover:z-40 ${theme.glowBorder}`}
+                      className={`bg-white rounded-2xl border border-slate-200/90 shadow-2xs transition-all duration-300 flex flex-col relative group hover:-translate-y-1 hover:shadow-md hover:z-40 ${theme.glowBorder}`}
                     >
-                      {/* Topo do Card com Gradiente Azul Real e Grafismo Vetorial (Inspirado no anexo) */}
-                      <div className={`p-4 relative overflow-hidden rounded-t-2xl bg-gradient-to-br ${theme.gradientHeader} text-white border-b border-white/10`}>
+                      {/* Topo do Card com Gradiente e Ícone Compacto */}
+                      <div className={`p-2.5 sm:p-3 relative overflow-hidden rounded-t-2xl bg-gradient-to-br ${theme.gradientHeader} text-white border-b border-white/10`}>
                         {/* Grafismo Geométrico Tech */}
                         <CardTechGraphic accentColor={theme.accentColor} />
 
-                        <div className="relative z-10 flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md text-white border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-inner">
+                        <div className="relative z-10 flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 backdrop-blur-md text-white border border-white/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-inner">
                               <IconComp />
                             </div>
-                            <div>
-                              <span className={`inline-block text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full mb-1 ${theme.tagBg}`}>
+                            <div className="min-w-0">
+                              <span className={`inline-block text-[8.5px] font-extrabold uppercase tracking-wider px-1.5 py-0.2 rounded-full mb-0.5 ${theme.tagBg}`}>
                                 Estação {seg.ordem.toString().padStart(2, '0')}
                               </span>
-                              <h3 className="font-black text-base text-white leading-tight tracking-tight drop-shadow-sm">
+                              <h3 className="font-black text-xs sm:text-sm text-white leading-tight tracking-tight drop-shadow-sm truncate" title={seg.nome}>
                                 {seg.nome}
                               </h3>
                             </div>
@@ -1657,7 +1671,7 @@
                             <button
                               type="button"
                               onClick={() => setQuickBancadaSegment(seg)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/35 text-white text-[11px] font-extrabold border border-white/30 shadow-sm transition backdrop-blur-md cursor-pointer hover:scale-105 active:scale-95"
+                              className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/20 hover:bg-white/35 text-white text-[9.5px] font-extrabold border border-white/30 shadow-2xs transition backdrop-blur-md cursor-pointer shrink-0"
                               title={`Editar dados e configurações da Estação ${seg.ordem.toString().padStart(2, '0')}`}
                             >
                               <Icons.Edit />
@@ -1667,24 +1681,24 @@
                         </div>
                       </div>
 
-                      {/* Capa com Foto da Bancada Física e Pop-out Flutuante Ampliado em Hover */}
+                      {/* Capa com Foto da Bancada Física */}
                       <StationPhotoCover seg={seg} onOpenPhoto={setLightboxSegment} />
 
                       {/* Conteúdo Resumido do Card com Fundo Azul Gelo Soft Corporativo */}
-                      <div className="p-4 flex-1 flex flex-col justify-between space-y-3 bg-[#F0F5FA] rounded-b-2xl">
-                        {/* Box de Credenciais do PC da Bancada (Sempre Visível) */}
+                      <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between space-y-2 bg-[#F0F5FA] rounded-b-2xl">
+                        {/* Box de Credenciais do PC da Bancada */}
                         <StationCredentialsBox credenciais={seg.credenciais} />
 
                         {/* Badges de Soluções do Segmento */}
-                        <div className="space-y-1.5 pt-1">
-                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                        <div className="space-y-1 pt-0.5">
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1">
                             <span>Soluções em Destaque:</span>
                           </span>
-                          <div className="flex flex-wrap gap-1.5">
+                          <div className="flex flex-wrap gap-1">
                             {seg.badge_solucoes && seg.badge_solucoes.map((badge, bIdx) => (
                               <span
                                 key={bIdx}
-                                className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border shadow-2xs ${theme.badgeBg}`}
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shadow-2xs ${theme.badgeBg}`}
                               >
                                 {badge}
                               </span>
@@ -1693,10 +1707,10 @@
                         </div>
 
                         {/* Rodapé do Card com Ação */}
-                        <div className="pt-2 border-t border-slate-200/60">
+                        <div className="pt-1.5 border-t border-slate-200/60">
                           <button
                             onClick={() => setActiveSegment(seg)}
-                            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-totvs-blue via-[#0047BA] to-totvs-cyan hover:from-[#0047BA] hover:to-[#00D2ED] text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform active:scale-95 cursor-pointer"
+                            className="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-totvs-blue via-[#0047BA] to-totvs-cyan hover:from-[#0047BA] hover:to-[#00D2ED] text-white text-xs font-bold py-1.5 sm:py-2 px-3 rounded-xl transition-all duration-300 shadow-xs hover:shadow-md transform active:scale-95 cursor-pointer"
                           >
                             <span>Abrir Guia</span>
                             <Icons.ChevronRight />
@@ -1704,7 +1718,7 @@
                         </div>
 
                         {/* Última atualização */}
-                        <div className="text-[10px] text-slate-400 flex items-center justify-between pt-1 font-mono">
+                        <div className="text-[9px] text-slate-400 flex items-center justify-between pt-0.5 font-mono">
                           <span className="truncate max-w-[120px]">Por: {seg.ultima_atualizacao?.autor || 'Especialista'}</span>
                           <span>{seg.ultima_atualizacao?.data?.split(' ')[0]}</span>
                         </div>
@@ -1847,6 +1861,17 @@
               onClose={() => setShowVideoModal(false)}
             />
           )}
+
+          {/* BARRA LATERAL RETRÁTIL (DRAWER) PARA ÁREA ADM E FUTURO LOGIN */}
+          <SidebarDrawer
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            admLogado={admLogado}
+            onOpenAdmin={handleOpenAdmin}
+            onOpenLogin={() => setShowLoginModal(true)}
+            onLogoutAdm={handleLogoutAdm}
+            onOpenGoogleForm={handleOpenGoogleForm}
+          />
 
           {/* FOOTER CORPORATIVO */}
           <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
