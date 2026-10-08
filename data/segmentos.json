@@ -36,7 +36,7 @@
       "videos": [
         {
           "titulo": "Vídeo Demonstrativo de TOTVS Agro",
-          "url": "uploads/media_20261005_160250_totvs_agro.mp4"
+          "url": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160250_totvs_agro.mp4"
         }
       ]
     },
@@ -49,7 +49,7 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "uploads/media_20261005_105823_esta__o_1_totvs_agro.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105823_esta__o_1_totvs_agro.jpeg"
   },
   {
     "id": "totvs_manufatura",
@@ -104,7 +104,7 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "uploads/media_20261005_105834_esta__o_2_totvs_manufatura.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105834_esta__o_2_totvs_manufatura.jpeg"
   },
   {
     "id": "backoffice",
@@ -155,7 +155,7 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "uploads/media_20261005_113005_esta__o_3_backoffice.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113005_esta__o_3_backoffice.jpeg"
   },
   {
     "id": "totvs_mes_ppi",
@@ -206,7 +206,7 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "uploads/media_20261005_113016_esta__o_4_totvs_ppi_multitask_mes.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113016_esta__o_4_totvs_ppi_multitask_mes.jpeg"
   },
   {
     "id": "totvs_logistica",
@@ -261,7 +261,7 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "uploads/bancada_totvs_logistica.jpg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/bancada_totvs_logistica.jpg"
   },
   {
     "id": "totvs_moda",
@@ -308,7 +308,7 @@
         },
         {
           "titulo": "Vídeo Demonstrativo de Loja Totvs Moda",
-          "url": "uploads/media_20261005_160649_totvs_moda.mp4"
+          "url": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160649_totvs_moda.mp4"
         }
       ]
     },
@@ -321,7 +321,7 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "uploads/media_20261005_120933_totvs_moda.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120933_totvs_moda.jpeg"
   },
   {
     "id": "totvs_consinco",
@@ -377,7 +377,7 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "uploads/media_20261005_120944_totvs_consinco.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120944_totvs_consinco.jpeg"
   },
   {
     "id": "totvs_varejo_online",
@@ -419,7 +419,7 @@
       "videos": [
         {
           "titulo": "Vídeo Demonstrativo de TOTVS Varejo On-line",
-          "url": "uploads/media_20261005_160329_varejo_on_line.mp4"
+          "url": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160329_varejo_on_line.mp4"
         }
       ]
     },
@@ -432,7 +432,7 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "uploads/media_20261005_120958_totvs_varejo.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120958_totvs_varejo.jpeg"
   },
   {
     "id": "totvs_rm_clinicas",
@@ -488,7 +488,7 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "uploads/media_20261005_121009_totvs_rm_saude.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121009_totvs_rm_saude.jpeg"
   },
   {
     "id": "mesa_interativa",
@@ -543,7 +543,7 @@
       "usuario": ".",
       "senha": "totvsdiretoria ou rsxw7"
     },
-    "foto_bancada": "uploads/media_20261005_121049_mesa_interativa.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121049_mesa_interativa.jpeg"
   },
   {
     "id": "solucoes_cross",
