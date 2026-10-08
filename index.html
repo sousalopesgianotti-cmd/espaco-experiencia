@@ -65,6 +65,20 @@
     const { useState, useEffect, useMemo, useRef } = React;
 
     // Helper universal para resolver caminhos de mídias (GitHub CDN + Fallback Render + URLs Absolutas)
+    
+    const getPublicInviteUrl = (token) => {
+      let baseUrl = (typeof window !== 'undefined' && window.SERVER_WEB_APP_URL) ? window.SERVER_WEB_APP_URL : '';
+      if (!baseUrl || baseUrl.includes('script.googleusercontent.com') || baseUrl.includes('userCodeAppPanel')) {
+        if (typeof google !== 'undefined' && google.script) {
+          baseUrl = 'https://script.google.com/a/macros/totvs.com.br/s/AKfycbw1MxTh0_1-PMbw-GqL7vsBVA6IzLA_4HkYv5BdxcGIaA70MKZK5UuFwAouIFS3bVrq/exec';
+        } else {
+          baseUrl = window.location.origin + window.location.pathname;
+        }
+      }
+      baseUrl = baseUrl.split('?')[0];
+      return baseUrl + '?convite=' + token;
+    };
+
     const resolveMediaUrl = (url) => {
       if (!url || typeof url !== 'string') return '';
       const trimmed = url.trim();
@@ -5396,7 +5410,7 @@
       const handleCopyLink = (tokenOrLink) => {
         const url = (tokenOrLink && tokenOrLink.startsWith('http'))
           ? tokenOrLink
-          : `${window.location.origin}${window.location.pathname}?convite=${tokenOrLink}`;
+          : getPublicInviteUrl(tokenOrLink);
         
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(url).then(() => {
@@ -5853,7 +5867,7 @@
                           <input
                             type="text"
                             readOnly
-                            value={`${window.location.origin}${window.location.pathname}?convite=${conviteRecemCriado.token}`}
+                            value={getPublicInviteUrl(conviteRecemCriado.token)}
                             className="w-full bg-slate-900 text-xs font-mono text-slate-200 px-3 py-2.5 rounded-xl border border-slate-700 select-all focus:outline-none"
                           />
                           <button
@@ -5873,7 +5887,7 @@
                           <button
                             type="button"
                             onClick={() => {
-                              const linkCompleto = `${window.location.origin}${window.location.pathname}?convite=${conviteRecemCriado.token}`;
+                              const linkCompleto = getPublicInviteUrl(conviteRecemCriado.token);
                               const textoPronto = `Olá, ${conviteRecemCriado.nome}! Você foi convidado para ser Administrador do Espaço Experiência TOTVS.\nLink de ativação: ${linkCompleto}\nSenha provisória: 123 (no primeiro acesso, cadastre sua senha definitiva com letras e números).`;
                               if (navigator.clipboard && navigator.clipboard.writeText) {
                                 navigator.clipboard.writeText(textoPronto);

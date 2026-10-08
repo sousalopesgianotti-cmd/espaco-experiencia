@@ -2,6 +2,10 @@
 <html lang="pt-BR">
 <head>
   <base target="_top">
+  <script>
+    window.SERVER_CONVITE_PARAM = "<?= CONVITE_PARAM ?>";
+    window.SERVER_WEB_APP_URL = "<?= WEB_APP_URL ?>";
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TOTVS Espaço Experiência • Hub de Segmentos</title>
@@ -66,6 +70,20 @@
     const { useState, useEffect, useMemo, useRef } = React;
 
     // Helper universal para resolver caminhos de mídias (GitHub CDN + Fallback Render + URLs Absolutas)
+    
+    const getPublicInviteUrl = (token) => {
+      let baseUrl = (typeof window !== 'undefined' && window.SERVER_WEB_APP_URL) ? window.SERVER_WEB_APP_URL : '';
+      if (!baseUrl || baseUrl.includes('script.googleusercontent.com') || baseUrl.includes('userCodeAppPanel')) {
+        if (typeof google !== 'undefined' && google.script) {
+          baseUrl = 'https://script.google.com/a/macros/totvs.com.br/s/AKfycbw1MxTh0_1-PMbw-GqL7vsBVA6IzLA_4HkYv5BdxcGIaA70MKZK5UuFwAouIFS3bVrq/exec';
+        } else {
+          baseUrl = window.location.origin + window.location.pathname;
+        }
+      }
+      baseUrl = baseUrl.split('?')[0];
+      return baseUrl + '?convite=' + token;
+    };
+
     const resolveMediaUrl = (url) => {
       if (!url || typeof url !== 'string') return '';
       const trimmed = url.trim();
@@ -2598,6 +2616,27 @@
 
       useEffect(() => {
         if (!token) return;
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((data) => {
+              setCarregando(false);
+              if (data && data.success && data.convite) {
+                setConviteData(data.convite);
+                if (data.convite.nome) setNome(data.convite.nome);
+                if (data.convite.email) setEmail(data.convite.email);
+                setSenhaProvisoria('123');
+              } else {
+                setErroToken(data && data.message ? data.message : 'Este link de convite é inválido ou já foi utilizado.');
+              }
+            })
+            .withFailureHandler((err) => {
+              setCarregando(false);
+              setErroToken('Erro ao verificar convite: ' + (err.message || err));
+            })
+            .verificarConvite(token);
+          return;
+        }
+
         fetch(`/api/admin/invite/${token}`)
           .then(res => res.json())
           .then(data => {
@@ -2650,7 +2689,32 @@
 
         setSalvando(true);
         try {
-          const res = await fetch('/api/admin/accept-invite', {
+          if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((data) => {
+              setSalvando(false);
+              if (data && data.success && data.usuario) {
+                localStorage.setItem('totvs_adm_session', JSON.stringify(data.usuario));
+                onAcceptSuccess(data.usuario);
+              } else {
+                setFormErro(data && data.message ? data.message : 'Erro ao ativar perfil de administrador.');
+              }
+            })
+            .withFailureHandler((err) => {
+              setSalvando(false);
+              setFormErro('Erro no Apps Script: ' + (err.message || err));
+            })
+            .aceitarConvite({
+              token: token,
+              nome: nomeTrim,
+              email: emailTrim,
+              senhaProvisoria: senhaProvisoria.trim(),
+              novaSenha: novaSenha.trim()
+            });
+          return;
+        }
+
+        const res = await fetch('/api/admin/accept-invite', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -5600,7 +5664,7 @@
       const handleCopyLink = (tokenOrLink) => {
         const url = (tokenOrLink && tokenOrLink.startsWith('http'))
           ? tokenOrLink
-          : `${window.location.origin}${window.location.pathname}?convite=${tokenOrLink}`;
+          : getPublicInviteUrl(tokenOrLink);
         
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(url).then(() => {
@@ -6057,7 +6121,7 @@
                           <input
                             type="text"
                             readOnly
-                            value={`${window.location.origin}${window.location.pathname}?convite=${conviteRecemCriado.token}`}
+                            value={getPublicInviteUrl(conviteRecemCriado.token)}
                             className="w-full bg-slate-900 text-xs font-mono text-slate-200 px-3 py-2.5 rounded-xl border border-slate-700 select-all focus:outline-none"
                           />
                           <button
@@ -6077,7 +6141,7 @@
                           <button
                             type="button"
                             onClick={() => {
-                              const linkCompleto = `${window.location.origin}${window.location.pathname}?convite=${conviteRecemCriado.token}`;
+                              const linkCompleto = getPublicInviteUrl(conviteRecemCriado.token);
                               const textoPronto = `Olá, ${conviteRecemCriado.nome}! Você foi convidado para ser Administrador do Espaço Experiência TOTVS.\nLink de ativação: ${linkCompleto}\nSenha provisória: 123 (no primeiro acesso, cadastre sua senha definitiva com letras e números).`;
                               if (navigator.clipboard && navigator.clipboard.writeText) {
                                 navigator.clipboard.writeText(textoPronto);

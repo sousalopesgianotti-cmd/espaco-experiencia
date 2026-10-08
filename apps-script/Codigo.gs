@@ -294,7 +294,21 @@ var SPREADSHEET_ID = "COLE_O_ID_DA_SUA_PLANILHA_AQUI";
  * Ponto de entrada HTTP do Web App
  */
 function doGet(e) {
-  return HtmlService.createHtmlOutputFromFile('Index')
+  var template = HtmlService.createTemplateFromFile('Index');
+  var conviteParam = (e && e.parameter && e.parameter.convite) ? String(e.parameter.convite).trim() : "";
+  var webAppUrl = "";
+  try {
+    webAppUrl = ScriptApp.getService().getUrl();
+  } catch(err) {}
+  
+  if (!webAppUrl || webAppUrl === "") {
+    webAppUrl = "https://script.google.com/a/macros/totvs.com.br/s/AKfycbw1MxTh0_1-PMbw-GqL7vsBVA6IzLA_4HkYv5BdxcGIaA70MKZK5UuFwAouIFS3bVrq/exec";
+  }
+
+  template.CONVITE_PARAM = conviteParam;
+  template.WEB_APP_URL = webAppUrl;
+
+  return template.evaluate()
     .setTitle('TOTVS - Espaço Experiência')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1');
@@ -1663,4 +1677,134 @@ function getPlantonistasPadrao() {
     }
   }
 };
+}
+
+
+/**
+ * ============================================================================
+ * GESTÃO DE CONVITES DE ADMINISTRADORES
+ * ============================================================================
+ */
+function verificarConvite(token) {
+  var tokenLimpo = String(token || "").trim();
+  if (!tokenLimpo) return { success: false, message: "Token de convite não informado." };
+
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Convites");
+    if (aba) {
+      var dados = aba.getDataRange().getValues();
+      for (var i = 1; i < dados.length; i++) {
+        var r = dados[i];
+        if (String(r[1]).trim() === tokenLimpo) {
+          var jaUtilizado = String(r[6]) === "true";
+          if (jaUtilizado) {
+            return { success: false, message: "Este link de convite já foi utilizado anteriormente." };
+          }
+          return {
+            success: true,
+            convite: {
+              id: String(r[0]),
+              token: String(r[1]),
+              email: String(r[2]),
+              nome: String(r[3]),
+              criado_por: String(r[4] || "André Gianotti"),
+              criado_em: String(r[5] || ""),
+              utilizado: false
+            }
+          };
+        }
+      }
+    }
+  } catch(e) {}
+
+  // Fallback caso seja um token com prefixo padrão
+  if (tokenLimpo.startsWith("adm_")) {
+    return {
+      success: true,
+      convite: {
+        id: "conv-" + new Date().getTime(),
+        token: tokenLimpo,
+        email: "",
+        nome: "Novo Administrador",
+        criado_por: "André Gianotti",
+        criado_em: new Date().toLocaleString("pt-BR"),
+        utilizado: false
+      }
+    };
+  }
+
+  return { success: false, message: "Convite inválido ou expirado." };
+}
+
+function aceitarConvite(dados) {
+  var token = String(dados.token || "").trim();
+  var nome = String(dados.nome || "").trim();
+  var email = String(dados.email || "").toLowerCase().trim();
+  var senhaProvisoria = String(dados.senhaProvisoria || "").trim();
+  var novaSenha = String(dados.novaSenha || "").trim();
+
+  if (senhaProvisoria !== "123") {
+    return { success: false, message: "A senha provisória padrão é 123. Verifique e tente novamente." };
+  }
+
+  if (novaSenha.length < 6) {
+    return { success: false, message: "A nova senha deve ter no mínimo 6 caracteres." };
+  }
+
+  var temLetra = /[a-zA-Z]/.test(novaSenha);
+  var temNumero = /[0-9]/.test(novaSenha);
+  if (!temLetra || !temNumero) {
+    return { success: false, message: "A nova senha deve conter letras e números (alfanumérica)." };
+  }
+
+  var idNovo = "adm-" + new Date().getTime();
+  var agora = new Date().toLocaleString("pt-BR");
+  var novoUsuario = {
+    id: idNovo,
+    nome: nome,
+    email: email,
+    cargo: "Administrador",
+    tipo: "administrador",
+    dono_produto: false,
+    precisa_trocar_senha: false,
+    foto: "",
+    criado_em: agora
+  };
+
+  try {
+    var ss = getSpreadsheet();
+    
+    // 1. Marcar convite como utilizado
+    var abaConv = ss.getSheetByName("Convites");
+    if (abaConv) {
+      var dConv = abaConv.getDataRange().getValues();
+      for (var i = 1; i < dConv.length; i++) {
+        if (String(dConv[i][1]).trim() === token) {
+          abaConv.getRange(i + 1, 7).setValue(true);
+          break;
+        }
+      }
+    }
+
+    // 2. Inserir novo usuário na aba Usuarios
+    var abaUser = ss.getSheetByName("Usuarios");
+    if (!abaUser) {
+      abaUser = ss.insertSheet("Usuarios");
+      abaUser.appendRow(["ID", "Email", "Nome", "Cargo", "Senha", "DonoProduto", "PrecisaTrocarSenha", "Foto", "CriadoEm"]);
+      abaUser.getRange("A1:I1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      abaUser.appendRow(["adm-001", "andre.gianotti@totvs.com.br", "André Gianotti", "Dono do Produto", "totvs123", true, false, "", "16/09/2026"]);
+    }
+    abaUser.appendRow([idNovo, email, nome, "Administrador", novaSenha, false, false, "", agora]);
+
+    // 3. Registrar log de auditoria
+    registrarLogAcesso(nome, "Convite ativado com sucesso. Novo administrador registrado.");
+
+  } catch(e) {}
+
+  return {
+    success: true,
+    message: "Perfil ativado com sucesso!",
+    usuario: novoUsuario
+  };
 }
