@@ -1675,28 +1675,48 @@
             .catch(() => {});
         }
 
-        // 2. Verificar se há parâmetro de convite na URL (?convite=...)
-        const urlParams = new URLSearchParams(window.location.search);
-        const convParam = urlParams.get('convite');
-        if (convParam) {
-          setConviteToken(convParam);
-          setShowAcceptInviteModal(true);
-        }
+                  // 2. Verificar se há parâmetro de convite (Google Apps Script ou URL direta)
+          let convParam = null;
+          if (typeof window !== 'undefined' && window.SERVER_CONVITE_PARAM && window.SERVER_CONVITE_PARAM.trim() !== '') {
+            convParam = window.SERVER_CONVITE_PARAM.trim();
+          } else {
+            const urlParams = new URLSearchParams(window.location.search);
+            convParam = urlParams.get('convite');
+          }
 
-        // 3. Restaurar sessão salva de administrador deste navegador
-        const savedAdm = localStorage.getItem('totvs_adm_session');
-        if (savedAdm) {
-          try {
-            const parsed = JSON.parse(savedAdm);
-            setAdmLogado(parsed);
-            if (!sessionStorage.getItem('totvs_adm_welcome_shown')) {
-              sessionStorage.setItem('totvs_adm_welcome_shown', '1');
-              setTimeout(() => {
-                showToast(`Olá, ${parsed.nome}! Bem-vindo ao Espaço Experiência TOTVS. 👋`);
-              }, 700);
+          // Escutar via API oficial do Google Apps Script
+          if (typeof google !== 'undefined' && google && google.script && google.script.url) {
+            google.script.url.getLocation(function(loc) {
+              if (loc && loc.parameter && loc.parameter.convite) {
+                const tokenUrl = String(loc.parameter.convite).trim();
+                setConviteToken(tokenUrl);
+                setAdmLogado(null);
+                setShowAcceptInviteModal(true);
+              }
+            });
+          }
+
+          if (convParam) {
+            setConviteToken(convParam);
+            setShowAcceptInviteModal(true);
+            // IMPORTANTE: Quando um convite é aberto, NÃO restaurar sessão anterior deste navegador
+            setAdmLogado(null);
+          } else {
+            // 3. Restaurar sessão salva de administrador apenas se NÃO houver convite ativo
+            const savedAdm = localStorage.getItem('totvs_adm_session');
+            if (savedAdm) {
+              try {
+                const parsed = JSON.parse(savedAdm);
+                setAdmLogado(parsed);
+                if (!sessionStorage.getItem('totvs_adm_welcome_shown')) {
+                  sessionStorage.setItem('totvs_adm_welcome_shown', '1');
+                  setTimeout(() => {
+                    showToast(`Olá, ${parsed.nome}! Bem-vindo ao Espaço Experiência TOTVS. 👋`);
+                  }, 700);
+                }
+              } catch(e){}
             }
-          } catch(e){}
-        }
+          }
 
         // 4. Carregar métricas de visitantes presenciais
         carregarVisitorMetrics();
