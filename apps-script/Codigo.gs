@@ -1,3 +1,279 @@
+
+/**
+ * ============================================================================
+ * AUTENTICAÇÃO E GOVERNANÇA DE ADMINISTRADORES NA NUVEM TOTVS
+ * ============================================================================
+ */
+function autenticarUsuario(email, senha) {
+  var emailLimpo = String(email || "").toLowerCase().trim();
+  var senhaLimpa = String(senha || "").trim();
+
+  // 1. Dono do Produto Oficial (André Gianotti)
+  if (emailLimpo === "andre.gianotti@totvs.com.br" && (senhaLimpa === "totvs123" || senhaLimpa === "123")) {
+    var usuarioDono = {
+      id: "adm-001",
+      email: "andre.gianotti@totvs.com.br",
+      nome: "André Gianotti",
+      cargo: "Dono do Produto",
+      tipo: "administrador",
+      dono_produto: true,
+      precisa_trocar_senha: false,
+      foto: ""
+    };
+    registrarLogAcesso(usuarioDono.nome, "Login efetuado com sucesso (Dono do Produto)");
+    return { success: true, usuario: usuarioDono };
+  }
+
+  // 2. Consulta à aba "Usuarios" da Planilha Google corporativa (se existir)
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Usuarios");
+    if (aba) {
+      var dados = aba.getDataRange().getValues();
+      for (var i = 1; i < dados.length; i++) {
+        var row = dados[i];
+        if (String(row[1]).toLowerCase().trim() === emailLimpo && String(row[4]).trim() === senhaLimpa) {
+          var u = {
+            id: String(row[0]),
+            email: String(row[1]),
+            nome: String(row[2]),
+            cargo: String(row[3] || "Administrador"),
+            tipo: "administrador",
+            dono_produto: String(row[5]) === "true",
+            precisa_trocar_senha: String(row[6]) === "true",
+            foto: String(row[7] || "")
+          };
+          registrarLogAcesso(u.nome, "Login efetuado com sucesso (Painel ADM)");
+          return { success: true, usuario: u };
+        }
+      }
+    }
+  } catch(e) {}
+
+  // 3. Fallback corporativo para especialistas com senha padrão
+  if (senhaLimpa === "totvs123" || senhaLimpa === "123") {
+    var parte = emailLimpo.split('@')[0].replace(/[._-]/g, ' ');
+    var nomeFmt = parte.split(' ').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+    var uEspec = {
+      id: "usr-" + new Date().getTime(),
+      email: emailLimpo,
+      nome: nomeFmt || "Especialista TOTVS",
+      cargo: "Administrador",
+      tipo: "administrador",
+      dono_produto: false,
+      precisa_trocar_senha: false,
+      foto: ""
+    };
+    registrarLogAcesso(uEspec.nome, "Login efetuado com sucesso");
+    return { success: true, usuario: uEspec };
+  }
+
+  return { success: false, message: "E-mail ou senha incorretos." };
+}
+
+function registrarLogAcesso(usuarioNome, acao) {
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Logs");
+    if (aba) {
+      var agora = new Date();
+      aba.appendRow([
+        "log-" + agora.getTime(),
+        agora.toLocaleDateString("pt-BR"),
+        agora.toLocaleTimeString("pt-BR"),
+        usuarioNome || "Usuário",
+        acao || "Acesso",
+        "Acesso autenticado ao sistema"
+      ]);
+    }
+  } catch(e) {}
+}
+
+function carregarUsuarios(ss) {
+  var usuarios = [
+    {
+      id: "adm-001",
+      email: "andre.gianotti@totvs.com.br",
+      nome: "André Gianotti",
+      cargo: "Dono do Produto",
+      dono_produto: true,
+      tipo: "administrador",
+      ativo: true,
+      foto: "",
+      criado_em: "16/09/2026 15:30"
+    }
+  ];
+  try {
+    var aba = ss.getSheetByName("Usuarios");
+    if (!aba) return usuarios;
+    var dados = aba.getDataRange().getValues();
+    if (dados.length <= 1) return usuarios;
+    for (var i = 1; i < dados.length; i++) {
+      var r = dados[i];
+      if (!r[0]) continue;
+      if (String(r[1]).toLowerCase().trim() === "andre.gianotti@totvs.com.br") continue;
+      usuarios.push({
+        id: String(r[0]),
+        email: String(r[1]),
+        nome: String(r[2]),
+        cargo: String(r[3] || "Administrador"),
+        dono_produto: String(r[5]) === "true",
+        tipo: "administrador",
+        ativo: true,
+        foto: String(r[7] || ""),
+        criado_em: String(r[8] || "")
+      });
+    }
+  } catch(e) {}
+  return usuarios;
+}
+
+function obterDadosAdmin() {
+  try {
+    var ss = getSpreadsheet();
+    var usuarios = carregarUsuarios(ss);
+    var convites = carregarConvites(ss);
+    var visitantes = carregarVisitantes(ss);
+    var metricas = calcularMetricasVisitantes(visitantes);
+    var logsAcesso = carregarLogsAcesso(ss);
+    var logsAuditoria = carregarLogsAuditoria(ss);
+
+    return {
+      success: true,
+      usuarios: usuarios,
+      convites: convites,
+      metricas: metricas,
+      logsAcesso: logsAcesso,
+      logsAuditoria: logsAuditoria
+    };
+  } catch(e) {
+    return {
+      success: true,
+      usuarios: [
+        {
+          id: "adm-001",
+          email: "andre.gianotti@totvs.com.br",
+          nome: "André Gianotti",
+          cargo: "Dono do Produto",
+          dono_produto: true,
+          tipo: "administrador",
+          ativo: true,
+          foto: "",
+          criado_em: "16/09/2026 15:30"
+        }
+      ],
+      convites: [],
+      metricas: { hoje: 0, semana: 0, mes: 0, ano: 0, total: 0 },
+      logsAcesso: [],
+      logsAuditoria: []
+    };
+  }
+}
+
+function carregarConvites(ss) {
+  try {
+    var aba = ss.getSheetByName("Convites");
+    if (!aba) return [];
+    var dados = aba.getDataRange().getValues();
+    if (dados.length <= 1) return [];
+    var lista = [];
+    for (var i = 1; i < dados.length; i++) {
+      var r = dados[i];
+      if (!r[0]) continue;
+      lista.push({
+        id: String(r[0]),
+        token: String(r[1]),
+        email: String(r[2]),
+        nome: String(r[3] || ""),
+        criado_por: String(r[4] || "André Gianotti"),
+        criado_em: String(r[5] || ""),
+        utilizado: String(r[6]) === "true"
+      });
+    }
+    return lista;
+  } catch(e) {
+    return [];
+  }
+}
+
+function salvarConviteAdmin(dados) {
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Convites");
+    if (!aba) {
+      aba = ss.insertSheet("Convites");
+      aba.appendRow(["ID", "Token", "Email", "Nome", "CriadoPor", "CriadoEm", "Utilizado"]);
+      aba.getRange("A1:G1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+    }
+    var token = "adm_" + Math.random().toString(36).substring(2, 10) + new Date().getTime().toString(36);
+    var id = "conv-" + new Date().getTime();
+    var agora = new Date().toLocaleString("pt-BR");
+    var convite = {
+      id: id,
+      token: token,
+      email: dados.email,
+      nome: dados.nome,
+      criado_por: dados.criado_por || "André Gianotti",
+      criado_em: agora,
+      utilizado: false
+    };
+    aba.appendRow([convite.id, convite.token, convite.email, convite.nome, convite.criado_por, convite.criado_em, false]);
+    return { success: true, convite: convite };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function removerUsuarioAdmin(id) {
+  try {
+    if (id === "adm-001" || id === "usr-dono") {
+      return { success: false, message: "O Dono do Produto não pode ser removido!" };
+    }
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Usuarios");
+    if (!aba) return { success: true };
+    var dados = aba.getDataRange().getValues();
+    for (var i = 1; i < dados.length; i++) {
+      if (String(dados[i][0]) === String(id)) {
+        aba.deleteRow(i + 1);
+        break;
+      }
+    }
+    return { success: true, usuarios: carregarUsuarios(ss) };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function carregarLogsAcesso(ss) {
+  try {
+    var aba = ss.getSheetByName("Logs");
+    if (!aba) return [];
+    var dados = aba.getDataRange().getValues();
+    if (dados.length <= 1) return [];
+    var lista = [];
+    for (var i = dados.length - 1; i >= 1 && lista.length < 50; i--) {
+      var r = dados[i];
+      if (!r[0]) continue;
+      lista.push({
+        id: String(r[0]),
+        data: String(r[1]),
+        hora: String(r[2]),
+        usuario: String(r[3]),
+        acao: String(r[4]),
+        detalhes: String(r[5] || "")
+      });
+    }
+    return lista;
+  } catch(e) {
+    return [];
+  }
+}
+
+function carregarLogsAuditoria(ss) {
+  return carregarLogsAcesso(ss);
+}
+
 /**
  * ============================================================================
  * TOTVS ESPAÇO EXPERIÊNCIA - GOOGLE APPS SCRIPT BACKEND
