@@ -1808,3 +1808,76 @@ function aceitarConvite(dados) {
     usuario: novoUsuario
   };
 }
+
+
+/**
+ * Salva a foto de perfil do administrador na planilha Google
+ */
+function salvarAvatarAdmin(email, base64Data) {
+  var emailLimpo = String(email || "").toLowerCase().trim();
+  if (!emailLimpo) return { success: false, message: "E-mail não informado." };
+
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Usuarios");
+    if (!aba) {
+      aba = ss.insertSheet("Usuarios");
+      aba.appendRow(["ID", "Email", "Nome", "Cargo", "Senha", "DonoProduto", "PrecisaTrocarSenha", "Foto", "CriadoEm"]);
+      aba.getRange("A1:I1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      aba.appendRow(["adm-001", "andre.gianotti@totvs.com.br", "André Gianotti", "Dono do Produto", "totvs123", true, false, "", "16/09/2026"]);
+    }
+
+    var dados = aba.getDataRange().getValues();
+    var usuarioAtualizado = null;
+    var linhaEncontrada = -1;
+
+    for (var i = 1; i < dados.length; i++) {
+      if (String(dados[i][1]).toLowerCase().trim() === emailLimpo) {
+        linhaEncontrada = i + 1;
+        aba.getRange(linhaEncontrada, 8).setValue(base64Data);
+        usuarioAtualizado = {
+          id: String(dados[i][0]),
+          email: String(dados[i][1]),
+          nome: String(dados[i][2]),
+          cargo: String(dados[i][3] || "Administrador"),
+          tipo: "administrador",
+          dono_produto: String(dados[i][5]) === "true",
+          precisa_trocar_senha: String(dados[i][6]) === "true",
+          foto: base64Data
+        };
+        break;
+      }
+    }
+
+    if (!usuarioAtualizado && emailLimpo === "andre.gianotti@totvs.com.br") {
+      aba.appendRow(["adm-001", "andre.gianotti@totvs.com.br", "André Gianotti", "Dono do Produto", "totvs123", true, false, base64Data, "16/09/2026"]);
+      usuarioAtualizado = {
+        id: "adm-001",
+        email: "andre.gianotti@totvs.com.br",
+        nome: "André Gianotti",
+        cargo: "Dono do Produto",
+        tipo: "administrador",
+        dono_produto: true,
+        precisa_trocar_senha: false,
+        foto: base64Data
+      };
+    }
+
+    if (!usuarioAtualizado) {
+      usuarioAtualizado = {
+        id: "usr-" + new Date().getTime(),
+        email: emailLimpo,
+        nome: emailLimpo.split('@')[0],
+        cargo: "Administrador",
+        tipo: "administrador",
+        dono_produto: false,
+        foto: base64Data
+      };
+    }
+
+    registrarLogAcesso(usuarioAtualizado.nome, "Foto de perfil do administrador atualizada com sucesso");
+    return { success: true, usuario: usuarioAtualizado };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
