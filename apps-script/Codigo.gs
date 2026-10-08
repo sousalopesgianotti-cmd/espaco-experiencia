@@ -536,7 +536,6 @@ function inicializarPlanilha(ss) {
       var item = esc[dStr];
       abaPlan.appendRow(["ESCALA", dStr, item.especialista_id, item.nome, item.turno, item.observacoes, "", ""]);
     }
-  } catch(e) {}
 
   // 3. Aba Visitantes
   var abaVis = ss.getSheetByName("Visitantes");
