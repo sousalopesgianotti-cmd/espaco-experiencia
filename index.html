@@ -14,11 +14,14 @@
         extend: {
           colors: {
             totvs: {
-              blue: '#002F6C',
-              dark: '#001A3D',
-              cyan: '#00A3E0',
-              accent: '#00C1D5',
-              light: '#F4F7FB'
+              navy: '#001422',
+              dark: '#001B2B',       // Deep Tech Navy oficial TOTVS (fundo da imagem institucional)
+              cardDark: '#002538',   // Superfície escura de contraste
+              blue: '#005A9C',       // Azul corporativo oficial TOTVS
+              vibrant: '#007BC7',    // Azul elétrico luminoso (face direita da fita 3D)
+              cyan: '#00B4D8',       // Ciano / Turquesa tech da fita 3D
+              accent: '#00C8E0',     // Acento luminoso das bordas e grafismos
+              light: '#F8FAFC'
             }
           }
         }
@@ -166,21 +169,51 @@
       }
     });
 
-    // Grafismo Geométrico Tech inspirado na identidade corporativa TOTVS (referência enviada)
-    function CardTechGraphic({ accentColor = '#00E5FF' }) {
+    // Símbolo Oficial da TOTVS (Vetor SVG Nativo Fiel ao Brand Identity da Marca)
+    function TotvsSymbol({ className = "w-6 h-6", fill = "currentColor" }) {
+      return (
+        <svg
+          className={className}
+          viewBox="0 0 100 80"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {/* Hexágono curvo oficial com a lente central vazada */}
+          <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M 50,4 C 52,4 84,18 88,23 C 94,30 95,50 88,57 C 84,62 52,76 50,76 C 48,76 16,62 12,57 C 5,50 6,30 12,23 C 16,18 48,4 50,4 Z M 50,22 C 52,22 73,31 77,35 C 80,40 78,44 74,47 C 70,50 52,58 50,58 C 48,58 30,50 26,47 C 22,44 20,40 23,35 C 27,31 48,22 50,22 Z"
+            fill={fill}
+          />
+        </svg>
+      );
+    }
+
+    // Logotipo Oficial Completo da TOTVS (Símbolo + Tipografia Oficial)
+    function TotvsLogo({ className = "h-7", symbolClassName = "h-6 w-7", textClassName = "font-black text-xl tracking-wider text-white leading-none", light = true }) {
+      return (
+        <div className={`flex items-center gap-2 select-none shrink-0 ${className}`}>
+          <TotvsSymbol className={symbolClassName} fill={light ? "#FFFFFF" : "#001B2B"} />
+          <span className={textClassName}>TOTVS</span>
+        </div>
+      );
+    }
+
+    // Grafismo Geométrico Tech inspirado na fita 3D da identidade corporativa TOTVS
+    function CardTechGraphic({ accentColor = '#00B4D8' }) {
       return (
         <div className="absolute top-0 right-0 w-44 h-36 pointer-events-none overflow-hidden select-none">
           <svg viewBox="0 0 170 140" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full transform translate-x-2 -translate-y-2">
-            {/* Brilho Radial em Ciano / Acento */}
+            {/* Brilho Radial em Turquesa e Azul Elétrico */}
             <circle cx="130" cy="30" r="50" fill={accentColor} fillOpacity="0.22" />
-            <circle cx="100" cy="70" r="30" fill="#00E5FF" fillOpacity="0.15" />
+            <circle cx="100" cy="70" r="30" fill="#007BC7" fillOpacity="0.18" />
 
             {/* Linhas Diagonais Estilizadas */}
             <line x1="170" y1="-10" x2="60" y2="150" stroke={accentColor} strokeWidth="1.2" strokeOpacity="0.4" strokeDasharray="4 3" />
-            <line x1="140" y1="-20" x2="30" y2="135" stroke="#00E5FF" strokeWidth="1.8" strokeOpacity="0.5" />
-            <line x1="110" y1="-25" x2="0" y2="120" stroke="#00E5FF" strokeWidth="1" strokeOpacity="0.3" />
+            <line x1="140" y1="-20" x2="30" y2="135" stroke="#007BC7" strokeWidth="1.8" strokeOpacity="0.5" />
+            <line x1="110" y1="-25" x2="0" y2="120" stroke={accentColor} strokeWidth="1" strokeOpacity="0.3" />
 
-            {/* Cápsula Preenchida em Ciano Néon (Inspirada no Slide) */}
+            {/* Cápsula Preenchida em Turquesa Oficial (Inspirada no Slide) */}
             <rect
               x="78"
               y="18"
@@ -188,7 +221,7 @@
               height="11"
               rx="5.5"
               transform="rotate(-52 78 18)"
-              fill="#00E5FF"
+              fill="#00B4D8"
               fillOpacity="0.9"
             />
 
@@ -200,15 +233,15 @@
               height="18"
               rx="9"
               transform="rotate(-52 94 8)"
-              stroke="#00E5FF"
+              stroke="#00B4D8"
               strokeWidth="1.6"
               strokeOpacity="0.55"
               fill="none"
             />
 
             {/* Nós / Pontos de Conexão Tecnológicos */}
-            <circle cx="102" cy="62" r="3" fill="#00E5FF" fillOpacity="0.9" />
-            <circle cx="58" cy="106" r="2" fill="#00E5FF" fillOpacity="0.6" />
+            <circle cx="102" cy="62" r="3" fill="#00B4D8" fillOpacity="0.9" />
+            <circle cx="58" cy="106" r="2" fill="#007BC7" fillOpacity="0.6" />
           </svg>
         </div>
       );
@@ -948,7 +981,7 @@
     }) {
       return (
         <aside
-          className={`fixed left-0 top-0 bottom-0 z-40 bg-[#07162c] text-white border-r border-slate-800 transition-all duration-300 ease-in-out flex flex-col justify-between select-none shadow-2xl ${
+          className={`fixed left-0 top-0 bottom-0 z-40 bg-totvs-dark text-white border-r border-slate-800 transition-all duration-300 ease-in-out flex flex-col justify-between select-none shadow-2xl ${
             isExpanded ? 'w-60 sm:w-64' : 'w-16'
           }`}
         >
@@ -965,10 +998,8 @@
               </button>
 
               {isExpanded && (
-                <div className="flex items-center gap-2 pl-2 overflow-hidden truncate animate-in fade-in duration-200">
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-totvs-blue to-totvs-cyan flex items-center justify-center font-black text-xs text-white shadow-sm shrink-0">
-                    T
-                  </div>
+                <div className="flex items-center gap-2.5 pl-2 overflow-hidden truncate animate-in fade-in duration-200">
+                  <TotvsSymbol className="w-6 h-6 text-totvs-cyan shrink-0" />
                   <div className="leading-tight truncate">
                     <span className="font-extrabold text-sm tracking-tight text-white block">TOTVS</span>
                     <span className="text-[9.5px] font-black uppercase text-totvs-cyan tracking-wider block">Espaço Exp.</span>
@@ -1266,7 +1297,7 @@
           <div className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
             
             {/* CABEÇALHO DO MODAL */}
-            <div className="bg-gradient-to-r from-totvs-dark via-[#002654] to-[#003B8E] text-white p-5 sm:p-6 flex items-center justify-between border-b border-slate-700">
+            <div className="bg-gradient-to-r from-totvs-dark via-totvs-cardDark to-totvs-blue text-white p-5 sm:p-6 flex items-center justify-between border-b border-slate-700">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-totvs-blue to-totvs-cyan flex items-center justify-center text-white shadow-md">
                   <Icons.CalendarDays />
@@ -1299,7 +1330,7 @@
             <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1 bg-slate-50">
 
               {/* CARD DE DESTAQUE: PLANTONISTA DE HOJE */}
-              <div className="bg-gradient-to-r from-totvs-blue via-[#0047BA] to-totvs-cyan p-0.5 rounded-2xl shadow-md">
+              <div className="bg-gradient-to-r from-totvs-blue via-totvs-vibrant to-totvs-cyan p-0.5 rounded-2xl shadow-md">
                 <div className="bg-slate-900 rounded-[15px] p-4 sm:p-5 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-4 text-center sm:text-left">
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-totvs-blue via-blue-600 to-totvs-cyan text-white font-black text-xl flex items-center justify-center shadow-lg shrink-0">
@@ -1963,15 +1994,13 @@
             <header className="bg-totvs-dark text-white border-b border-slate-700/80 sticky top-0 z-30 shadow-md">
               <div className="max-w-[1720px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
                 
-                {/* 1. Lado Esquerdo: Logo TOTVS + Espaço Experiência + Subtítulo */}
+                {/* 1. Lado Esquerdo: Logo TOTVS Oficial + Espaço Experiência + Subtítulo */}
                 <div className="flex items-center gap-3 shrink-0">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-totvs-blue via-[#0047BA] to-totvs-cyan flex items-center justify-center font-black text-lg text-white shadow-md border border-white/10">
-                    T
-                  </div>
+                  <TotvsLogo className="h-7 text-white" />
+                  <div className="h-5 w-px bg-slate-700/80 mx-0.5 hidden sm:block"></div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-black text-lg tracking-tight text-white leading-none">TOTVS</span>
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/40 shadow-2xs">
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/30 shadow-2xs">
                         Espaço Experiência
                       </span>
                     </div>
@@ -2177,7 +2206,7 @@
                         <div className="pt-1.5 border-t border-slate-200/60">
                           <button
                             onClick={() => setActiveSegment(seg)}
-                            className="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-totvs-blue via-[#0047BA] to-totvs-cyan hover:from-[#0047BA] hover:to-[#00D2ED] text-white text-xs font-bold py-1.5 sm:py-2 px-3 rounded-xl transition-all duration-300 shadow-xs hover:shadow-md transform active:scale-95 cursor-pointer"
+                            className="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-totvs-blue via-totvs-vibrant to-totvs-cyan hover:from-totvs-vibrant hover:to-totvs-accent text-white text-xs font-bold py-1.5 sm:py-2 px-3 rounded-xl transition-all duration-300 shadow-xs hover:shadow-md transform active:scale-95 cursor-pointer"
                           >
                             <span>Abrir Guia</span>
                             <Icons.ChevronRight />
@@ -6388,7 +6417,7 @@
           <div className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8">
             
             {/* Header Modal com Avatar e Upload de Foto */}
-            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-gradient-to-r from-totvs-dark via-totvs-cardDark to-totvs-dark text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
                 <div className="relative group shrink-0">
                   {admLogado?.foto ? (
@@ -6422,7 +6451,9 @@
 
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-extrabold text-lg text-white">
+                    <TotvsLogo className="h-5" symbolClassName="h-4.5 w-5.5" />
+                    <span className="text-white/40">|</span>
+                    <h3 className="font-extrabold text-base text-white">
                       Painel Administrativo
                     </h3>
                     {admLogado?.dono_produto ? (
