@@ -5920,6 +5920,11 @@
       const [novoAdmEmail, setNovoAdmEmail] = useState('');
       const [perfilConvite, setPerfilConvite] = useState('pmm');
 
+      // Estados para Exclusão e Limpeza de Convites
+      const [modalLimparConvites, setModalLimparConvites] = useState(false);
+      const [deletingInviteToken, setDeletingInviteToken] = useState(null);
+      const [limpandoConvites, setLimpandoConvites] = useState(false);
+
       // Estados para Troca de Senha Própria
       const [modalTrocarSenha, setModalTrocarSenha] = useState(false);
       const [novaSenhaInput, setNovaSenhaInput] = useState('');
@@ -6200,6 +6205,115 @@
           alert('Erro de conexão ao remover administrador.');
         } finally {
           setDeletingId(null);
+        }
+      };
+
+      // Exclusão individual de convite com revogação imediata
+      const handleDeleteConvite = async (convite) => {
+        if (!convite || !convite.token) return;
+        const isUsado = convite.utilizado === true || convite.status === 'utilizado';
+        const msg = isUsado
+          ? `Deseja excluir o registro deste convite utilizado (${convite.nome || 'Convidado'}) do histórico?\n\n(A conta do usuário criado permanecerá ativa).`
+          : `ATENÇÃO: Deseja realmente excluir este convite de "${convite.nome || 'Convidado'}"?\n\nO link de convite será REVOGADO IMEDIATAMENTE e não poderá mais ser utilizado para criar contas.`;
+
+        if (!confirm(msg)) return;
+
+        setDeletingInviteToken(convite.token);
+
+        // Suporte nativo Google Apps Script
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              setDeletingInviteToken(null);
+              if (res && res.success) {
+                if (conviteRecemCriado && (conviteRecemCriado.token === convite.token || conviteRecemCriado.id === convite.id)) {
+                  setConviteRecemCriado(null);
+                }
+                if (onConvitesChange) onConvitesChange();
+                if (showToast) showToast(isUsado ? 'Registro de convite excluído do histórico.' : 'Convite excluído e link revogado com sucesso! 🗑️');
+              } else {
+                alert(res && res.message ? res.message : 'Erro ao excluir convite na planilha TOTVS.');
+              }
+            })
+            .withFailureHandler((err) => {
+              setDeletingInviteToken(null);
+              alert('Erro no Apps Script: ' + (err.message || err));
+            })
+            .excluirConviteAdmin(convite.token || convite.id);
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/admin/invites/${encodeURIComponent(convite.token)}`, {
+            method: 'DELETE'
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            if (conviteRecemCriado && (conviteRecemCriado.token === convite.token || conviteRecemCriado.id === convite.id)) {
+              setConviteRecemCriado(null);
+            }
+            if (onConvitesChange) onConvitesChange();
+            if (showToast) showToast(isUsado ? 'Registro de convite excluído do histórico.' : 'Convite excluído e link revogado com sucesso! 🗑️');
+          } else {
+            alert(data.message || data.error || 'Erro ao excluir convite.');
+          }
+        } catch (err) {
+          alert('Erro de conexão ao excluir convite.');
+        } finally {
+          setDeletingInviteToken(null);
+        }
+      };
+
+      // Limpeza de histórico de convites em lote: 'used' (concluídos) ou 'all' (revogação de todos)
+      const handleLimparConvites = async (scope) => {
+        const modo = scope === 'all' ? 'all' : 'used';
+        const msg = modo === 'all'
+          ? 'ATENÇÃO CRÍTICA!\n\nDeseja excluir TODO o histórico de links de convite?\n\nTodos os links pendentes serão CANCELADOS E REVOGADOS IMEDIATAMENTE.\nEsta ação não poderá ser desfeita.'
+          : 'Deseja limpar todos os convites já CONCLUÍDOS do histórico?\n\nOs links ativos e pendentes serão preservados.';
+
+        if (!confirm(msg)) return;
+
+        setLimpandoConvites(true);
+
+        // Suporte nativo Google Apps Script
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              setLimpandoConvites(false);
+              setModalLimparConvites(false);
+              if (res && res.success) {
+                if (modo === 'all') setConviteRecemCriado(null);
+                if (onConvitesChange) onConvitesChange();
+                if (showToast) showToast(modo === 'all' ? 'Histórico limpo e links pendentes revogados! 🗑️' : `${res.removedCount || 0} convite(s) concluído(s) removido(s)! 🧹`);
+              } else {
+                alert(res && res.message ? res.message : 'Erro ao limpar convites na planilha TOTVS.');
+              }
+            })
+            .withFailureHandler((err) => {
+              setLimpandoConvites(false);
+              alert('Erro no Apps Script: ' + (err.message || err));
+            })
+            .limparHistoricoConvites(modo);
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/admin/invites?scope=${modo}`, {
+            method: 'DELETE'
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            if (modo === 'all') setConviteRecemCriado(null);
+            setModalLimparConvites(false);
+            if (onConvitesChange) onConvitesChange();
+            if (showToast) showToast(modo === 'all' ? 'Histórico limpo e links pendentes revogados! 🗑️' : `${data.removidos || 0} convite(s) concluído(s) removido(s)! 🧹`);
+          } else {
+            alert(data.message || data.error || 'Erro ao limpar histórico de convites.');
+          }
+        } catch (err) {
+          alert('Erro de conexão ao limpar histórico.');
+        } finally {
+          setLimpandoConvites(false);
         }
       };
 
@@ -6747,9 +6861,22 @@
 
                   {/* Histórico de Convites */}
                   <div className="space-y-3">
-                    <h5 className="font-bold text-xs uppercase tracking-wider text-slate-500">
-                      Histórico de Links de Convite ({convitesList.length})
-                    </h5>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <h5 className="font-bold text-xs uppercase tracking-wider text-slate-500">
+                        Histórico de Links de Convite ({convitesList.length})
+                      </h5>
+                      {convitesList && convitesList.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setModalLimparConvites(true)}
+                          className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 border border-red-200 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+                          title="Limpar convites concluídos ou revogar todo o histórico"
+                        >
+                          <Icons.Trash />
+                          <span>Limpar Histórico...</span>
+                        </button>
+                      )}
+                    </div>
 
                     {(!convitesList || convitesList.length === 0) ? (
                       <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs">
@@ -6817,6 +6944,20 @@
                                     <Icons.CheckCircle /> Concluído
                                   </span>
                                 )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteConvite(convite)}
+                                  disabled={deletingInviteToken === convite.token}
+                                  title={isUsado ? "Excluir registro deste convite do histórico" : "Excluir convite e revogar/cancelar este link imediatamente"}
+                                  className="p-1.5 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 border border-transparent hover:border-red-200 transition cursor-pointer disabled:opacity-50"
+                                >
+                                  {deletingInviteToken === convite.token ? (
+                                    <span className="animate-spin text-xs">⏳</span>
+                                  ) : (
+                                    <Icons.Trash />
+                                  )}
+                                </button>
                               </div>
                             </div>
                           );
@@ -7470,6 +7611,93 @@
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {/* Modal de Limpeza de Histórico de Convites */}
+          {modalLimparConvites && (
+            <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-red-600/90 text-white flex items-center justify-center font-bold text-sm shadow">
+                      🗑️
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-sm text-white">Limpeza do Histórico de Convites</h4>
+                      <p className="text-[11px] text-slate-300">
+                        Selecione a extensão da limpeza desejada
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setModalLimparConvites(false)}
+                    className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                  >
+                    <Icons.X />
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Você pode optar por limpar apenas os convites que já foram aceitos/concluídos ou realizar uma exclusão completa (o que revogará imediatamente todos os links pendentes).
+                  </p>
+
+                  <div className="space-y-3">
+                    {/* Opção 1: Limpar Apenas Concluídos */}
+                    <button
+                      type="button"
+                      disabled={limpandoConvites}
+                      onClick={() => handleLimparConvites('used')}
+                      className="w-full text-left p-4 rounded-2xl border border-slate-200 hover:border-totvs-blue hover:bg-slate-50 transition cursor-pointer flex items-start gap-3 group"
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-base shrink-0 group-hover:scale-105 transition">
+                        ✓
+                      </div>
+                      <div>
+                        <strong className="text-xs font-bold text-slate-900 block">
+                          Limpar apenas Concluídos (Recomendado)
+                        </strong>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                          Remove do histórico apenas os convites já aceitos. Todos os links pendentes continuarão válidos e ativos.
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* Opção 2: Excluir Todo o Histórico */}
+                    <button
+                      type="button"
+                      disabled={limpandoConvites}
+                      onClick={() => handleLimparConvites('all')}
+                      className="w-full text-left p-4 rounded-2xl border border-rose-200 bg-rose-50/40 hover:bg-rose-50 transition cursor-pointer flex items-start gap-3 group"
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-base shrink-0 group-hover:scale-105 transition">
+                        ⚠️
+                      </div>
+                      <div>
+                        <strong className="text-xs font-bold text-rose-700 block">
+                          Excluir Todo o Histórico (Revogação Geral)
+                        </strong>
+                        <p className="text-[11px] text-rose-600/90 mt-0.5 leading-snug">
+                          Limpa todos os convites e <strong>cancela/revoga imediatamente todos os links pendentes</strong>. Ninguém mais conseguirá se cadastrar por nenhum link gerado anteriormente.
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      disabled={limpandoConvites}
+                      onClick={() => setModalLimparConvites(false)}
+                      className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs transition cursor-pointer"
+                    >
+                      {limpandoConvites ? 'Limpando...' : 'Cancelar'}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

@@ -596,7 +596,7 @@ const server = http.createServer(async (req, res) => {
       const convite = Array.isArray(convites) ? convites.find(c => c.token === token) : null;
 
       if (!convite) {
-        return sendJson(res, { success: false, message: 'Link de convite inválido ou não encontrado.' }, 404);
+        return sendJson(res, { success: false, message: 'Este link de convite é inválido ou foi cancelado pelo administrador.' }, 404);
       }
       if (convite.utilizado) {
         return sendJson(res, { success: false, message: 'Este link de convite já foi utilizado e não é mais válido.' }, 410);
@@ -824,6 +824,98 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/admin/invites' && method === 'GET') {
       const convites = readJsonFile(path.join(DATA_DIR, 'convites.json'), []);
       return sendJson(res, Array.isArray(convites) ? convites : []);
+    }
+
+    // 14.1 DELETE /api/admin/invites/:tokenOrId (Excluir/Cancelar convite individual)
+    const delInviteMatch = pathname.match(/^\/api\/admin\/invites\/([^/]+)$/);
+    if (delInviteMatch && method === 'DELETE') {
+      const tokenOrId = delInviteMatch[1];
+      const convitesFile = path.join(DATA_DIR, 'convites.json');
+      let convites = readJsonFile(convitesFile, []);
+      if (!Array.isArray(convites)) convites = [];
+
+      const alvo = convites.find(c => c.token === tokenOrId || c.id === tokenOrId);
+      if (!alvo) {
+        return sendJson(res, { success: false, message: 'Convite não encontrado.' }, 404);
+      }
+
+      convites = convites.filter(c => c.token !== tokenOrId && c.id !== tokenOrId);
+      writeJsonFile(convitesFile, convites);
+
+      // Registrar auditoria da exclusão
+      try {
+        const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+        let logs = readJsonFile(auditFile, []);
+        if (!Array.isArray(logs)) logs = [];
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: 'Administrador TOTVS',
+          analista_email: 'adm@totvs.com.br',
+          perfil: 'adm',
+          segmento_id: 'convites',
+          segmento_nome: 'Gestão de Convites',
+          acao: alvo.utilizado ? 'Remoção de convite concluído do histórico' : 'Cancelamento e revogação de link de convite',
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `Convite de "${alvo.nome || 'Convidado'}" (${alvo.email || 'sem e-mail'}) com perfil ${alvo.perfil || 'adm'} foi excluído.`
+        });
+        writeJsonFile(auditFile, logs);
+      } catch (errAud) {}
+
+      return sendJson(res, { success: true, message: 'Convite excluído e link cancelado com sucesso.' });
+    }
+
+    // 14.2 DELETE /api/admin/invites (Excluir convites em lote: ?scope=used|all)
+    if (pathname === '/api/admin/invites' && method === 'DELETE') {
+      const scope = (parsedUrl.query.scope || 'used').toLowerCase();
+      const convitesFile = path.join(DATA_DIR, 'convites.json');
+      let convites = readJsonFile(convitesFile, []);
+      if (!Array.isArray(convites)) convites = [];
+
+      const totalAntes = convites.length;
+      let removidos = 0;
+
+      if (scope === 'all') {
+        removidos = totalAntes;
+        convites = [];
+      } else {
+        // scope === 'used'
+        const mantidos = convites.filter(c => c.utilizado !== true && c.status !== 'utilizado');
+        removidos = totalAntes - mantidos.length;
+        convites = mantidos;
+      }
+
+      writeJsonFile(convitesFile, convites);
+
+      // Registrar auditoria
+      try {
+        const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+        let logs = readJsonFile(auditFile, []);
+        if (!Array.isArray(logs)) logs = [];
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: 'Administrador TOTVS',
+          analista_email: 'adm@totvs.com.br',
+          perfil: 'adm',
+          segmento_id: 'convites',
+          segmento_nome: 'Gestão de Convites',
+          acao: scope === 'all' ? 'Limpeza total do histórico de convites (revogação geral)' : 'Limpeza de convites concluídos do histórico',
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `${removidos} convite(s) removido(s) do histórico.`
+        });
+        writeJsonFile(auditFile, logs);
+      } catch (errAud) {}
+
+      return sendJson(res, {
+        success: true,
+        message: scope === 'all'
+          ? `Todo o histórico de convites foi apagado e os links pendentes foram cancelados (${removidos} registros).`
+          : `Histórico de convites concluídos limpo com sucesso (${removidos} registros removidos).`,
+        removidos
+      });
     }
 
     // 15. GET /api/visitors/metrics (Métricas dos Visitantes no Topo com Ano e Status do Formulário)

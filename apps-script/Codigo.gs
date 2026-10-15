@@ -188,14 +188,16 @@ function carregarConvites(ss) {
     for (var i = 1; i < dados.length; i++) {
       var r = dados[i];
       if (!r[0]) continue;
+      var tokenVal = String(r[1] || "");
       lista.push({
         id: String(r[0]),
-        token: String(r[1]),
-        email: String(r[2]),
+        token: tokenVal,
+        email: String(r[2] || ""),
         nome: String(r[3] || ""),
         criado_por: String(r[4] || "André Gianotti"),
         criado_em: String(r[5] || ""),
-        utilizado: String(r[6]) === "true"
+        utilizado: String(r[6]) === "true",
+        perfil: String(r[7] || (tokenVal.startsWith("pmm_") ? "pmm" : "adm"))
       });
     }
     return lista;
@@ -230,6 +232,118 @@ function salvarConviteAdmin(dados) {
     };
     aba.appendRow([convite.id, convite.token, convite.email, convite.nome, convite.criado_por, convite.criado_em, false, convite.perfil]);
     return { success: true, convite: convite };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Exclui um convite individual (pendente ou utilizado) e revoga o link imediatamente
+ */
+function excluirConviteAdmin(tokenOrId) {
+  var idOuToken = String(tokenOrId || "").trim();
+  if (!idOuToken) return { success: false, message: "Identificador do convite não informado." };
+
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Convites");
+    if (!aba) return { success: false, message: "Aba de convites não encontrada." };
+
+    var dados = aba.getDataRange().getValues();
+    for (var i = 1; i < dados.length; i++) {
+      var r = dados[i];
+      if (String(r[0]).trim() === idOuToken || String(r[1]).trim() === idOuToken) {
+        var token = String(r[1] || "");
+        var email = String(r[2] || "");
+        var nome = String(r[3] || "Convidado");
+        var util = String(r[6]) === "true";
+        var perfil = String(r[7] || (token.startsWith("pmm_") ? "pmm" : "adm"));
+
+        aba.deleteRow(i + 1);
+
+        // Auditoria
+        try {
+          var abaAud = ss.getSheetByName("LogsAuditoria");
+          if (!abaAud) {
+            abaAud = ss.insertSheet("LogsAuditoria");
+            abaAud.appendRow(["ID", "Data", "Horario", "Analista", "Email", "Perfil", "Estacao", "Acao", "Detalhes"]);
+            abaAud.getRange("A1:I1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+          }
+          var agora = new Date();
+          abaAud.appendRow([
+            "aud-" + agora.getTime(),
+            agora.toLocaleDateString("pt-BR"),
+            agora.toLocaleTimeString("pt-BR"),
+            "Administrador TOTVS",
+            "adm@totvs.com.br",
+            "adm",
+            "Gestão de Convites",
+            util ? "Remoção de convite concluído do histórico" : "Cancelamento e revogação de link de convite",
+            "Convite de \"" + nome + "\" (" + (email || "sem e-mail") + ") com perfil " + perfil + " foi excluído."
+          ]);
+        } catch(eAud) {}
+
+        return { success: true, message: "Convite excluído e link cancelado com sucesso.", convites: carregarConvites(ss) };
+      }
+    }
+    return { success: false, message: "Convite não encontrado." };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Limpa o histórico de convites em lote: 'used' (apenas utilizados) ou 'all' (revogação de todos)
+ */
+function limparHistoricoConvites(scope) {
+  var modo = String(scope || "used").toLowerCase().trim();
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Convites");
+    if (!aba) return { success: true, removedCount: 0, convites: [] };
+
+    var dados = aba.getDataRange().getValues();
+    if (dados.length <= 1) return { success: true, removedCount: 0, convites: [] };
+
+    var removidos = 0;
+    // Percorrer de trás para frente para manter integridade dos índices
+    for (var i = dados.length - 1; i >= 1; i--) {
+      var r = dados[i];
+      var util = String(r[6]) === "true";
+      if (modo === "all" || (modo === "used" && util)) {
+        aba.deleteRow(i + 1);
+        removidos++;
+      }
+    }
+
+    // Auditoria
+    try {
+      var abaAud = ss.getSheetByName("LogsAuditoria");
+      if (!abaAud) {
+        abaAud = ss.insertSheet("LogsAuditoria");
+        abaAud.appendRow(["ID", "Data", "Horario", "Analista", "Email", "Perfil", "Estacao", "Acao", "Detalhes"]);
+        abaAud.getRange("A1:I1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      }
+      var agora = new Date();
+      var acaoAud = modo === "all" ? "Limpeza total do histórico de convites" : "Limpeza de convites concluídos";
+      var detAud = modo === "all"
+        ? "Todos os " + removidos + " convites foram removidos e links pendentes revogados."
+        : removidos + " convite(s) concluído(s) removido(s) do histórico.";
+
+      abaAud.appendRow([
+        "aud-" + agora.getTime(),
+        agora.toLocaleDateString("pt-BR"),
+        agora.toLocaleTimeString("pt-BR"),
+        "Administrador TOTVS",
+        "adm@totvs.com.br",
+        "adm",
+        "Gestão de Convites",
+        acaoAud,
+        detAud
+      ]);
+    } catch(eAud) {}
+
+    return { success: true, removedCount: removidos, convites: carregarConvites(ss) };
   } catch(e) {
     return { success: false, error: e.message };
   }
@@ -1788,28 +1902,12 @@ function verificarConvite(token) {
           };
         }
       }
+      // Se a aba Convites existe e o token não foi localizado, foi excluído/cancelado
+      return { success: false, message: "Este link de convite é inválido ou foi cancelado pelo administrador." };
     }
   } catch(e) {}
 
-  // Fallback caso seja um token com prefixo padrão
-  if (tokenLimpo.startsWith("adm_") || tokenLimpo.startsWith("pmm_")) {
-    var isPmm = tokenLimpo.startsWith("pmm_");
-    return {
-      success: true,
-      convite: {
-        id: "conv-" + new Date().getTime(),
-        token: tokenLimpo,
-        email: "",
-        nome: isPmm ? "Novo PMM" : "Novo Administrador",
-        perfil: isPmm ? "pmm" : "adm",
-        criado_por: "André Gianotti",
-        criado_em: new Date().toLocaleString("pt-BR"),
-        utilizado: false
-      }
-    };
-  }
-
-  return { success: false, message: "Convite inválido ou expirado." };
+  return { success: false, message: "Este link de convite é inválido ou foi cancelado pelo administrador." };
 }
 
 function aceitarConvite(dados) {
