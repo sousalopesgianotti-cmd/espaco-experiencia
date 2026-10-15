@@ -1,5 +1,29 @@
 [
   {
+    "id": "acc-1792064095732",
+    "tipo": "Login de Administrador",
+    "usuario": "André Gianotti",
+    "email": "andre.gianotti@totvs.com.br",
+    "perfil": "adm",
+    "ip_dispositivo": "Navegador Web",
+    "data_formatada": "15/10/2026",
+    "horario_formatado": "08:34:55",
+    "timestamp": 1792064095732,
+    "acao": "Autenticação de Administrador no Painel"
+  },
+  {
+    "id": "acc-1792064095696",
+    "tipo": "Login de PMM",
+    "usuario": "Juliana PMM Auditoria",
+    "email": "auditoria.pmm.1792064095524@totvs.com.br",
+    "perfil": "pmm",
+    "ip_dispositivo": "Navegador Web",
+    "data_formatada": "15/10/2026",
+    "horario_formatado": "08:34:55",
+    "timestamp": 1792064095697,
+    "acao": "Autenticação de PMM no Showroom"
+  },
+  {
     "id": "acc-1791400123993",
     "data_formatada": "07/10/2026",
     "horario_formatado": "16:08:43",

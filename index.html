@@ -1806,7 +1806,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             segmento: segToSave,
-            autor: { nome: autorNome, email: autorEmail },
+            autor: { nome: autorNome, email: autorEmail, perfil: admLogado?.perfil || 'adm' },
             detalhes: `Atualização de conteúdo realizada por ${autorNome}.`
           })
         })
@@ -1856,7 +1856,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             segmento: segToSave,
-            autor: { nome: autorNome, email: autorEmail },
+            autor: { nome: autorNome, email: autorEmail, perfil: admLogado?.perfil || 'adm' },
             detalhes: `Ajuste da Estação "${segToSave.nome}" (Estação ${segToSave.ordem}) realizado por ${autorNome}.`
           })
         })
@@ -2873,7 +2873,8 @@
           ...updatedSegment,
           ultima_atualizacao: {
             data: new Date().toLocaleString('pt-BR'),
-            autor: admLogado?.nome || 'Administrador TOTVS'
+            autor: admLogado?.nome || 'Administrador TOTVS',
+            autor_perfil: admLogado?.perfil || 'adm'
           }
         };
 
@@ -2901,7 +2902,8 @@
               segmento: segToSave,
               autor: {
                 nome: admLogado?.nome || 'Administrador TOTVS',
-                email: admLogado?.email || 'admin@totvs.com.br'
+                email: admLogado?.email || 'admin@totvs.com.br',
+                perfil: admLogado?.perfil || 'adm'
               },
               detalhes: mensagemSucesso || 'Atualização na Guia da Estação'
             })
@@ -5894,9 +5896,9 @@
         };
       }, [onClose]);
 
-      // Usuário PMM não pode visualizar abas de administradores ou convites
+      // Usuário PMM não pode visualizar abas de administradores, convites ou auditoria
       useEffect(() => {
-        if (admLogado?.perfil === 'pmm' && (activeTab === 'adms' || activeTab === 'convites')) {
+        if (admLogado?.perfil === 'pmm' && (activeTab === 'adms' || activeTab === 'convites' || activeTab === 'audit')) {
           if (onTabChange) onTabChange('visitas');
         }
       }, [admLogado?.perfil, activeTab, onTabChange]);
@@ -5906,6 +5908,9 @@
       const [conviteRecemCriado, setConviteRecemCriado] = useState(null);
       const [deletingId, setDeletingId] = useState(null);
       const [filterAudit, setFilterAudit] = useState('');
+      const [subTabAudit, setSubTabAudit] = useState('conteudo'); // 'conteudo' ou 'acessos'
+      const [filterAuditPerfil, setFilterAuditPerfil] = useState('todos'); // 'todos', 'pmm', 'adm'
+      const [filterAccessPerfil, setFilterAccessPerfil] = useState('todos'); // 'todos', 'pmm', 'adm', 'visitante'
       const [filterVisitas, setFilterVisitas] = useState('');
       const [filterVisitors, setFilterVisitors] = useState('');
       const [deletingVisitorId, setDeletingVisitorId] = useState(null);
@@ -6200,28 +6205,49 @@
 
       // Filtros
       const filteredAuditLogs = useMemo(() => {
-        if (!filterAudit.trim()) return auditLogs;
+        let list = auditLogs;
+        if (filterAuditPerfil === 'pmm') {
+          list = list.filter(l => l.perfil === 'pmm' || (l.acao && l.acao.toLowerCase().includes('pmm')));
+        } else if (filterAuditPerfil === 'adm') {
+          list = list.filter(l => l.perfil !== 'pmm' && (!l.acao || !l.acao.toLowerCase().includes('pmm')));
+        }
+
+        if (!filterAudit.trim()) return list;
         const q = filterAudit.toLowerCase();
-        return auditLogs.filter(l => 
+        return list.filter(l => 
           (l.acao && l.acao.toLowerCase().includes(q)) ||
           (l.segmento && l.segmento.toLowerCase().includes(q)) ||
-          (l.usuario && l.usuario.toLowerCase().includes(q))
+          (l.segmento_nome && l.segmento_nome.toLowerCase().includes(q)) ||
+          (l.usuario && l.usuario.toLowerCase().includes(q)) ||
+          (l.analista_nome && l.analista_nome.toLowerCase().includes(q)) ||
+          (l.analista_email && l.analista_email.toLowerCase().includes(q)) ||
+          (l.detalhes && l.detalhes.toLowerCase().includes(q))
         );
-      }, [auditLogs, filterAudit]);
+      }, [auditLogs, filterAudit, filterAuditPerfil]);
 
       const filteredAccessLogs = useMemo(() => {
-        if (!filterVisitas.trim()) return accessLogs;
+        let list = accessLogs;
+        if (filterAccessPerfil === 'pmm') {
+          list = list.filter(l => l.perfil === 'pmm' || (l.tipo && l.tipo.toLowerCase().includes('pmm')));
+        } else if (filterAccessPerfil === 'adm') {
+          list = list.filter(l => (l.perfil === 'adm' || (l.tipo && l.tipo.toLowerCase().includes('admin'))) && l.perfil !== 'pmm');
+        } else if (filterAccessPerfil === 'visitante') {
+          list = list.filter(l => l.perfil === 'visitante' || (!l.perfil && !l.usuario && (!l.tipo || !l.tipo.toLowerCase().includes('login'))));
+        }
+
+        if (!filterVisitas.trim()) return list;
         const q = filterVisitas.toLowerCase();
-        return accessLogs.filter(l => 
+        return list.filter(l => 
           (l.tipo && l.tipo.toLowerCase().includes(q)) ||
           (l.acao && l.acao.toLowerCase().includes(q)) ||
           (l.origem && l.origem.toLowerCase().includes(q)) ||
           (l.ip_dispositivo && l.ip_dispositivo.toLowerCase().includes(q)) ||
           (l.data_formatada && l.data_formatada.toLowerCase().includes(q)) ||
           (l.data && l.data.toLowerCase().includes(q)) ||
-          (l.usuario && l.usuario.toLowerCase().includes(q))
+          (l.usuario && l.usuario.toLowerCase().includes(q)) ||
+          (l.email && l.email.toLowerCase().includes(q))
         );
-      }, [accessLogs, filterVisitas]);
+      }, [accessLogs, filterVisitas, filterAccessPerfil]);
 
       const totalVisitasCount = metricsData?.total_visitas !== undefined 
         ? metricsData.total_visitas 
@@ -6363,6 +6389,18 @@
                     <Icons.Plus />
                     <span>Convites ({convitesList.length})</span>
                   </button>
+
+                  <button
+                    onClick={() => onTabChange('audit')}
+                    className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
+                      activeTab === 'audit'
+                        ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Icons.Edit />
+                    <span>Auditoria ({auditLogs.length})</span>
+                  </button>
                 </>
               )}
 
@@ -6376,18 +6414,6 @@
               >
                 <Icons.Users />
                 <span>Visitantes & Acessos ({visitorsList.length})</span>
-              </button>
-
-              <button
-                onClick={() => onTabChange('audit')}
-                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
-                  activeTab === 'audit'
-                    ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <Icons.Edit />
-                <span>Auditoria ({auditLogs.length})</span>
               </button>
 
               <button
@@ -7024,48 +7050,301 @@
                 </div>
               )}
 
-              {/* ABA 4: AUDITORIA DE EDIÇÕES */}
+              {/* ABA 4: AUDITORIA EXCLUSIVA DO ADM (SUB-ABAS: CONTEÚDO & ACESSOS GERAIS) */}
               {activeTab === 'audit' && (
-                <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <h4 className="font-bold text-slate-800 text-sm">Histórico de Alterações de Conteúdo</h4>
-                      <p className="text-xs text-slate-500">Rastreamento de edições feitas nas estações pelos administradores</p>
+                <div className="space-y-5">
+                  {/* Seletor de Sub-Abas Internas da Auditoria */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2 bg-slate-100 rounded-2xl border border-slate-200">
+                    <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl shadow-xs border border-slate-200/60">
+                      <button
+                        type="button"
+                        onClick={() => setSubTabAudit('conteudo')}
+                        className={`px-3.5 py-2 rounded-lg font-bold text-xs transition flex items-center gap-2 cursor-pointer ${
+                          subTabAudit === 'conteudo'
+                            ? 'bg-totvs-blue text-white shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                        }`}
+                      >
+                        <Icons.Edit />
+                        <span>Alterações de Conteúdo ({filteredAuditLogs.length})</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setSubTabAudit('acessos')}
+                        className={`px-3.5 py-2 rounded-lg font-bold text-xs transition flex items-center gap-2 cursor-pointer ${
+                          subTabAudit === 'acessos'
+                            ? 'bg-totvs-blue text-white shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                        }`}
+                      >
+                        <Icons.Shield />
+                        <span>Histórico de Acessos & Logins ({filteredAccessLogs.length})</span>
+                      </button>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Filtrar por estação, autor..."
-                      value={filterAudit}
-                      onChange={(e) => setFilterAudit(e.target.value)}
-                      className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-totvs-blue w-full sm:w-64"
-                    />
+
+                    <span className="text-[11px] text-slate-500 font-medium px-2">
+                      🔒 Área Restrita à Liderança & ADM
+                    </span>
                   </div>
 
-                  {(!filteredAuditLogs || filteredAuditLogs.length === 0) ? (
-                    <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs">
-                      Nenhuma alteração registrada até o momento.
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm max-h-96 overflow-y-auto">
-                      {filteredAuditLogs.slice().reverse().map((audit, idx) => (
-                        <div key={idx} className="p-4 hover:bg-slate-50 transition space-y-1">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-bold text-slate-800 flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-totvs-blue"></span>
-                              {audit.segmento || 'Estação'}
+                  {/* SUB-ABA 1: ALTERAÇÕES DE CONTEÚDO */}
+                  {subTabAudit === 'conteudo' && (
+                    <div className="space-y-4 animate-in fade-in duration-150">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                        <div>
+                          <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                            <span>Histórico de Alterações de Conteúdo</span>
+                            <span className="text-[10px] bg-blue-50 text-totvs-blue px-2 py-0.5 rounded-full font-bold border border-blue-200">
+                              {filteredAuditLogs.length} registros
                             </span>
-                            <span className="text-[10px] text-slate-400 font-mono">
-                              {audit.data ? new Date(audit.data).toLocaleString('pt-BR') : ''}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-600 pl-4">
-                            {audit.acao || 'Edição realizada'}
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Rastreamento de edições feitas nas bancadas e estações por PMMs e Administradores
                           </p>
-                          <span className="text-[10px] text-slate-400 pl-4 block">
-                            Por: <strong className="text-slate-700">{audit.usuario || 'Administrador'}</strong>
-                          </span>
                         </div>
-                      ))}
+
+                        {/* Chips de Filtro Rápido e Busca */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+                            <button
+                              type="button"
+                              onClick={() => setFilterAuditPerfil('todos')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] cursor-pointer ${
+                                filterAuditPerfil === 'todos' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                              }`}
+                            >
+                              Todos
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFilterAuditPerfil('pmm')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] flex items-center gap-1 cursor-pointer ${
+                                filterAuditPerfil === 'pmm' ? 'bg-emerald-600 text-white shadow-xs' : 'text-emerald-700 hover:text-emerald-900'
+                              }`}
+                            >
+                              <span>🎯 Apenas PMM</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFilterAuditPerfil('adm')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] flex items-center gap-1 cursor-pointer ${
+                                filterAuditPerfil === 'adm' ? 'bg-totvs-blue text-white shadow-xs' : 'text-totvs-blue hover:text-totvs-dark'
+                              }`}
+                            >
+                              <span>🛡️ Apenas ADM</span>
+                            </button>
+                          </div>
+
+                          <input
+                            type="text"
+                            placeholder="Buscar estação, autor, ação..."
+                            value={filterAudit}
+                            onChange={(e) => setFilterAudit(e.target.value)}
+                            className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-totvs-blue w-full sm:w-56 bg-slate-50 focus:bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      {(!filteredAuditLogs || filteredAuditLogs.length === 0) ? (
+                        <div className="p-10 text-center bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs space-y-1">
+                          <p className="font-bold text-slate-600">Nenhum registro de alteração encontrado.</p>
+                          <p className="text-[11px]">Tente ajustar o termo da busca ou o filtro de perfil selecionado.</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm max-h-[58vh] overflow-y-auto">
+                          {filteredAuditLogs.slice().reverse().map((audit, idx) => {
+                            const isPMM = audit.perfil === 'pmm' || (audit.acao && audit.acao.toLowerCase().includes('pmm'));
+                            const nomeEstacao = audit.segmento_nome || audit.segmento || 'Estação do Showroom';
+                            const autorNome = audit.analista_nome || audit.usuario || 'Usuário TOTVS';
+                            const autorEmail = audit.analista_email || audit.email || '';
+                            const dataFmt = audit.data_formatada && audit.horario_formatado
+                              ? `${audit.data_formatada} às ${audit.horario_formatado}`
+                              : (audit.data ? new Date(audit.data).toLocaleString('pt-BR') : 'Hoje');
+
+                            return (
+                              <div key={idx} className="p-4 hover:bg-slate-50 transition space-y-2">
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`w-2.5 h-2.5 rounded-full ${isPMM ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-totvs-blue ring-2 ring-blue-200'}`}></span>
+                                    <strong className="text-xs font-bold text-slate-900">
+                                      {nomeEstacao}
+                                    </strong>
+                                    {isPMM ? (
+                                      <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-300 font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                                        🎯 PMM (Gestão)
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] bg-blue-50 text-totvs-blue border border-blue-200 font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                                        🛡️ Administrador
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <span className="text-[11px] text-slate-500 font-mono">
+                                    {dataFmt}
+                                  </span>
+                                </div>
+
+                                <div className="pl-4.5 space-y-1">
+                                  <p className="text-xs font-semibold text-slate-800">
+                                    {audit.acao || 'Edição de Conteúdo'}
+                                  </p>
+                                  {audit.detalhes && (
+                                    <p className="text-[11.5px] text-slate-600 leading-relaxed bg-slate-50 p-2 rounded-xl border border-slate-100 font-mono">
+                                      {audit.detalhes}
+                                    </p>
+                                  )}
+                                  <div className="text-[11px] text-slate-400 pt-0.5 flex items-center gap-1.5 flex-wrap">
+                                    <span>Autor:</span>
+                                    <strong className="text-slate-700">{autorNome}</strong>
+                                    {autorEmail && <span className="font-mono text-slate-400">({autorEmail})</span>}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* SUB-ABA 2: HISTÓRICO GERAL DE ACESSOS & LOGINS */}
+                  {subTabAudit === 'acessos' && (
+                    <div className="space-y-4 animate-in fade-in duration-150">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                        <div>
+                          <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                            <span>Histórico Geral de Acessos & Logins</span>
+                            <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold border border-emerald-200">
+                              {filteredAccessLogs.length} acessos
+                            </span>
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Rastreamento de autenticações de PMMs, Administradores e sessões web no showroom
+                          </p>
+                        </div>
+
+                        {/* Chips de Filtro Rápido e Busca */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => setFilterAccessPerfil('todos')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] cursor-pointer ${
+                                filterAccessPerfil === 'todos' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                              }`}
+                            >
+                              Todos
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFilterAccessPerfil('pmm')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] flex items-center gap-1 cursor-pointer ${
+                                filterAccessPerfil === 'pmm' ? 'bg-emerald-600 text-white shadow-xs' : 'text-emerald-700 hover:text-emerald-900'
+                              }`}
+                            >
+                              <span>🎯 PMM</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFilterAccessPerfil('adm')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] flex items-center gap-1 cursor-pointer ${
+                                filterAccessPerfil === 'adm' ? 'bg-totvs-blue text-white shadow-xs' : 'text-totvs-blue hover:text-totvs-dark'
+                              }`}
+                            >
+                              <span>🛡️ ADM</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFilterAccessPerfil('visitante')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] flex items-center gap-1 cursor-pointer ${
+                                filterAccessPerfil === 'visitante' ? 'bg-slate-700 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                              }`}
+                            >
+                              <span>🌐 Web</span>
+                            </button>
+                          </div>
+
+                          <input
+                            type="text"
+                            placeholder="Buscar nome, IP, e-mail, data..."
+                            value={filterVisitas}
+                            onChange={(e) => setFilterVisitas(e.target.value)}
+                            className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-totvs-blue w-full sm:w-56 bg-slate-50 focus:bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      {(!filteredAccessLogs || filteredAccessLogs.length === 0) ? (
+                        <div className="p-10 text-center bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs space-y-1">
+                          <p className="font-bold text-slate-600">Nenhum registro de acesso encontrado.</p>
+                          <p className="text-[11px]">Tente ajustar os filtros ou limpar o campo de busca.</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm max-h-[58vh] overflow-y-auto">
+                          {filteredAccessLogs.slice().reverse().map((log, idx) => {
+                            const isPMM = log.perfil === 'pmm' || (log.tipo && log.tipo.toLowerCase().includes('pmm'));
+                            const isADM = (log.perfil === 'adm' || (log.tipo && log.tipo.toLowerCase().includes('admin'))) && !isPMM;
+                            const isWeb = !isPMM && !isADM;
+                            const dataFmt = log.data_formatada && log.horario_formatado
+                              ? `${log.data_formatada} às ${log.horario_formatado}`
+                              : (log.data ? new Date(log.data).toLocaleString('pt-BR') : 'Hoje');
+
+                            return (
+                              <div key={idx} className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition">
+                                <div className="flex items-center gap-3">
+                                  <span className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border shadow-2xs ${
+                                    isPMM ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                    isADM ? 'bg-blue-50 text-totvs-blue border-blue-200' :
+                                    'bg-slate-100 text-slate-500 border-slate-200'
+                                  }`}>
+                                    {isPMM ? '🔑' : isADM ? '🛡️' : '👁️'}
+                                  </span>
+
+                                  <div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="font-extrabold text-xs text-slate-900">
+                                        {log.tipo || log.acao || 'Visita Institucional'}
+                                      </span>
+                                      {isPMM && (
+                                        <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-300 font-extrabold px-2 py-0.5 rounded-full">
+                                          🎯 PMM
+                                        </span>
+                                      )}
+                                      {isADM && (
+                                        <span className="text-[10px] bg-blue-50 text-totvs-blue border border-blue-200 font-extrabold px-2 py-0.5 rounded-full">
+                                          🛡️ ADM
+                                        </span>
+                                      )}
+                                      {isWeb && (
+                                        <span className="text-[10px] bg-slate-100 text-slate-600 border border-slate-200 font-semibold px-2 py-0.5 rounded-full">
+                                          🌐 Sessão Web
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="text-[11px] text-slate-500 mt-0.5 space-y-0.5">
+                                      {log.usuario && (
+                                        <span className="font-semibold text-slate-700 block">
+                                          Usuário: {log.usuario} {log.email ? `(${log.email})` : ''}
+                                        </span>
+                                      )}
+                                      <span className="text-[10px] text-slate-400 font-mono block">
+                                        {log.ip_dispositivo || log.origem || 'Navegador Web'} {log.ip ? `• IP: ${log.ip}` : ''}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <span className="text-[11px] text-slate-500 font-mono shrink-0 self-end sm:self-center">
+                                  {dataFmt}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

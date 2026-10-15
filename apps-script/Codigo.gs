@@ -21,7 +21,7 @@ function autenticarUsuario(email, senha) {
       precisa_trocar_senha: false,
       foto: ""
     };
-    registrarLogAcesso(usuarioDono.nome, "Login efetuado com sucesso (Dono do Produto)");
+    registrarLogAcesso(usuarioDono.nome, "Login efetuado com sucesso (Dono do Produto)", usuarioDono.email, "adm");
     return { success: true, usuario: usuarioDono };
   }
 
@@ -48,7 +48,7 @@ function autenticarUsuario(email, senha) {
             precisa_trocar_senha: String(row[6]) === "true",
             foto: String(row[7] || "")
           };
-          registrarLogAcesso(u.nome, "Login efetuado com sucesso (" + u.cargo + ")");
+          registrarLogAcesso(u.nome, "Login efetuado com sucesso (" + u.cargo + ")", u.email, u.perfil);
           return { success: true, usuario: u };
         }
       }
@@ -64,31 +64,34 @@ function autenticarUsuario(email, senha) {
       email: emailLimpo,
       nome: nomeFmt || "Especialista TOTVS",
       cargo: "Administrador",
+      perfil: "adm",
       tipo: "administrador",
       dono_produto: false,
       precisa_trocar_senha: false,
       foto: ""
     };
-    registrarLogAcesso(uEspec.nome, "Login efetuado com sucesso");
+    registrarLogAcesso(uEspec.nome, "Login efetuado com sucesso", uEspec.email, "adm");
     return { success: true, usuario: uEspec };
   }
 
   return { success: false, message: "E-mail ou senha incorretos." };
 }
 
-function registrarLogAcesso(usuarioNome, acao) {
+function registrarLogAcesso(usuarioNome, acao, email, perfil) {
   try {
     var ss = getSpreadsheet();
     var aba = ss.getSheetByName("Logs");
     if (aba) {
       var agora = new Date();
+      var perfilFmt = String(perfil || "").toLowerCase() === "pmm" ? "pmm" : "adm";
       aba.appendRow([
         "log-" + agora.getTime(),
         agora.toLocaleDateString("pt-BR"),
         agora.toLocaleTimeString("pt-BR"),
         usuarioNome || "Usuário",
         acao || "Acesso",
-        "Acesso autenticado ao sistema"
+        perfilFmt,
+        email || ""
       ]);
     }
   } catch(e) {}
@@ -260,15 +263,21 @@ function carregarLogsAcesso(ss) {
     var dados = aba.getDataRange().getValues();
     if (dados.length <= 1) return [];
     var lista = [];
-    for (var i = dados.length - 1; i >= 1 && lista.length < 50; i--) {
+    for (var i = dados.length - 1; i >= 1 && lista.length < 100; i--) {
       var r = dados[i];
       if (!r[0]) continue;
+      var acaoStr = String(r[4] || "");
+      var perfilStr = String(r[5] || (acaoStr.toLowerCase().indexOf("pmm") >= 0 ? "pmm" : (acaoStr.toLowerCase().indexOf("admin") >= 0 || String(r[3]) ? "adm" : "visitante")));
       lista.push({
         id: String(r[0]),
         data: String(r[1]),
+        data_formatada: String(r[1]),
         hora: String(r[2]),
+        horario_formatado: String(r[2]),
         usuario: String(r[3]),
-        acao: String(r[4]),
+        acao: acaoStr,
+        perfil: perfilStr,
+        email: String(r[6] || ""),
         detalhes: String(r[5] || "")
       });
     }
@@ -279,7 +288,36 @@ function carregarLogsAcesso(ss) {
 }
 
 function carregarLogsAuditoria(ss) {
-  return carregarLogsAcesso(ss);
+  try {
+    var aba = ss.getSheetByName("LogsAuditoria");
+    if (!aba) return carregarLogsAcesso(ss);
+    var dados = aba.getDataRange().getValues();
+    if (dados.length <= 1) return carregarLogsAcesso(ss);
+    var lista = [];
+    for (var i = dados.length - 1; i >= 1 && lista.length < 100; i--) {
+      var r = dados[i];
+      if (!r[0]) continue;
+      lista.push({
+        id: String(r[0]),
+        data: String(r[1]),
+        data_formatada: String(r[1]),
+        hora: String(r[2]),
+        horario_formatado: String(r[2]),
+        usuario: String(r[3]),
+        analista_nome: String(r[3]),
+        email: String(r[4] || ""),
+        analista_email: String(r[4] || ""),
+        perfil: String(r[5] || "adm"),
+        segmento: String(r[6] || ""),
+        segmento_nome: String(r[6] || ""),
+        acao: String(r[7] || "Edição de estação"),
+        detalhes: String(r[8] || "")
+      });
+    }
+    return lista.length > 0 ? lista : carregarLogsAcesso(ss);
+  } catch(e) {
+    return carregarLogsAcesso(ss);
+  }
 }
 
 /**
@@ -747,6 +785,31 @@ function salvarEstacao(seg) {
     } else {
       aba.appendRow([seg.id, seg.ordem, seg.nome, seg.tagline || "", seg.pitch || "", seg.foto_bancada || "", seg.icone || "Factory", jsonStr]);
     }
+
+    // Registrar log de auditoria na planilha corporativa
+    try {
+      var abaAud = ss.getSheetByName("LogsAuditoria");
+      if (!abaAud) {
+        abaAud = ss.insertSheet("LogsAuditoria");
+        abaAud.appendRow(["ID", "Data", "Horario", "Analista", "Email", "Perfil", "Estacao", "Acao", "Detalhes"]);
+        abaAud.getRange("A1:I1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      }
+      var agora = new Date();
+      var autorNome = (seg.autor && seg.autor.nome) || seg.autor_nome || "Especialista TOTVS";
+      var autorEmail = (seg.autor && seg.autor.email) || seg.autor_email || "";
+      var autorPerfil = String((seg.autor && seg.autor.perfil) || seg.autor_perfil || "").toLowerCase() === "pmm" ? "pmm" : "adm";
+      abaAud.appendRow([
+        "aud-" + agora.getTime(),
+        agora.toLocaleDateString("pt-BR"),
+        agora.toLocaleTimeString("pt-BR"),
+        autorNome,
+        autorEmail,
+        autorPerfil,
+        seg.nome,
+        autorPerfil === "pmm" ? "Edição de estação por PMM" : "Edição do card com validação manual",
+        "Atualização de conteúdo da estação " + seg.nome
+      ]);
+    } catch(eAud) {}
 
     return { success: true, segmentos: carregarSegmentos(ss) };
   } catch (err) {

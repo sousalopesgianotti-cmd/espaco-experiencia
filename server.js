@@ -383,21 +383,28 @@ const server = http.createServer(async (req, res) => {
       }
       writeJsonFile(segFile, segmentos);
 
-      // Audit log
+      // Audit log com identificação explícita de PMM ou Administrador
       if (body.autor) {
         const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
         let logs = readJsonFile(auditFile, []);
+        if (!Array.isArray(logs)) logs = [];
+        const autorPerfil = String(body.autor.perfil || '').toLowerCase().trim() === 'pmm' ? 'pmm' : 'adm';
+        const acaoDesc = autorPerfil === 'pmm'
+          ? 'Edição de estação por PMM'
+          : (body.acao || 'Edição do card com validação manual');
+
         logs.unshift({
           id: `aud-${Date.now()}`,
-          analista_nome: body.autor.nome || 'Analista TOTVS',
-          analista_email: body.autor.email || 'analista@totvs.com.br',
+          analista_nome: body.autor.nome || (autorPerfil === 'pmm' ? 'PMM TOTVS' : 'Administrador TOTVS'),
+          analista_email: body.autor.email || 'especialista@totvs.com.br',
+          perfil: autorPerfil,
           segmento_id: segId,
           segmento_nome: body.segmento?.nome || '',
-          acao: 'Edição do card com validação manual',
+          acao: acaoDesc,
           data_formatada: new Date().toLocaleDateString('pt-BR'),
           horario_formatado: new Date().toLocaleTimeString('pt-BR'),
           timestamp: Date.now(),
-          detalhes: body.detalhes || 'Atualização realizada pelo especialista.'
+          detalhes: body.detalhes || `Atualização de conteúdo realizada por ${body.autor.nome || (autorPerfil === 'pmm' ? 'PMM' : 'Administrador')}.`
         });
         writeJsonFile(auditFile, logs);
       }
@@ -477,6 +484,28 @@ const server = http.createServer(async (req, res) => {
 
       const isDono = adm.dono_produto === true || adm.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br';
       const perfil = adm.perfil || (isDono ? 'adm' : (adm.cargo && adm.cargo.toLowerCase().includes('pmm') ? 'pmm' : 'adm'));
+
+      // Registrar evento de login autenticado em logs_acesso.json
+      try {
+        const accessFile = path.join(DATA_DIR, 'logs_acesso.json');
+        let logsAcesso = readJsonFile(accessFile, []);
+        if (!Array.isArray(logsAcesso)) logsAcesso = [];
+        logsAcesso.unshift({
+          id: `acc-${Date.now()}`,
+          tipo: perfil === 'pmm' ? 'Login de PMM' : 'Login de Administrador',
+          usuario: adm.nome,
+          email: adm.email,
+          perfil: perfil,
+          ip_dispositivo: req.headers['user-agent'] || 'Navegador Web',
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          acao: perfil === 'pmm' ? 'Autenticação de PMM no Showroom' : 'Autenticação de Administrador no Painel'
+        });
+        writeJsonFile(accessFile, logsAcesso);
+      } catch (errAcesso) {
+        console.warn('Falha ao registrar log de acesso:', errAcesso);
+      }
 
       return sendJson(res, {
         success: true,
@@ -774,13 +803,21 @@ const server = http.createServer(async (req, res) => {
     // 12. GET /api/logs/access
     if (pathname === '/api/logs/access' && method === 'GET') {
       const logs = readJsonFile(path.join(DATA_DIR, 'logs_acesso.json'), []);
-      return sendJson(res, logs);
+      const formatted = (Array.isArray(logs) ? logs : []).map(l => ({
+        ...l,
+        perfil: l.perfil || (l.tipo && l.tipo.toLowerCase().includes('pmm') ? 'pmm' : (l.tipo && (l.tipo.toLowerCase().includes('admin') || l.usuario) ? 'adm' : 'visitante'))
+      }));
+      return sendJson(res, formatted);
     }
 
     // 13. GET /api/logs/audit
     if (pathname === '/api/logs/audit' && method === 'GET') {
       const logs = readJsonFile(path.join(DATA_DIR, 'logs_auditoria.json'), []);
-      return sendJson(res, logs);
+      const formatted = (Array.isArray(logs) ? logs : []).map(l => ({
+        ...l,
+        perfil: l.perfil || (l.acao && l.acao.toLowerCase().includes('pmm') ? 'pmm' : 'adm')
+      }));
+      return sendJson(res, formatted);
     }
 
     // 14. GET /api/admin/invites (Lista de Convites)

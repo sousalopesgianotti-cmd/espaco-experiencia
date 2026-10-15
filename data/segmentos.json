@@ -62,7 +62,13 @@
       "tipo": "google_drive",
       "url": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160250_totvs_agro.mp4",
       "titulo": "Vídeo Demonstrativo de TOTVS Agro"
-    }
+    },
+    "autor": {
+      "nome": "Juliana PMM Auditoria",
+      "email": "auditoria.pmm.1792064095524@totvs.com.br",
+      "perfil": "pmm"
+    },
+    "detalhes": "Edição de discurso realizada por PMM para validação de auditoria."
   },
   {
     "id": "totvs_manufatura",
