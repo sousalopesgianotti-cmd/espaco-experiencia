@@ -1051,12 +1051,12 @@
                       </span>
                       {admLogado && (
                         <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
-                          {admLogado.dono_produto ? 'DONO' : 'ON'}
+                          {admLogado.dono_produto ? 'DONO' : (admLogado.perfil === 'pmm' ? 'PMM' : 'ON')}
                         </span>
                       )}
                     </div>
                     <span className="text-[9.5px] text-slate-400 block truncate">
-                      {admLogado ? (admLogado.dono_produto ? '👑 Dono do Produto' : 'Administrador') : 'Acesso Restrito'}
+                      {admLogado ? (admLogado.dono_produto ? '👑 Dono do Produto' : (admLogado.perfil === 'pmm' ? '🎯 PMM (Gestão)' : 'Administrador')) : 'Acesso Restrito'}
                     </span>
                   </div>
                 )}
@@ -2140,9 +2140,6 @@
 
                       {/* Conteúdo Resumido do Card com Fundo Azul Gelo Soft Corporativo */}
                       <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between space-y-2 bg-[#F0F5FA] rounded-b-2xl">
-                        {/* Box de Credenciais do PC da Bancada */}
-                        <StationCredentialsBox credenciais={seg.credenciais} />
-
                         {/* Badges de Soluções do Segmento */}
                         <div className="space-y-1 pt-0.5">
                           <span className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1">
@@ -2190,11 +2187,11 @@
               segment={activeSegment}
               admLogado={admLogado}
               onClose={() => setActiveSegment(null)}
-              onEdit={() => {
-                const segToEdit = activeSegment;
-                setActiveSegment(null);
-                handleOpenEdit(segToEdit);
+              onSegmentChange={(updatedSeg) => {
+                setActiveSegment(updatedSeg);
+                setSegmentos(prev => prev.map(s => s.id === updatedSeg.id ? updatedSeg : s));
               }}
+              showToast={showToast}
             />
           )}
 
@@ -2471,7 +2468,7 @@
       
       const [nome, setNome] = useState('');
       const [email, setEmail] = useState('');
-      const [senhaProvisoria, setSenhaProvisoria] = useState('123');
+      const [senhaProvisoria, setSenhaProvisoria] = useState('totvs123');
       const [novaSenha, setNovaSenha] = useState('');
       const [confirmaSenha, setConfirmaSenha] = useState('');
       const [showNovaSenha, setShowNovaSenha] = useState(false);
@@ -2488,7 +2485,7 @@
               setConviteData(data.convite);
               if (data.convite.nome) setNome(data.convite.nome);
               if (data.convite.email) setEmail(data.convite.email);
-              setSenhaProvisoria('123');
+              setSenhaProvisoria(data.convite.senha_provisoria || 'totvs123');
             } else {
               setErroToken(data.message || 'Este link de convite é inválido ou já foi utilizado.');
             }
@@ -2496,6 +2493,8 @@
           .catch(() => setErroToken('Erro ao verificar o convite. Verifique sua conexão.'))
           .finally(() => setCarregando(false));
       }, [token]);
+
+      const isPmm = (conviteData?.perfil === 'pmm') || (token && token.startsWith('pmm_'));
 
       const handleSubmit = async (e) => {
         e.preventDefault();
@@ -2514,8 +2513,9 @@
           return;
         }
 
-        if (senhaProvisoria.trim() !== '123') {
-          setFormErro('Senha provisória incorreta. A senha padrão informada no convite é 123.');
+        const senhaNorm = senhaProvisoria.trim();
+        if (senhaNorm !== 'totvs123' && senhaNorm !== '123') {
+          setFormErro('Senha provisória incorreta. A senha padrão informada no convite é totvs123.');
           return;
         }
 
@@ -2548,7 +2548,7 @@
           if (data.success && data.usuario) {
             onAcceptSuccess(data.usuario);
           } else {
-            setFormErro(data.message || 'Erro ao ativar perfil de administrador.');
+            setFormErro(data.message || 'Erro ao ativar perfil de usuário.');
           }
         } catch (err) {
           setFormErro('Erro de conexão ao ativar convite. Verifique sua rede.');
@@ -2588,11 +2588,13 @@
                     🎉
                   </div>
                   <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-block mb-1">
-                    Convite Oficial de Administrador
+                    {isPmm ? 'Convite Oficial de PMM (Gestor de Segmento)' : 'Convite Oficial de Administrador'}
                   </span>
-                  <h3 className="font-black text-xl text-slate-800">Ative seu Perfil de ADM</h3>
+                  <h3 className="font-black text-xl text-slate-800">
+                    {isPmm ? 'Ative seu Acesso de PMM' : 'Ative seu Perfil de ADM'}
+                  </h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar o Espaço Experiência TOTVS.
+                    Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar os conteúdos e roteiros do Espaço Experiência TOTVS.
                   </p>
                 </div>
 
@@ -2601,7 +2603,7 @@
                   <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between text-xs">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Pré-cadastro confirmado:</span>
-                      <strong className="text-slate-800 block text-xs">{conviteData.nome || 'Novo Administrador'}</strong>
+                      <strong className="text-slate-800 block text-xs">{conviteData.nome || (isPmm ? 'Novo PMM' : 'Novo Administrador')}</strong>
                       <span className="text-[11px] text-totvs-blue font-mono block">{conviteData.email}</span>
                     </div>
                     <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold text-[10px] shrink-0">
@@ -2646,13 +2648,13 @@
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="text-[11px] font-bold text-slate-700">Senha Provisória Recebida:</label>
-                        <span className="text-[10px] text-totvs-blue font-bold">Padrão do convite: 123</span>
+                        <span className="text-[10px] text-totvs-blue font-bold">Padrão do convite: totvs123</span>
                       </div>
                       <input
                         type="text"
                         value={senhaProvisoria}
                         onChange={e => setSenhaProvisoria(e.target.value)}
-                        placeholder="123"
+                        placeholder="totvs123"
                         className="w-full p-2 border border-slate-300 rounded-lg bg-white font-mono text-slate-800 focus:ring-2 focus:ring-totvs-cyan"
                         required
                       />
@@ -2735,276 +2737,887 @@
       );
     }
 
-    // --- COMPONENTE: MODAL DE DETALHES (MODO COPILOTO) ---
-    function SegmentDetailModal({ segment, admLogado, onClose, onEdit }) {
-      const [tab, setTab] = useState('pitch');
-      const IconComp = Icons[segment.icone] || Icons.Factory;
+    // Helper: Resolução inteligente de URLs de vídeo (Google Drive, YouTube ou HTML5 Nativo)
+    function parseVideoUrl(url) {
+      if (!url || typeof url !== 'string') return { tipo: 'empty', url: '', embedUrl: '' };
+      const clean = url.trim();
+      
+      // Google Drive link
+      const driveMatch = clean.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=))([a-zA-Z0-9_-]+)/);
+      if (driveMatch && driveMatch[1]) {
+        return {
+          tipo: 'drive',
+          embedUrl: `https://drive.google.com/file/d/${driveMatch[1]}/preview`,
+          originalUrl: clean
+        };
+      }
+
+      // YouTube link
+      const ytMatch = clean.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/);
+      if (ytMatch && ytMatch[1]) {
+        return {
+          tipo: 'youtube',
+          embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}`,
+          originalUrl: clean
+        };
+      }
+
+      return {
+        tipo: 'video',
+        embedUrl: resolveMediaUrl(clean),
+        originalUrl: clean
+      };
+    }
+
+    // Helper: Compressor de Fotos de Equipamentos via HTML5 Canvas
+    function compressEquipmentPhoto(file, maxWidth = 1200, maxHeight = 900, quality = 0.85) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth || height > maxHeight) {
+              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              width = Math.round(width * ratio);
+              height = Math.round(height * ratio);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = () => reject(new Error('Falha ao processar imagem.'));
+          img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('Falha ao ler arquivo.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // --- COMPONENTE: NOVA GUIA DA ESTAÇÃO (2 ABAS: DISCURSO DO SEGMENTO & EQUIPAMENTOS) ---
+    function SegmentDetailModal({ segment, admLogado, onClose, onSegmentChange, showToast }) {
+      const [tab, setTab] = useState('discurso'); // 'discurso' ou 'equipamentos'
+      const [localSegment, setLocalSegment] = useState(segment);
+      const [salvando, setSalvando] = useState(false);
+
+      // Estado Edição Pitch
+      const [editandoPitch, setEditandoPitch] = useState(false);
+      const [pitchTexto, setPitchTexto] = useState(segment.pitch || '');
+
+      // Estado Edição Vídeo
+      const [editandoVideo, setEditandoVideo] = useState(false);
+      const [videoInputUrl, setVideoInputUrl] = useState(
+        segment.video_discurso?.url || (segment.midias?.videos && segment.midias.videos[0]?.url) || ''
+      );
+
+      // Estado Galeria de Equipamentos
+      const [modalEquipamentoAberto, setModalEquipamentoAberto] = useState(false);
+      const [equipamentoEmEdicao, setEquipamentoEmEdicao] = useState(null);
+      const [eqTitulo, setEqTitulo] = useState('');
+      const [eqDescricao, setEqDescricao] = useState('');
+      const [eqFoto, setEqFoto] = useState('');
+      const [eqProcessandoFoto, setEqProcessandoFoto] = useState(false);
+      const [copiedEqId, setCopiedEqId] = useState(null);
+      const [lightboxFoto, setLightboxFoto] = useState(null);
+
+      const IconComp = Icons[localSegment.icone] || Icons.Factory;
+      const canEdit = Boolean(admLogado);
+
+      useEffect(() => {
+        setLocalSegment(segment);
+        setPitchTexto(segment.pitch || '');
+        setVideoInputUrl(
+          segment.video_discurso?.url || (segment.midias?.videos && segment.midias.videos[0]?.url) || ''
+        );
+      }, [segment]);
 
       useEffect(() => {
         const handleKeyDown = (e) => {
-          if (e.key === 'Escape') onClose();
+          if (e.key === 'Escape') {
+            if (lightboxFoto) setLightboxFoto(null);
+            else if (modalEquipamentoAberto) setModalEquipamentoAberto(false);
+            else onClose();
+          }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-      }, [onClose]);
+      }, [onClose, lightboxFoto, modalEquipamentoAberto]);
+
+      const equipamentos = useMemo(() => {
+        if (Array.isArray(localSegment.equipamentos) && localSegment.equipamentos.length > 0) {
+          return localSegment.equipamentos;
+        }
+        if (localSegment.credenciais) {
+          return [{
+            id: `eq_${localSegment.id}_1`,
+            titulo: localSegment.credenciais.equipamento || `Computador da Bancada`,
+            descricao: `Usuário: ${localSegment.credenciais.usuario || '—'}\nSenha: ${localSegment.credenciais.senha || '—'}`,
+            foto: (localSegment.midias?.fotos && localSegment.midias.fotos[0]?.url) || localSegment.foto_bancada || ''
+          }];
+        }
+        return [];
+      }, [localSegment]);
+
+      const videoInfo = useMemo(() => {
+        const url = localSegment.video_discurso?.url || (localSegment.midias?.videos && localSegment.midias.videos[0]?.url) || '';
+        return parseVideoUrl(url);
+      }, [localSegment]);
+
+      const handlePersistSegment = async (updatedSegment, mensagemSucesso) => {
+        setSalvando(true);
+        const segToSave = {
+          ...updatedSegment,
+          ultima_atualizacao: {
+            data: new Date().toLocaleString('pt-BR'),
+            autor: admLogado?.nome || 'Administrador TOTVS'
+          }
+        };
+
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              setSalvando(false);
+              setLocalSegment(segToSave);
+              if (onSegmentChange) onSegmentChange(segToSave);
+              if (showToast) showToast(mensagemSucesso || 'Estação atualizada com sucesso! ✨');
+            })
+            .withFailureHandler((err) => {
+              setSalvando(false);
+              alert('Erro ao salvar na nuvem TOTVS: ' + (err.message || err));
+            })
+            .salvarEstacao(segToSave);
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/segmentos/${segToSave.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              segmento: segToSave,
+              autor: {
+                nome: admLogado?.nome || 'Administrador TOTVS',
+                email: admLogado?.email || 'admin@totvs.com.br'
+              },
+              detalhes: mensagemSucesso || 'Atualização na Guia da Estação'
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            setLocalSegment(segToSave);
+            if (onSegmentChange) onSegmentChange(segToSave);
+            if (showToast) showToast(mensagemSucesso || 'Estação atualizada com sucesso! ✨');
+          } else {
+            alert(data.message || 'Erro ao salvar alterações.');
+          }
+        } catch (err) {
+          alert('Erro de conexão ao salvar estação.');
+        } finally {
+          setSalvando(false);
+        }
+      };
+
+      const handleSavePitch = async () => {
+        if (!pitchTexto.trim()) {
+          alert('O Pitch Sugerido não pode ficar vazio.');
+          return;
+        }
+        const updated = { ...localSegment, pitch: pitchTexto.trim() };
+        await handlePersistSegment(updated, 'Pitch Sugerido atualizado com sucesso! 🎙️');
+        setEditandoPitch(false);
+      };
+
+      const handleSaveVideo = async () => {
+        const urlLimpa = videoInputUrl.trim();
+        const info = parseVideoUrl(urlLimpa);
+        const updatedVideo = {
+          tipo: info.tipo,
+          url: urlLimpa,
+          titulo: `Vídeo do Discurso - ${localSegment.nome}`
+        };
+        const updated = {
+          ...localSegment,
+          video_discurso: updatedVideo,
+          midias: {
+            ...(localSegment.midias || {}),
+            videos: [updatedVideo]
+          }
+        };
+        await handlePersistSegment(updated, 'Vídeo do discurso atualizado com sucesso! 🎬');
+        setEditandoVideo(false);
+      };
+
+      const handleUploadVideoFile = async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        setSalvando(true);
+        try {
+          const res = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/octet-stream', 'X-Filename': encodeURIComponent(file.name) },
+            body: file
+          });
+          const data = await res.json();
+          if (data.success && data.url) {
+            setVideoInputUrl(data.url);
+            const updatedVideo = {
+              tipo: 'video',
+              url: data.url,
+              titulo: `Vídeo do Discurso - ${localSegment.nome}`
+            };
+            const updated = {
+              ...localSegment,
+              video_discurso: updatedVideo,
+              midias: {
+                ...(localSegment.midias || {}),
+                videos: [updatedVideo]
+              }
+            };
+            await handlePersistSegment(updated, 'Vídeo enviado e vinculado com sucesso! 🎬');
+            setEditandoVideo(false);
+          } else {
+            alert(data.message || 'Falha ao subir arquivo de vídeo.');
+          }
+        } catch (err) {
+          alert('Erro de conexão ao enviar vídeo.');
+        } finally {
+          setSalvando(false);
+        }
+      };
+
+      const handleOpenNovoEquipamento = () => {
+        setEquipamentoEmEdicao(null);
+        setEqTitulo('');
+        setEqDescricao('');
+        setEqFoto('');
+        setModalEquipamentoAberto(true);
+      };
+
+      const handleOpenEditarEquipamento = (eq) => {
+        setEquipamentoEmEdicao(eq);
+        setEqTitulo(eq.titulo || '');
+        setEqDescricao(eq.descricao || '');
+        setEqFoto(eq.foto || '');
+        setModalEquipamentoAberto(true);
+      };
+
+      const handleUploadEqFoto = async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        setEqProcessandoFoto(true);
+        try {
+          const compressedDataUrl = await compressEquipmentPhoto(file);
+          setEqFoto(compressedDataUrl);
+        } catch (err) {
+          alert('Erro ao processar imagem: ' + err.message);
+        } finally {
+          setEqProcessandoFoto(false);
+        }
+      };
+
+      const handleSaveEquipamento = async (e) => {
+        e.preventDefault();
+        if (!eqTitulo.trim()) {
+          alert('Por favor, informe o título do equipamento (ex: Notebook Dell Precision).');
+          return;
+        }
+
+        let novaLista = [...equipamentos];
+        if (equipamentoEmEdicao) {
+          novaLista = novaLista.map(item => {
+            if (item.id === equipamentoEmEdicao.id) {
+              return {
+                ...item,
+                titulo: eqTitulo.trim(),
+                descricao: eqDescricao.trim(),
+                foto: eqFoto
+              };
+            }
+            return item;
+          });
+        } else {
+          const novoEq = {
+            id: `eq_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            titulo: eqTitulo.trim(),
+            descricao: eqDescricao.trim(),
+            foto: eqFoto
+          };
+          novaLista.push(novoEq);
+        }
+
+        const updated = {
+          ...localSegment,
+          equipamentos: novaLista
+        };
+
+        await handlePersistSegment(
+          updated,
+          equipamentoEmEdicao ? 'Equipamento atualizado com sucesso! 🖥️' : 'Novo equipamento adicionado à bancada! 🖥️'
+        );
+        setModalEquipamentoAberto(false);
+      };
+
+      const handleDeleteEquipamento = async (eqId, eqNome) => {
+        if (!confirm(`Deseja realmente remover o equipamento "${eqNome || 'este equipamento'}" da bancada?`)) {
+          return;
+        }
+        const novaLista = equipamentos.filter(item => item.id !== eqId);
+        const updated = {
+          ...localSegment,
+          equipamentos: novaLista
+        };
+        await handlePersistSegment(updated, 'Equipamento removido da bancada.');
+      };
+
+      const handleCopyEqData = (eqId, text) => {
+        if (!text) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text);
+          setCopiedEqId(eqId);
+          setTimeout(() => setCopiedEqId(null), 2000);
+          if (showToast) showToast('Dados copiados para a área de transferência! 📋');
+        } else {
+          prompt('Copie os dados:', text);
+        }
+      };
 
       return (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]">
             
-            {/* Header do Modal */}
-            <div className="bg-gradient-to-r from-totvs-dark to-totvs-blue text-white p-4 sm:p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+            {/* Header do Modal com Identidade Visual TOTVS */}
+            <div className="bg-gradient-to-r from-totvs-dark via-slate-900 to-totvs-blue text-white p-4 sm:p-6 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3.5 sm:gap-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shrink-0 shadow-md">
                   <IconComp />
                 </div>
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-totvs-cyan">
-                    Estação {segment.ordem} do Roteiro Físico
-                  </span>
-                  <h2 className="text-2xl font-black text-white">{segment.nome}</h2>
-                  <p className="text-xs text-slate-200 mt-0.5">{segment.tagline}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-totvs-cyan bg-totvs-cyan/10 px-2.5 py-0.5 rounded-full border border-totvs-cyan/20">
+                      Estação {localSegment.ordem.toString().padStart(2, '0')} do Roteiro Físico
+                    </span>
+                    {canEdit && (
+                      <span className="text-[10px] font-bold text-amber-300 bg-amber-400/20 px-2 py-0.5 rounded-full border border-amber-400/30">
+                        ✏️ Modo de Edição Ativo ({admLogado?.perfil === 'pmm' ? 'PMM' : 'ADM'})
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-white mt-0.5">{localSegment.nome}</h2>
+                  <p className="text-xs text-slate-300 line-clamp-1">{localSegment.tagline}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {admLogado && (
-                  <button
-                    onClick={onEdit}
-                    className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/20 transition cursor-pointer"
-                  >
-                    <Icons.Edit />
-                    <span>Editar Informações</span>
-                  </button>
-                )}
+              <div className="flex items-center gap-2 shrink-0">
                 <button
+                  type="button"
                   onClick={onClose}
-                  className="text-slate-300 hover:text-white p-1 rounded-lg transition"
+                  className="text-slate-300 hover:text-white p-2 rounded-xl hover:bg-white/10 transition cursor-pointer"
+                  title="Fechar Guia"
                 >
                   <Icons.X />
                 </button>
               </div>
             </div>
 
-            {/* Navegação por Abas */}
-            <div className="flex border-b border-slate-200 bg-slate-50 px-4 sm:px-6 overflow-x-auto scrollbar-thin">
+            {/* Navegação por Abas Simplificada (2 Abas) */}
+            <div className="flex border-b border-slate-200 bg-slate-50 px-4 sm:px-6 shrink-0">
               <button
-                onClick={() => setTab('pitch')}
-                className={`py-3.5 px-4 font-semibold text-xs border-b-2 transition flex items-center gap-2 ${
-                  tab === 'pitch'
-                    ? 'border-totvs-blue text-totvs-blue bg-white'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                type="button"
+                onClick={() => setTab('discurso')}
+                className={`py-3.5 px-4 font-bold text-xs border-b-2 transition flex items-center gap-2 cursor-pointer ${
+                  tab === 'discurso'
+                    ? 'border-totvs-blue text-totvs-blue bg-white shadow-2xs'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
-                <span>🎙️ Discurso de Plantão (Pitch)</span>
+                <span>🎙️ Discurso do Segmento</span>
               </button>
               <button
-                onClick={() => setTab('bancada')}
-                className={`py-3.5 px-4 font-semibold text-xs border-b-2 transition flex items-center gap-2 ${
-                  tab === 'bancada'
-                    ? 'border-totvs-blue text-totvs-blue bg-white'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                type="button"
+                onClick={() => setTab('equipamentos')}
+                className={`py-3.5 px-4 font-bold text-xs border-b-2 transition flex items-center gap-2 cursor-pointer ${
+                  tab === 'equipamentos'
+                    ? 'border-totvs-blue text-totvs-blue bg-white shadow-2xs'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
-                <span>🖥️ Bancada Física & Roteiro</span>
-              </button>
-              <button
-                onClick={() => setTab('midias')}
-                className={`py-3.5 px-4 font-semibold text-xs border-b-2 transition flex items-center gap-2 ${
-                  tab === 'midias'
-                    ? 'border-totvs-blue text-totvs-blue bg-white'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <span>🎬 Fotos & Vídeos</span>
+                <span>🖥️ Equipamentos e dados de acesso</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 font-extrabold">
+                  {equipamentos.length}
+                </span>
               </button>
             </div>
 
-            {/* Conteúdo das Abas */}
-            <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
-              {tab === 'pitch' && (
-                <div className="space-y-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50/40 p-5 rounded-2xl border border-blue-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-totvs-blue flex items-center gap-1.5">
-                        <Icons.UserCheck />
-                        <span>Pitch Sugerido de 1 Minuto para o Visitante:</span>
-                      </span>
-                      <span className="text-[11px] font-semibold bg-totvs-blue text-white px-2 py-0.5 rounded-full">
-                        Discurso de Alto Impacto
-                      </span>
+            {/* Conteúdo das Abas com Scroll */}
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1">
+              
+              {/* ABA 1: DISCURSO DO SEGMENTO */}
+              {tab === 'discurso' && (
+                <div className="space-y-6 animate-in fade-in duration-150">
+                  
+                  {/* Bloco 1: Pitch Sugerido de 1 Minuto */}
+                  <div className="bg-gradient-to-br from-blue-50/80 via-indigo-50/40 to-white p-5 sm:p-6 rounded-2xl border border-blue-200/80 shadow-sm relative">
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-totvs-blue flex items-center gap-1.5">
+                          <Icons.UserCheck />
+                          <span>Pitch Sugerido de 1 Minuto para o Visitante:</span>
+                        </span>
+                        <span className="text-[10px] font-black bg-totvs-blue text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                          Discurso de Alto Impacto
+                        </span>
+                      </div>
+
+                      {canEdit && !editandoPitch && (
+                        <button
+                          type="button"
+                          onClick={() => setEditandoPitch(true)}
+                          className="flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-blue-50 text-totvs-blue text-xs font-bold rounded-lg border border-totvs-blue/30 shadow-2xs transition cursor-pointer"
+                        >
+                          <Icons.Edit />
+                          <span>Editar Pitch</span>
+                        </button>
+                      )}
                     </div>
-                    <blockquote className="text-sm font-medium text-slate-800 italic leading-relaxed">
-                      "{segment.pitch}"
-                    </blockquote>
-                  </div>
 
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                      <Icons.AlertCircle />
-                      <span>Dores Críticas do Mercado que a TOTVS Resolve:</span>
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {segment.dores_setor && segment.dores_setor.map((dor, i) => (
-                        <div key={i} className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 text-xs text-slate-700 leading-snug flex gap-2">
-                          <span className="font-bold text-totvs-cyan">{i+1}.</span>
-                          <span>{dor}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-200/70">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 mb-2 flex items-center gap-1.5">
-                      <span>💡 Perguntas-Chave para Provocar e Engajar o Visitante:</span>
-                    </h4>
-                    <ul className="space-y-2 text-xs text-amber-950 font-medium">
-                      {segment.perguntas_visitante && segment.perguntas_visitante.map((perg, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-amber-600 font-bold">•</span>
-                          <span>"{perg}"</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )}
-
-              {tab === 'bancada' && (
-                <div className="space-y-6">
-                  {/* Foto da Bancada e Credenciais Integradas */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {segment.foto_bancada ? (
-                      <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-950 group">
-                        <img src={resolveMediaUrl(segment.foto_bancada)} onError={(e) => handleMediaError(e, segment.foto_bancada)}
-                          alt={`Bancada física ${segment.nome}`}
-                          className="w-full h-48 object-cover group-hover:scale-105 transition duration-500"
+                    {editandoPitch ? (
+                      <div className="space-y-3 pt-1">
+                        <textarea
+                          rows={5}
+                          value={pitchTexto}
+                          onChange={(e) => setPitchTexto(e.target.value)}
+                          placeholder="Digite o discurso de impacto para a estação..."
+                          className="w-full text-xs sm:text-sm p-3.5 rounded-xl border border-totvs-blue/40 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-cyan font-medium leading-relaxed"
                         />
-                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-bold border border-white/20 shadow-sm">
-                          <span>📸 Foto da Bancada Física</span>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPitchTexto(localSegment.pitch || '');
+                              setEditandoPitch(false);
+                            }}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-200 transition cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            disabled={salvando}
+                            onClick={handleSavePitch}
+                            className="px-4 py-1.5 rounded-lg text-xs font-bold bg-totvs-blue hover:bg-totvs-dark text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Icons.Save />
+                            <span>{salvando ? 'Salvando...' : 'Salvar Pitch'}</span>
+                          </button>
                         </div>
                       </div>
                     ) : (
-                      <div className="h-48 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-dashed border-slate-300 flex flex-col items-center justify-center p-4 text-center">
-                        <span className="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mb-2">
-                          <Icons.Image />
-                        </span>
-                        <span className="text-xs font-bold text-slate-600 block">Bancada Física</span>
-                        <span className="text-[11px] text-slate-400">Nenhuma foto vinculada ainda</span>
+                      <blockquote className="text-xs sm:text-sm font-medium text-slate-800 italic leading-relaxed pl-2 border-l-4 border-totvs-blue">
+                        "{localSegment.pitch || 'Nenhum pitch cadastrado ainda.'}"
+                      </blockquote>
+                    )}
+                  </div>
+
+                  {/* Bloco 2: Vídeo do Discurso */}
+                  <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-md">
+                    <div className="p-4 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-totvs-blue/20 text-totvs-cyan flex items-center justify-center">
+                          <Icons.Video />
+                        </div>
+                        <div>
+                          <h4 className="text-xs sm:text-sm font-black text-white">
+                            Vídeo Demonstrativo do Discurso
+                          </h4>
+                          <span className="text-[11px] text-slate-400">
+                            Demonstração prática do roteiro e postura do especialista
+                          </span>
+                        </div>
+                      </div>
+
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={() => setEditandoVideo(!editandoVideo)}
+                          className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-totvs-cyan text-xs font-bold border border-slate-700 transition cursor-pointer"
+                        >
+                          <Icons.Edit />
+                          <span>{editandoVideo ? 'Fechar Edição' : 'Alterar Vídeo'}</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Painel de Edição de Vídeo (ADM/PMM) */}
+                    {editandoVideo && (
+                      <div className="p-4 bg-slate-800 border-b border-slate-700 space-y-3 animate-in fade-in duration-150">
+                        <p className="text-xs text-slate-300">
+                          Cole o link de compartilhamento do <strong>Google Drive</strong>, YouTube ou link direto de vídeo MP4. No ambiente local, você também pode subir o arquivo de vídeo diretamente.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <input
+                            type="text"
+                            placeholder="Ex: https://drive.google.com/file/d/1aBcDeFg.../view?usp=sharing"
+                            value={videoInputUrl}
+                            onChange={(e) => setVideoInputUrl(e.target.value)}
+                            className="flex-1 text-xs px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-totvs-cyan font-mono"
+                          />
+                          <button
+                            type="button"
+                            disabled={salvando}
+                            onClick={handleSaveVideo}
+                            className="px-4 py-2 bg-totvs-cyan hover:bg-totvs-cyan/90 text-slate-950 font-black text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                          >
+                            <Icons.CheckCircle />
+                            <span>{salvando ? 'Salvando...' : 'Aplicar Link'}</span>
+                          </button>
+                        </div>
+
+                        {/* Opção de Upload de Arquivo MP4 Local */}
+                        <div className="pt-2 border-t border-slate-700/60 flex items-center justify-between flex-wrap gap-2 text-xs">
+                          <span className="text-slate-400 text-[11px]">
+                            Ou selecione um arquivo de vídeo do seu computador (MP4):
+                          </span>
+                          <label className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold cursor-pointer transition flex items-center gap-1.5">
+                            <Icons.Upload />
+                            <span>Subir Arquivo de Vídeo</span>
+                            <input
+                              type="file"
+                              accept="video/mp4,video/webm,video/quicktime"
+                              onChange={handleUploadVideoFile}
+                              className="hidden"
+                              disabled={salvando}
+                            />
+                          </label>
+                        </div>
                       </div>
                     )}
 
-                    <div className="flex flex-col justify-between">
-                      <StationCredentialsBox credenciais={segment.credenciais} />
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 mt-3 text-xs text-slate-600 leading-relaxed">
-                        <strong className="text-totvs-blue block mb-1">Dica para a Visita:</strong>
-                        Mantenha este computador ligado e logado com as credenciais acima antes do início da jornada dos clientes.
+                    {/* Player de Vídeo Responsivo Inteligente */}
+                    <div className="relative w-full aspect-video bg-black flex items-center justify-center">
+                      {videoInfo.tipo === 'drive' || videoInfo.tipo === 'youtube' ? (
+                        <iframe
+                          src={videoInfo.embedUrl}
+                          title={`Vídeo do Discurso - ${localSegment.nome}`}
+                          className="w-full h-full border-0"
+                          allow="autoplay; encrypted-media; fullscreen"
+                          allowFullScreen
+                        />
+                      ) : videoInfo.tipo === 'video' && videoInfo.embedUrl ? (
+                        <video
+                          controls
+                          className="w-full h-full object-contain bg-black"
+                          src={videoInfo.embedUrl}
+                        >
+                          Seu navegador não suporta reprodução nativa de vídeo.
+                        </video>
+                      ) : (
+                        <div className="text-center p-6 space-y-2">
+                          <div className="w-12 h-12 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mx-auto text-xl">
+                            🎬
+                          </div>
+                          <p className="text-xs font-bold text-slate-300">
+                            Nenhum vídeo vinculado a esta estação ainda.
+                          </p>
+                          {canEdit && (
+                            <p className="text-[11px] text-totvs-cyan cursor-pointer hover:underline" onClick={() => setEditandoVideo(true)}>
+                              Clique em "Alterar Vídeo" acima para colar um link do Google Drive ou subir um vídeo.
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* ABA 2: EQUIPAMENTOS E DADOS DE ACESSO */}
+              {tab === 'equipamentos' && (
+                <div className="space-y-5 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                      <h3 className="font-extrabold text-sm sm:text-base text-slate-800 flex items-center gap-2">
+                        <span>Equipamentos Físicos & Credenciais da Bancada</span>
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Consulte as fotos dos dispositivos da estação, títulos e informações de login/acesso
+                      </p>
+                    </div>
+
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={handleOpenNovoEquipamento}
+                        className="px-3.5 py-2 rounded-xl bg-totvs-blue hover:bg-totvs-dark text-white font-bold text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                      >
+                        <Icons.Plus />
+                        <span>Adicionar Equipamento</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Grid de Cards de Equipamentos */}
+                  {equipamentos.length === 0 ? (
+                    <div className="p-8 rounded-2xl bg-slate-50 border border-dashed border-slate-300 text-center space-y-2">
+                      <div className="w-12 h-12 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto text-xl">
+                        🖥️
                       </div>
+                      <h4 className="text-xs font-bold text-slate-700">Nenhum equipamento cadastrado</h4>
+                      <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                        Esta bancada ainda não possui dispositivos ou credenciais configuradas.
+                      </p>
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={handleOpenNovoEquipamento}
+                          className="mt-2 px-3 py-1.5 bg-totvs-blue text-white rounded-lg text-xs font-bold cursor-pointer"
+                        >
+                          + Cadastrar Primeiro Equipamento
+                        </button>
+                      )}
                     </div>
-                  </div>
-
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                      O Que Há Fisicamente no Laboratório:
-                    </h4>
-                    <p className="text-xs text-slate-700 font-medium leading-relaxed">
-                      {segment.cenario_fisico}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-totvs-blue mb-3">
-                      Passo a Passo de Demonstração na Bancada:
-                    </h4>
-                    <div className="space-y-3">
-                      {segment.roteiro_bancada && segment.roteiro_bancada.map((passo, idx) => (
-                        <div key={idx} className="flex items-start gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-                          <span className="w-6 h-6 rounded-full bg-totvs-blue text-white flex items-center justify-center text-xs font-bold shrink-0">
-                            {idx + 1}
-                          </span>
-                          <span className="text-xs text-slate-800 font-medium leading-relaxed">
-                            {passo}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                      Sistemas & Módulos TOTVS Exibidos:
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {segment.badge_solucoes && segment.badge_solucoes.map((sol, idx) => (
-                        <span key={idx} className="bg-totvs-blue/10 text-totvs-blue font-bold text-xs px-3 py-1 rounded-lg border border-totvs-blue/20">
-                          {sol}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {tab === 'midias' && (
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                      <Icons.Video />
-                      <span>Vídeos de Demonstração & Tour no Laboratório:</span>
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {segment.midias?.videos && segment.midias.videos.map((vid, idx) => (
-                        <div key={idx} className="bg-slate-900 rounded-2xl overflow-hidden shadow-md border border-slate-800">
-                          <video
-                            controls
-                            className="w-full h-48 object-cover bg-black"
-                            src={vid.url}
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {equipamentos.map((eq, idx) => {
+                        const isCopied = copiedEqId === eq.id;
+                        return (
+                          <div
+                            key={eq.id || idx}
+                            className="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between group"
                           >
-                            Seu navegador não suporta reprodução de vídeo.
-                          </video>
-                          <div className="p-3 bg-slate-900 text-white">
-                            <h5 className="font-bold text-xs">{vid.titulo}</h5>
-                            <span className="text-[10px] text-slate-400">Vídeo local gravado no Espaço Experiência</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                            <div>
+                              {/* Foto do Equipamento */}
+                              <div className="relative h-40 bg-slate-100 overflow-hidden border-b border-slate-100">
+                                {eq.foto ? (
+                                  <>
+                                    <img
+                                      src={resolveMediaUrl(eq.foto)}
+                                      onError={(e) => handleMediaError(e, eq.foto)}
+                                      alt={eq.titulo}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer"
+                                      onClick={() => setLightboxFoto(eq.foto)}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => setLightboxFoto(eq.foto)}
+                                      title="Ampliar Foto"
+                                      className="absolute bottom-2 right-2 w-7 h-7 rounded-lg bg-slate-900/80 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                                    >
+                                      🔍
+                                    </button>
+                                  </>
+                                ) : (
+                                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+                                    <span className="text-3xl mb-1">💻</span>
+                                    <span className="text-[10px] font-bold text-slate-400">Sem foto vinculada</span>
+                                  </div>
+                                )}
+                              </div>
 
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                      <Icons.Image />
-                      <span>Fotos dos Equipamentos e Telas do Laboratório:</span>
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                      {segment.midias?.fotos && segment.midias.fotos.map((foto, idx) => (
-                        <div key={idx} className="rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
-                          <img src={resolveMediaUrl(foto.url)} onError={(e) => handleMediaError(e, foto.url)}
-                            alt={foto.titulo}
-                            className="w-full h-36 object-cover hover:scale-105 transition duration-300"
-                          />
-                          <div className="p-2 text-[11px] font-semibold text-slate-700 bg-white">
-                            {foto.titulo}
+                              {/* Conteúdo do Card */}
+                              <div className="p-3.5 space-y-2">
+                                <h4 className="font-extrabold text-xs text-slate-800 leading-snug line-clamp-1" title={eq.titulo}>
+                                  {eq.titulo || 'Dispositivo da Bancada'}
+                                </h4>
+
+                                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-[11px] text-slate-700 font-mono whitespace-pre-wrap leading-relaxed select-all">
+                                  {eq.descricao || 'Nenhuma informação de acesso informada.'}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Ações do Card */}
+                            <div className="p-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-2">
+                              {eq.descricao ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyEqData(eq.id, eq.descricao)}
+                                  className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold flex items-center gap-1 transition cursor-pointer ${
+                                    isCopied
+                                      ? 'bg-emerald-600 text-white'
+                                      : 'bg-white hover:bg-slate-100 text-totvs-blue border border-slate-200'
+                                  }`}
+                                >
+                                  <Icons.Copy />
+                                  <span>{isCopied ? 'Copiado!' : 'Copiar Dados'}</span>
+                                </button>
+                              ) : <span />}
+
+                              {canEdit && (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEditarEquipamento(eq)}
+                                    className="p-1.5 text-slate-600 hover:text-totvs-blue hover:bg-white rounded-lg transition cursor-pointer"
+                                    title="Editar Dados do Equipamento"
+                                  >
+                                    <Icons.Edit />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteEquipamento(eq.id, eq.titulo)}
+                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                    title="Remover Equipamento da Bancada"
+                                  >
+                                    <Icons.Trash />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
+
             </div>
 
             {/* Rodapé do Modal */}
-            <div className="bg-slate-100 px-6 py-3.5 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-              <span>Última revisão por {segment.ultima_atualizacao?.autor} em {segment.ultima_atualizacao?.data}</span>
+            <div className="bg-slate-100 px-6 py-3.5 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 shrink-0">
+              <span className="text-[11px]">
+                Última revisão por <strong>{localSegment.ultima_atualizacao?.autor || 'Especialista TOTVS'}</strong> em {localSegment.ultima_atualizacao?.data || 'Recente'}
+              </span>
               <button
+                type="button"
                 onClick={onClose}
-                className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-lg font-semibold transition"
+                className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer"
               >
                 Fechar
               </button>
             </div>
 
           </div>
+
+          {/* MODAL CONTEXTUAL: ADICIONAR / EDITAR EQUIPAMENTO */}
+          {modalEquipamentoAberto && (
+            <div className="fixed inset-0 z-60 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <h3 className="font-black text-sm sm:text-base text-slate-800 flex items-center gap-2">
+                    <span>{equipamentoEmEdicao ? 'Editar Equipamento' : 'Novo Equipamento da Bancada'}</span>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setModalEquipamentoAberto(false)}
+                    className="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
+                  >
+                    <Icons.X />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveEquipamento} className="space-y-3.5 text-xs">
+                  {/* Foto do Equipamento */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Foto do Equipamento:
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <div className="w-20 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                        {eqFoto ? (
+                          <img src={eqFoto} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-xl text-slate-400">📷</span>
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs cursor-pointer border border-slate-300 transition">
+                          <Icons.Upload />
+                          <span>{eqProcessandoFoto ? 'Otimizando...' : (eqFoto ? 'Trocar Foto' : 'Subir Foto')}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleUploadEqFoto}
+                            disabled={eqProcessandoFoto}
+                            className="hidden"
+                          />
+                        </label>
+                        <p className="text-[10px] text-slate-500">
+                          Redimensionamento e compressão automática via Canvas para máxima performance.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Título */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Título do Equipamento *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Notebook Dell Precision - Agro"
+                      value={eqTitulo}
+                      onChange={(e) => setEqTitulo(e.target.value)}
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-cyan"
+                      required
+                    />
+                  </div>
+
+                  {/* Descrição e Dados de Acesso */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Descrição & Dados de Acesso / Instruções:
+                    </label>
+                    <textarea
+                      rows={4}
+                      placeholder={"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026\nObservação: Conectar na rede TOTVS-Showroom"}
+                      value={eqDescricao}
+                      onChange={(e) => setEqDescricao(e.target.value)}
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-cyan leading-relaxed"
+                    />
+                  </div>
+
+                  {/* Botões do Modal de Equipamento */}
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setModalEquipamentoAberto(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={salvando || eqProcessandoFoto}
+                      className="px-5 py-2 rounded-xl text-xs font-bold bg-totvs-blue hover:bg-totvs-dark text-white shadow-md transition flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Icons.Save />
+                      <span>{salvando ? 'Salvando...' : 'Salvar Equipamento'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* LIGHTBOX: FOTO AMPLIADA DO EQUIPAMENTO */}
+          {lightboxFoto && (
+            <div
+              className="fixed inset-0 z-70 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer"
+              onClick={() => setLightboxFoto(null)}
+            >
+              <div className="relative max-w-3xl w-full max-h-[85vh] flex items-center justify-center">
+                <img
+                  src={resolveMediaUrl(lightboxFoto)}
+                  alt="Visualização do Equipamento"
+                  className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain border border-white/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => setLightboxFoto(null)}
+                  className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white text-slate-900 font-bold flex items-center justify-center shadow-lg hover:bg-slate-200 transition cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
         </div>
       );
     }
@@ -5281,6 +5894,13 @@
         };
       }, [onClose]);
 
+      // Usuário PMM não pode visualizar abas de administradores ou convites
+      useEffect(() => {
+        if (admLogado?.perfil === 'pmm' && (activeTab === 'adms' || activeTab === 'convites')) {
+          if (onTabChange) onTabChange('visitas');
+        }
+      }, [admLogado?.perfil, activeTab, onTabChange]);
+
       const [copiedToken, setCopiedToken] = useState(null);
       const [gerandoConvite, setGerandoConvite] = useState(false);
       const [conviteRecemCriado, setConviteRecemCriado] = useState(null);
@@ -5293,6 +5913,74 @@
       // Estados para Novo Convite com Nome e E-mail obrigatórios
       const [novoAdmNome, setNovoAdmNome] = useState('');
       const [novoAdmEmail, setNovoAdmEmail] = useState('');
+      const [perfilConvite, setPerfilConvite] = useState('pmm');
+
+      // Estados para Troca de Senha Própria
+      const [modalTrocarSenha, setModalTrocarSenha] = useState(false);
+      const [novaSenhaInput, setNovaSenhaInput] = useState('');
+      const [confirmaNovaSenhaInput, setConfirmaNovaSenhaInput] = useState('');
+      const [salvandoSenha, setSalvandoSenha] = useState(false);
+      const [erroTrocaSenha, setErroTrocaSenha] = useState('');
+
+      const handleTrocarSenha = async (e) => {
+        if (e) e.preventDefault();
+        setErroTrocaSenha('');
+        const senhaLimpa = novaSenhaInput.trim();
+        if (senhaLimpa.length < 6 || !/^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(senhaLimpa)) {
+          setErroTrocaSenha('A nova senha deve possuir no mínimo 6 caracteres e conter letras e números.');
+          return;
+        }
+        if (senhaLimpa !== confirmaNovaSenhaInput.trim()) {
+          setErroTrocaSenha('A confirmação da nova senha não confere.');
+          return;
+        }
+
+        setSalvandoSenha(true);
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              setSalvandoSenha(false);
+              if (res && res.success) {
+                setModalTrocarSenha(false);
+                setNovaSenhaInput('');
+                setConfirmaNovaSenhaInput('');
+                if (showToast) showToast('Sua senha foi alterada com sucesso! 🔐');
+              } else {
+                setErroTrocaSenha(res.message || 'Erro ao alterar senha.');
+              }
+            })
+            .withFailureHandler((err) => {
+              setSalvandoSenha(false);
+              setErroTrocaSenha('Falha ao comunicar com a nuvem TOTVS: ' + (err.message || err));
+            })
+            .alterarSenhaUsuario(admLogado.email, senhaLimpa);
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/admin/password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: admLogado.email,
+              novaSenha: senhaLimpa
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            setModalTrocarSenha(false);
+            setNovaSenhaInput('');
+            setConfirmaNovaSenhaInput('');
+            if (showToast) showToast('Sua senha foi alterada com sucesso! 🔐');
+          } else {
+            setErroTrocaSenha(data.message || 'Erro ao alterar senha.');
+          }
+        } catch (err) {
+          setErroTrocaSenha('Erro de conexão ao alterar senha.');
+        } finally {
+          setSalvandoSenha(false);
+        }
+      };
 
       // Estados e Ref para Upload de Foto de Perfil
       const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -5353,6 +6041,7 @@
             body: JSON.stringify({
               nome: novoAdmNome.trim(),
               email: novoAdmEmail.trim(),
+              perfil: perfilConvite,
               criado_por: admLogado?.nome || 'Administrador'
             })
           });
@@ -5584,6 +6273,10 @@
                       <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40">
                         👑 Dono do Produto
                       </span>
+                    ) : admLogado?.perfil === 'pmm' ? (
+                      <span className="text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                        🎯 PMM (Gestor de Segmento)
+                      </span>
                     ) : (
                       <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
                         Administrador
@@ -5604,6 +6297,14 @@
               </div>
 
               <div className="flex items-center gap-2 self-end sm:self-center">
+                <button
+                  type="button"
+                  onClick={() => setModalTrocarSenha(true)}
+                  className="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold border border-white/20 transition flex items-center gap-1 cursor-pointer"
+                  title="Alterar minha senha de acesso"
+                >
+                  <span>🔑 Trocar Senha</span>
+                </button>
                 <button
                   type="button"
                   onClick={onRefresh}
@@ -5635,35 +6336,39 @@
               </div>
             </div>
 
-            {/* Abas de Navegação */}
+            {/* Abas de Navegação (Restritas se for PMM) */}
             <div className="flex border-b border-slate-200 bg-slate-50 px-6 gap-2 pt-2 overflow-x-auto">
-              <button
-                onClick={() => onTabChange('adms')}
-                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
-                  activeTab === 'adms'
-                    ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <Icons.Shield />
-                <span>Administradores ({admsList.length})</span>
-              </button>
+              {admLogado?.perfil !== 'pmm' && (
+                <>
+                  <button
+                    onClick={() => onTabChange('adms')}
+                    className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
+                      activeTab === 'adms'
+                        ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Icons.Shield />
+                    <span>Administradores ({admsList.length})</span>
+                  </button>
 
-              <button
-                onClick={() => onTabChange('convites')}
-                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
-                  activeTab === 'convites'
-                    ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <Icons.Plus />
-                <span>Convites de ADM ({convitesList.length})</span>
-              </button>
+                  <button
+                    onClick={() => onTabChange('convites')}
+                    className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
+                      activeTab === 'convites'
+                        ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Icons.Plus />
+                    <span>Convites ({convitesList.length})</span>
+                  </button>
+                </>
+              )}
 
               <button
                 onClick={() => onTabChange('visitas')}
-                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
+                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'visitas'
                     ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -5675,7 +6380,7 @@
 
               <button
                 onClick={() => onTabChange('audit')}
-                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
+                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'audit'
                     ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -5687,7 +6392,7 @@
 
               <button
                 onClick={() => onTabChange('video')}
-                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
+                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'video'
                     ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -5772,9 +6477,14 @@
                                       Você
                                     </span>
                                   )}
-                                  {!isDono && (
-                                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
-                                      ADM Ativo
+                                  {!isDono && adm.perfil === 'pmm' && (
+                                    <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
+                                      🎯 PMM (Gestão)
+                                    </span>
+                                  )}
+                                  {!isDono && adm.perfil !== 'pmm' && (
+                                    <span className="text-[10px] bg-blue-50 text-totvs-blue font-bold px-2 py-0.5 rounded-full border border-blue-200 flex items-center gap-1">
+                                      🛡️ ADM Ativo
                                     </span>
                                   )}
                                 </div>
@@ -5822,7 +6532,7 @@
                 </div>
               )}
 
-              {/* ABA 2: CONVITES DE ADM */}
+              {/* ABA 2: CONVITES DE ADM E PMM */}
               {activeTab === 'convites' && (
                 <div className="space-y-6">
                   {/* Card Gerador de Convite com Formulário Obrigatório */}
@@ -5830,18 +6540,68 @@
                     <div>
                       <h4 className="font-extrabold text-base text-white flex items-center gap-2">
                         <Icons.Plus />
-                        <span>Novo Convite de Administrador</span>
+                        <span>Novo Convite de Acesso (PMM ou Administrador)</span>
                       </h4>
                       <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                        Preencha o nome completo e o e-mail corporativo do colega para gerar um link exclusivo com a senha provisória padrão <strong className="text-totvs-cyan font-mono">123</strong>. O link só pode ser gerado após o preenchimento completo dos campos.
+                        Preencha o nome completo e o e-mail corporativo do colega para gerar um link exclusivo com a senha provisória padrão <strong className="text-totvs-cyan font-mono">totvs123</strong>. O link só pode ser gerado após o preenchimento completo dos campos.
                       </p>
                     </div>
 
-                    <form onSubmit={handleGerarConvite} className="mt-4 pt-4 border-t border-slate-700/80 space-y-3">
+                    <form onSubmit={handleGerarConvite} className="mt-4 pt-4 border-t border-slate-700/80 space-y-4">
+                      {/* Seletor de Perfil: PMM vs ADM */}
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-300 mb-1.5">
+                          Perfil de Acesso do Convidado *
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => setPerfilConvite('pmm')}
+                            className={`p-3 rounded-xl border text-left transition flex items-start gap-2.5 cursor-pointer ${
+                              perfilConvite === 'pmm'
+                                ? 'bg-emerald-950/60 border-emerald-400 text-white shadow-sm ring-1 ring-emerald-400/50'
+                                : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600'
+                            }`}
+                          >
+                            <span className="text-base shrink-0 mt-0.5">🎯</span>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <strong className="text-xs font-bold text-white">PMM (Product Marketing)</strong>
+                                <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-extrabold px-1.5 py-0.2 rounded">Recomendado</span>
+                              </div>
+                              <p className="text-[10px] text-slate-300 mt-0.5 leading-snug">
+                                Edita pitch, vídeos, fotos e equipamentos de qualquer estação. Altera sua própria senha e foto de perfil. Não convida nem exclui outros usuários.
+                              </p>
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setPerfilConvite('adm')}
+                            className={`p-3 rounded-xl border text-left transition flex items-start gap-2.5 cursor-pointer ${
+                              perfilConvite === 'adm'
+                                ? 'bg-totvs-blue/30 border-totvs-cyan text-white shadow-sm ring-1 ring-totvs-cyan/50'
+                                : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600'
+                            }`}
+                          >
+                            <span className="text-base shrink-0 mt-0.5">🛡️</span>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <strong className="text-xs font-bold text-white">Administrador Geral</strong>
+                                <span className="text-[9px] bg-totvs-cyan/20 text-totvs-cyan font-extrabold px-1.5 py-0.2 rounded">Acesso Total</span>
+                              </div>
+                              <p className="text-[10px] text-slate-300 mt-0.5 leading-snug">
+                                Acesso irrestrito a todas as estações, vídeos da gestão, métricas, logs de auditoria e gestão de outros administradores e convites.
+                              </p>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                            Nome Completo do Novo ADM *
+                            Nome Completo do Convidado *
                           </label>
                           <input
                             type="text"
@@ -5854,7 +6614,7 @@
 
                         <div>
                           <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                            E-mail Corporativo Válido *
+                            E-mail Corporativo Válido (TOTVS) *
                           </label>
                           <input
                             type="email"
@@ -5870,7 +6630,7 @@
                         <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
                           <span>Senha Provisória Configurada:</span>
                           <span className="font-mono font-bold text-totvs-cyan bg-totvs-blue/20 px-2 py-0.5 rounded-lg border border-totvs-cyan/30">
-                            123
+                            totvs123
                           </span>
                         </div>
 
@@ -5884,7 +6644,7 @@
                           }`}
                         >
                           <Icons.Plus />
-                          <span>{gerandoConvite ? 'Gerando Link...' : 'Gerar Link de Convite (Senha 123)'}</span>
+                          <span>{gerandoConvite ? 'Gerando Link...' : `Gerar Link de Convite (${perfilConvite === 'pmm' ? 'PMM' : 'ADM'})`}</span>
                         </button>
                       </div>
                     </form>
@@ -5895,10 +6655,10 @@
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <span className="text-xs font-bold text-totvs-cyan flex items-center gap-1.5">
                             <Icons.CheckCircle />
-                            Link Pronto para Envio a {conviteRecemCriado.nome}:
+                            Link Pronto para Envio a {conviteRecemCriado.nome} ({conviteRecemCriado.perfil === 'pmm' ? 'PMM' : 'ADM'}):
                           </span>
                           <span className="text-[11px] text-slate-300 font-mono">
-                            Senha Provisória: <strong className="text-totvs-cyan">123</strong>
+                            Senha Provisória: <strong className="text-totvs-cyan font-bold">totvs123</strong>
                           </span>
                         </div>
 
@@ -5919,26 +6679,41 @@
                           </button>
                         </div>
 
+                        {/* Botões de Ação Imediata: Enviar por E-mail Corporativo e WhatsApp/Teams */}
                         <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <a
+                              href={`mailto:${encodeURIComponent(conviteRecemCriado.email || '')}?subject=${encodeURIComponent('Convite: Acesso ao Espaço Experiência TOTVS (' + (conviteRecemCriado.perfil === 'pmm' ? 'PMM' : 'Administrador') + ')')}&body=${encodeURIComponent(
+                                `Olá, ${conviteRecemCriado.nome}!\n\nVocê foi convidado para gerenciar e editar conteúdos no Espaço Experiência TOTVS com o perfil de ${conviteRecemCriado.perfil === 'pmm' ? 'PMM (Product Marketing Manager)' : 'Administrador'}.\n\nPara ativar o seu acesso, clique no link exclusivo abaixo:\n${getPublicInviteUrl(conviteRecemCriado.token)}\n\nSenha provisória de primeiro acesso: totvs123\n(No primeiro acesso, você definirá sua senha definitiva com no mínimo 6 caracteres, contendo letras e números).\n\nAtenciosamente,\nEquipe Espaço Experiência TOTVS`
+                              )}`}
+                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+                            >
+                              <span>✉️ Enviar por E-mail Corporativo</span>
+                            </a>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const linkCompleto = getPublicInviteUrl(conviteRecemCriado.token);
+                                const cargo = conviteRecemCriado.perfil === 'pmm' ? 'PMM (Product Marketing Manager)' : 'Administrador';
+                                const textoPronto = `Olá, ${conviteRecemCriado.nome}! Você foi convidado para o Espaço Experiência TOTVS (${cargo}).\nLink de ativação: ${linkCompleto}\nSenha provisória: totvs123 (no primeiro acesso, cadastre sua senha definitiva com letras e números).`;
+                                if (navigator.clipboard && navigator.clipboard.writeText) {
+                                  navigator.clipboard.writeText(textoPronto);
+                                  if (showToast) showToast('Mensagem formatada copiada para Teams/WhatsApp! 📋');
+                                } else {
+                                  prompt('Copie o texto para envio:', textoPronto);
+                                }
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-totvs-cyan text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                            >
+                              <Icons.Copy />
+                              <span>Copiar Mensagem (Teams / Whats)</span>
+                            </button>
+                          </div>
+
                           <p className="text-[11px] text-slate-300">
-                            ℹ️ O novo ADM acessará o link com a senha provisória <strong>123</strong> e cadastrará sua nova senha definitiva.
+                            ℹ️ Senha provisória: <strong>totvs123</strong> • Nova senha: letras e números (mín. 6)
                           </p>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const linkCompleto = getPublicInviteUrl(conviteRecemCriado.token);
-                              const textoPronto = `Olá, ${conviteRecemCriado.nome}! Você foi convidado para ser Administrador do Espaço Experiência TOTVS.\nLink de ativação: ${linkCompleto}\nSenha provisória: 123 (no primeiro acesso, cadastre sua senha definitiva com letras e números).`;
-                              if (navigator.clipboard && navigator.clipboard.writeText) {
-                                navigator.clipboard.writeText(textoPronto);
-                                if (showToast) showToast('Mensagem formatada copiada para WhatsApp/Teams! 📋');
-                              } else {
-                                prompt('Copie o texto para envio:', textoPronto);
-                              }
-                            }}
-                            className="text-xs text-totvs-cyan hover:underline font-bold flex items-center gap-1 cursor-pointer"
-                          >
-                            <span>Copiar Mensagem Pronta (Teams / WhatsApp)</span>
-                          </button>
                         </div>
                       </div>
                     )}
@@ -5959,6 +6734,7 @@
                         {convitesList.map((convite) => {
                           const isUsado = convite.utilizado === true || convite.status === 'utilizado';
                           const isCopied = copiedToken === convite.token;
+                          const isPMM = convite.perfil === 'pmm' || (convite.token && convite.token.startsWith('pmm_'));
 
                           return (
                             <div key={convite.token} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition">
@@ -5970,13 +6746,22 @@
                                   <span className="text-[11px] text-totvs-blue font-mono">
                                     ({convite.email || '—'})
                                   </span>
+                                  {isPMM ? (
+                                    <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-extrabold px-2 py-0.5 rounded-full">
+                                      🎯 PMM
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] bg-blue-50 text-totvs-blue border border-blue-200 font-extrabold px-2 py-0.5 rounded-full">
+                                      🛡️ ADM
+                                    </span>
+                                  )}
                                   {isUsado ? (
                                     <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
                                       Utilizado
                                     </span>
                                   ) : (
                                     <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">
-                                      Pendente (Senha 123)
+                                      Pendente (Senha totvs123)
                                     </span>
                                   )}
                                 </div>
@@ -6312,6 +7097,103 @@
             </div>
 
           </div>
+
+          {/* Modal de Troca de Senha Própria (ADM ou PMM) */}
+          {modalTrocarSenha && (
+            <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-totvs-blue text-white flex items-center justify-center font-bold text-sm shadow">
+                      🔑
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-sm text-white">Alterar Minha Senha</h4>
+                      <p className="text-[11px] text-slate-300">
+                        {admLogado?.nome} ({admLogado?.perfil === 'pmm' ? 'PMM' : 'Administrador'})
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setModalTrocarSenha(false);
+                      setErroTrocaSenha('');
+                      setNovaSenhaInput('');
+                      setConfirmaNovaSenhaInput('');
+                    }}
+                    className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition"
+                  >
+                    <Icons.X />
+                  </button>
+                </div>
+
+                <form onSubmit={handleTrocarSenha} className="p-6 space-y-4">
+                  <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-slate-700 text-xs leading-relaxed">
+                    <span className="font-bold text-totvs-blue block mb-0.5">Regra de Criação de Senha:</span>
+                    A nova senha deve possuir no <strong>mínimo 6 caracteres</strong> e conter uma combinação de <strong>letras e números</strong>.
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Nova Senha *
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Mínimo 6 caracteres (letras e números)"
+                      value={novaSenhaInput}
+                      onChange={(e) => setNovaSenhaInput(e.target.value)}
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
+                      required
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Confirmar Nova Senha *
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Repita a nova senha"
+                      value={confirmaNovaSenhaInput}
+                      onChange={(e) => setConfirmaNovaSenhaInput(e.target.value)}
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
+                      required
+                    />
+                  </div>
+
+                  {erroTrocaSenha && (
+                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+                      ⚠️ {erroTrocaSenha}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModalTrocarSenha(false);
+                        setErroTrocaSenha('');
+                        setNovaSenhaInput('');
+                        setConfirmaNovaSenhaInput('');
+                      }}
+                      className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs transition cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={salvandoSenha || !novaSenhaInput || !confirmaNovaSenhaInput}
+                      className="px-5 py-2 rounded-xl bg-totvs-blue hover:bg-totvs-dark text-white font-bold text-xs transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    >
+                      {salvandoSenha ? 'Salvando...' : 'Salvar Nova Senha'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       );
     }

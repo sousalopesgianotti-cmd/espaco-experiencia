@@ -475,14 +475,18 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, { success: false, message: 'E-mail ou senha incorretos.' }, 401);
       }
 
+      const isDono = adm.dono_produto === true || adm.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br';
+      const perfil = adm.perfil || (isDono ? 'adm' : (adm.cargo && adm.cargo.toLowerCase().includes('pmm') ? 'pmm' : 'adm'));
+
       return sendJson(res, {
         success: true,
         usuario: {
           id: adm.id,
           nome: adm.nome,
           email: adm.email,
-          cargo: adm.cargo || (adm.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br' ? 'Dono do Produto' : 'Administrador'),
-          dono_produto: adm.dono_produto === true || adm.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br',
+          perfil: perfil,
+          cargo: adm.cargo || (isDono ? 'Dono do Produto' : (perfil === 'pmm' ? 'PMM (Gestor de Segmento)' : 'Administrador')),
+          dono_produto: isDono,
           foto: adm.foto || ''
         }
       });
@@ -531,13 +535,15 @@ const server = http.createServer(async (req, res) => {
       let convites = readJsonFile(convitesFile, []);
       if (!Array.isArray(convites)) convites = [];
 
-      const token = 'adm_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+      const perfil = (body.perfil || 'pmm').toLowerCase().trim() === 'adm' ? 'adm' : 'pmm';
+      const token = (perfil === 'adm' ? 'adm_' : 'pmm_') + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
       const novoConvite = {
         id: `conv-${Date.now()}`,
         token,
         nome,
         email,
-        senha_provisoria: '123',
+        perfil,
+        senha_provisoria: 'totvs123',
         criado_por: criadoPor,
         criado_em: new Date().toLocaleString('pt-BR'),
         utilizado: false
@@ -570,7 +576,7 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, { success: true, convite });
     }
 
-    // 9. POST /api/admin/accept-invite (Ativação do Novo ADM com troca de senha provisória 123)
+    // 9. POST /api/admin/accept-invite (Ativação com troca de senha provisória totvs123)
     if (pathname === '/api/admin/accept-invite' && method === 'POST') {
       const body = await readBodyJson(req);
       const { token, senhaProvisoria, novaSenha } = body;
@@ -579,8 +585,9 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, { success: false, message: 'Todos os campos são obrigatórios.' }, 400);
       }
 
-      if (senhaProvisoria.trim() !== '123') {
-        return sendJson(res, { success: false, message: 'Senha provisória incorreta. A senha padrão do convite é 123.' }, 400);
+      const senhaProvNorm = senhaProvisoria.trim();
+      if (senhaProvNorm !== 'totvs123' && senhaProvNorm !== '123') {
+        return sendJson(res, { success: false, message: 'Senha provisória incorreta. A senha padrão do convite é totvs123.' }, 400);
       }
 
       const senhaValida = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(novaSenha.trim());
@@ -609,37 +616,42 @@ const server = http.createServer(async (req, res) => {
       if (!Array.isArray(usuarios)) usuarios = [usuarios];
 
       if (usuarios.some(u => u.email.toLowerCase().trim() === email)) {
-        return sendJson(res, { success: false, message: 'Já existe um administrador cadastrado com este e-mail.' }, 400);
+        return sendJson(res, { success: false, message: 'Já existe um usuário cadastrado com este e-mail.' }, 400);
       }
 
-      const novoAdm = {
-        id: `adm-${Date.now()}`,
+      const perfil = convite.perfil || (convite.token && convite.token.startsWith('adm_') ? 'adm' : 'pmm');
+      const cargoDefault = perfil === 'adm' ? 'Administrador' : 'PMM (Gestor de Segmento)';
+
+      const novoUsuario = {
+        id: `usr-${Date.now()}`,
         nome: nome,
         email: email,
         senha: novaSenha.trim(),
-        cargo: 'Administrador',
+        perfil: perfil,
+        cargo: cargoDefault,
         dono_produto: false,
         foto: '',
         criado_em: new Date().toLocaleString('pt-BR')
       };
 
-      usuarios.push(novoAdm);
+      usuarios.push(novoUsuario);
       writeJsonFile(usrFile, usuarios);
 
       convites[conviteIdx].utilizado = true;
       convites[conviteIdx].utilizado_em = new Date().toLocaleString('pt-BR');
-      convites[conviteIdx].utilizado_por = novoAdm.nome;
-      convites[conviteIdx].email_utilizado = novoAdm.email;
+      convites[conviteIdx].utilizado_por = novoUsuario.nome;
+      convites[conviteIdx].email_utilizado = novoUsuario.email;
       writeJsonFile(convitesFile, convites);
 
       return sendJson(res, {
         success: true,
-        message: 'Administrador ativado com sucesso!',
+        message: 'Acesso ativado com sucesso!',
         usuario: {
-          id: novoAdm.id,
-          nome: novoAdm.nome,
-          email: novoAdm.email,
-          cargo: novoAdm.cargo,
+          id: novoUsuario.id,
+          nome: novoUsuario.nome,
+          email: novoUsuario.email,
+          perfil: novoUsuario.perfil,
+          cargo: novoUsuario.cargo,
           dono_produto: false,
           foto: ''
         }
@@ -654,7 +666,8 @@ const server = http.createServer(async (req, res) => {
         id: u.id,
         nome: u.nome,
         email: u.email,
-        cargo: u.cargo || (u.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br' ? 'Dono do Produto' : 'Administrador'),
+        perfil: u.perfil || (u.cargo === 'PMM' ? 'pmm' : 'adm'),
+        cargo: u.cargo || (u.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br' ? 'Dono do Produto' : (u.perfil === 'pmm' ? 'PMM' : 'Administrador')),
         dono_produto: u.dono_produto === true || u.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br',
         foto: u.foto || '',
         criado_em: u.criado_em
@@ -718,10 +731,43 @@ const server = http.createServer(async (req, res) => {
           id: usuarios[userIdx].id,
           nome: usuarios[userIdx].nome,
           email: usuarios[userIdx].email,
+          perfil: usuarios[userIdx].perfil || 'adm',
           cargo: usuarios[userIdx].cargo,
           dono_produto: usuarios[userIdx].dono_produto === true || usuarios[userIdx].email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br',
           foto: foto
         }
+      });
+    }
+
+    // 11.2 POST /api/admin/password (Alterar Própria Senha)
+    if (pathname === '/api/admin/password' && method === 'POST') {
+      const body = await readBodyJson(req);
+      const email = (body.email || '').trim().toLowerCase();
+      const novaSenha = (body.novaSenha || '').trim();
+
+      if (!email || !novaSenha) {
+        return sendJson(res, { success: false, message: 'E-mail e nova senha são obrigatórios.' }, 400);
+      }
+      const senhaValida = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(novaSenha);
+      if (!senhaValida) {
+        return sendJson(res, { success: false, message: 'A nova senha deve possuir no mínimo 6 caracteres e conter letras e números.' }, 400);
+      }
+
+      const usrFile = path.join(DATA_DIR, 'usuarios.json');
+      let usuarios = readJsonFile(usrFile, []);
+      if (!Array.isArray(usuarios)) usuarios = [usuarios];
+
+      const idx = usuarios.findIndex(u => u.email.toLowerCase().trim() === email);
+      if (idx === -1) {
+        return sendJson(res, { success: false, message: 'Usuário não encontrado.' }, 404);
+      }
+
+      usuarios[idx].senha = novaSenha;
+      writeJsonFile(usrFile, usuarios);
+
+      return sendJson(res, {
+        success: true,
+        message: 'Senha atualizada com sucesso!'
       });
     }
 

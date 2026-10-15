@@ -15,6 +15,7 @@ function autenticarUsuario(email, senha) {
       email: "andre.gianotti@totvs.com.br",
       nome: "André Gianotti",
       cargo: "Dono do Produto",
+      perfil: "adm",
       tipo: "administrador",
       dono_produto: true,
       precisa_trocar_senha: false,
@@ -33,17 +34,21 @@ function autenticarUsuario(email, senha) {
       for (var i = 1; i < dados.length; i++) {
         var row = dados[i];
         if (String(row[1]).toLowerCase().trim() === emailLimpo && String(row[4]).trim() === senhaLimpa) {
+          var cargoStr = String(row[3] || "Administrador");
+          var isDono = String(row[5]) === "true";
+          var perfilVal = String(row[9] || (isDono ? "adm" : (cargoStr.toLowerCase().indexOf("pmm") >= 0 ? "pmm" : "adm")));
           var u = {
             id: String(row[0]),
             email: String(row[1]),
             nome: String(row[2]),
-            cargo: String(row[3] || "Administrador"),
+            cargo: cargoStr,
+            perfil: perfilVal,
             tipo: "administrador",
-            dono_produto: String(row[5]) === "true",
+            dono_produto: isDono,
             precisa_trocar_senha: String(row[6]) === "true",
             foto: String(row[7] || "")
           };
-          registrarLogAcesso(u.nome, "Login efetuado com sucesso (Painel ADM)");
+          registrarLogAcesso(u.nome, "Login efetuado com sucesso (" + u.cargo + ")");
           return { success: true, usuario: u };
         }
       }
@@ -202,10 +207,12 @@ function salvarConviteAdmin(dados) {
     var aba = ss.getSheetByName("Convites");
     if (!aba) {
       aba = ss.insertSheet("Convites");
-      aba.appendRow(["ID", "Token", "Email", "Nome", "CriadoPor", "CriadoEm", "Utilizado"]);
-      aba.getRange("A1:G1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      aba.appendRow(["ID", "Token", "Email", "Nome", "CriadoPor", "CriadoEm", "Utilizado", "Perfil"]);
+      aba.getRange("A1:H1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
     }
-    var token = "adm_" + Math.random().toString(36).substring(2, 10) + new Date().getTime().toString(36);
+    var perfil = String(dados.perfil || "pmm").toLowerCase().trim() === "adm" ? "adm" : "pmm";
+    var prefix = perfil === "adm" ? "adm_" : "pmm_";
+    var token = prefix + Math.random().toString(36).substring(2, 10) + new Date().getTime().toString(36);
     var id = "conv-" + new Date().getTime();
     var agora = new Date().toLocaleString("pt-BR");
     var convite = {
@@ -213,11 +220,12 @@ function salvarConviteAdmin(dados) {
       token: token,
       email: dados.email,
       nome: dados.nome,
+      perfil: perfil,
       criado_por: dados.criado_por || "André Gianotti",
       criado_em: agora,
       utilizado: false
     };
-    aba.appendRow([convite.id, convite.token, convite.email, convite.nome, convite.criado_por, convite.criado_em, false]);
+    aba.appendRow([convite.id, convite.token, convite.email, convite.nome, convite.criado_por, convite.criado_em, false, convite.perfil]);
     return { success: true, convite: convite };
   } catch(e) {
     return { success: false, error: e.message };
@@ -1701,6 +1709,7 @@ function verificarConvite(token) {
           if (jaUtilizado) {
             return { success: false, message: "Este link de convite já foi utilizado anteriormente." };
           }
+          var perfilConv = r[7] ? String(r[7]).trim() : (tokenLimpo.startsWith("pmm_") ? "pmm" : "adm");
           return {
             success: true,
             convite: {
@@ -1708,6 +1717,7 @@ function verificarConvite(token) {
               token: String(r[1]),
               email: String(r[2]),
               nome: String(r[3]),
+              perfil: perfilConv,
               criado_por: String(r[4] || "André Gianotti"),
               criado_em: String(r[5] || ""),
               utilizado: false
@@ -1719,14 +1729,16 @@ function verificarConvite(token) {
   } catch(e) {}
 
   // Fallback caso seja um token com prefixo padrão
-  if (tokenLimpo.startsWith("adm_")) {
+  if (tokenLimpo.startsWith("adm_") || tokenLimpo.startsWith("pmm_")) {
+    var isPmm = tokenLimpo.startsWith("pmm_");
     return {
       success: true,
       convite: {
         id: "conv-" + new Date().getTime(),
         token: tokenLimpo,
         email: "",
-        nome: "Novo Administrador",
+        nome: isPmm ? "Novo PMM" : "Novo Administrador",
+        perfil: isPmm ? "pmm" : "adm",
         criado_por: "André Gianotti",
         criado_em: new Date().toLocaleString("pt-BR"),
         utilizado: false
@@ -1744,8 +1756,8 @@ function aceitarConvite(dados) {
   var senhaProvisoria = String(dados.senhaProvisoria || "").trim();
   var novaSenha = String(dados.novaSenha || "").trim();
 
-  if (senhaProvisoria !== "123") {
-    return { success: false, message: "A senha provisória padrão é 123. Verifique e tente novamente." };
+  if (senhaProvisoria !== "totvs123" && senhaProvisoria !== "123") {
+    return { success: false, message: "A senha provisória padrão é totvs123. Verifique e tente novamente." };
   }
 
   if (novaSenha.length < 6) {
@@ -1758,55 +1770,97 @@ function aceitarConvite(dados) {
     return { success: false, message: "A nova senha deve conter letras e números (alfanumérica)." };
   }
 
-  var idNovo = "adm-" + new Date().getTime();
+  var idNovo = "usr-" + new Date().getTime();
   var agora = new Date().toLocaleString("pt-BR");
-  var novoUsuario = {
-    id: idNovo,
-    nome: nome,
-    email: email,
-    cargo: "Administrador",
-    tipo: "administrador",
-    dono_produto: false,
-    precisa_trocar_senha: false,
-    foto: "",
-    criado_em: agora
-  };
-
+  var perfil = token.startsWith("pmm_") ? "pmm" : "adm";
+  
   try {
     var ss = getSpreadsheet();
     
-    // 1. Marcar convite como utilizado
+    // 1. Marcar convite como utilizado e descobrir perfil gravado
     var abaConv = ss.getSheetByName("Convites");
     if (abaConv) {
       var dConv = abaConv.getDataRange().getValues();
       for (var i = 1; i < dConv.length; i++) {
         if (String(dConv[i][1]).trim() === token) {
           abaConv.getRange(i + 1, 7).setValue(true);
+          if (dConv[i][7]) {
+            perfil = String(dConv[i][7]).toLowerCase().trim() === "adm" ? "adm" : "pmm";
+          }
           break;
         }
       }
     }
 
+    var cargo = perfil === "adm" ? "Administrador" : "PMM (Gestor de Segmento)";
+    var novoUsuario = {
+      id: idNovo,
+      nome: nome,
+      email: email,
+      cargo: cargo,
+      perfil: perfil,
+      tipo: "administrador",
+      dono_produto: false,
+      precisa_trocar_senha: false,
+      foto: "",
+      criado_em: agora
+    };
+
     // 2. Inserir novo usuário na aba Usuarios
     var abaUser = ss.getSheetByName("Usuarios");
     if (!abaUser) {
       abaUser = ss.insertSheet("Usuarios");
-      abaUser.appendRow(["ID", "Email", "Nome", "Cargo", "Senha", "DonoProduto", "PrecisaTrocarSenha", "Foto", "CriadoEm"]);
-      abaUser.getRange("A1:I1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
-      abaUser.appendRow(["adm-001", "andre.gianotti@totvs.com.br", "André Gianotti", "Dono do Produto", "totvs123", true, false, "", "16/09/2026"]);
+      abaUser.appendRow(["ID", "Email", "Nome", "Cargo", "Senha", "DonoProduto", "PrecisaTrocarSenha", "Foto", "CriadoEm", "Perfil"]);
+      abaUser.getRange("A1:J1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      abaUser.appendRow(["adm-001", "andre.gianotti@totvs.com.br", "André Gianotti", "Dono do Produto", "totvs123", true, false, "", "16/09/2026", "adm"]);
     }
-    abaUser.appendRow([idNovo, email, nome, "Administrador", novaSenha, false, false, "", agora]);
+    abaUser.appendRow([idNovo, email, nome, cargo, novaSenha, false, false, "", agora, perfil]);
 
     // 3. Registrar log de auditoria
-    registrarLogAcesso(nome, "Convite ativado com sucesso. Novo administrador registrado.");
+    registrarLogAcesso(nome, "Convite ativado com sucesso. Novo usuário (" + cargo + ") registrado.");
 
-  } catch(e) {}
+    return {
+      success: true,
+      message: "Perfil ativado com sucesso!",
+      usuario: novoUsuario
+    };
 
-  return {
-    success: true,
-    message: "Perfil ativado com sucesso!",
-    usuario: novoUsuario
-  };
+  } catch(e) {
+    return { success: false, message: e.message };
+  }
+}
+
+/**
+ * Permite que um usuário (ADM ou PMM) altere sua própria senha
+ */
+function alterarSenhaUsuario(email, novaSenha) {
+  try {
+    var emailLimpo = String(email || "").toLowerCase().trim();
+    var senhaLimpa = String(novaSenha || "").trim();
+
+    if (!emailLimpo || !senhaLimpa) {
+      return { success: false, message: "E-mail e nova senha são obrigatórios." };
+    }
+    if (senhaLimpa.length < 6 || !/[a-zA-Z]/.test(senhaLimpa) || !/[0-9]/.test(senhaLimpa)) {
+      return { success: false, message: "A nova senha deve possuir no mínimo 6 caracteres e conter letras e números." };
+    }
+
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Usuarios");
+    if (!aba) return { success: false, message: "Aba de usuários não encontrada." };
+
+    var dados = aba.getDataRange().getValues();
+    for (var i = 1; i < dados.length; i++) {
+      if (String(dados[i][1]).toLowerCase().trim() === emailLimpo) {
+        aba.getRange(i + 1, 5).setValue(senhaLimpa);
+        registrarLogAcesso(String(dados[i][2]), "Alteração da própria senha realizada com sucesso.");
+        return { success: true, message: "Senha alterada com sucesso!" };
+      }
+    }
+    return { success: false, message: "Usuário não encontrado na base corporativa." };
+  } catch(e) {
+    return { success: false, message: e.message };
+  }
 }
 
 

@@ -1056,12 +1056,12 @@
                       </span>
                       {admLogado && (
                         <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
-                          {admLogado.dono_produto ? 'DONO' : 'ON'}
+                          {admLogado.dono_produto ? 'DONO' : (admLogado.perfil === 'pmm' ? 'PMM' : 'ON')}
                         </span>
                       )}
                     </div>
                     <span className="text-[9.5px] text-slate-400 block truncate">
-                      {admLogado ? (admLogado.dono_produto ? '👑 Dono do Produto' : 'Administrador') : 'Acesso Restrito'}
+                      {admLogado ? (admLogado.dono_produto ? '👑 Dono do Produto' : (admLogado.perfil === 'pmm' ? '🎯 PMM (Gestão)' : 'Administrador')) : 'Acesso Restrito'}
                     </span>
                   </div>
                 )}
@@ -1728,7 +1728,7 @@
         carregarVisitantes();
         carregarVideoGestao();
 
-        const FALLBACK_SEGMENTOS_APPS_SCRIPT = [{"id":"totvs_agro","ordem":1,"nome":"TOTVS Agro","icone":"Sprout","cor":"emerald","tagline":"Tecnologia de ponta do plantio à mesa do consumidor","badge_solucoes":["Multicultivo","Agrodistribuidor"],"cenario_fisico":"Cenário com painel de colheita e lavoura de trigo com pragas e um drone acima.\nUm PC na tela com as soluções na bancada\nUm tablet na bancada","pitch":"No agronegócio, a TOTVS conecta toda a cadeia produtiva, desde o preparo do solo e controle de pragas até a armazenagem em silos e comercialização internacional de grãos e café. Nossas soluções dão ao produtor e à agroindústria previsibilidade de safra, rastreabilidade de ponta a ponta e redução de perdas operacionais.","dores_setor":["Falta de controle de custos de insumos e maquinário por talhão/área de plantio.","Perda de eficiência no transporte, pesagem e classificação de grãos nos armazéns.","Dificuldade em gerenciar contratos futuros e oscilações do mercado de commodities."],"roteiro_bancada":["Aponte para o cenário de sacarias e grãos: explique que o Brasil é líder mundial e a TOTVS atende os maiores produtores do país.","Mostre na tela do Agro o mapa de produtividade e a gestão integrada de contratos e estoques.","Destaque que a TOTVS atua tanto no pequeno produtor de café quanto nas gigantes de cana-de-açúcar, soja e algodão."],"perguntas_visitante":["Vocês possuem operações ligadas ao agronegócio ou fornecem insumos para produtores rurais?","Como vocês controlam hoje a rastreabilidade e o custo por hectare/safra?"],"midias":{"fotos":[{"titulo":"Cenário Agro & Sacaria de Café","url":"https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Vídeo Demonstrativo de TOTVS Agro","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160250_totvs_agro.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:03:00","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Agro","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105823_esta__o_1_totvs_agro.jpeg"},{"id":"totvs_manufatura","ordem":2,"nome":"TOTVS Manufatura","icone":"Factory","cor":"blue","tagline":"Indústria 4.0, chão de fábrica em tempo real e automação","badge_solucoes":["TOTVS Manufatura","TOTVS MES","APS Avançado","Manutenção de Ativos"],"cenario_fisico":"Bancada industrial com esteira transportadora motorizada, impressora 3D para prototipagem rápida, coletores de dados e telas de monitoramento OEE.","pitch":"Aqui na bancada de Manufatura, demonstramos a Indústria 4.0 na prática. Quando uma peça passa pela esteira, sensores capturam a produção em tempo real no TOTVS MES, calculando disponibilidade, performance e qualidade (OEE). Integramos desde o planejamento fino da produção (APS) até a impressora 3D e a manutenção preventiva das máquinas.","dores_setor":["Paradas não programadas de maquinário e alto custo de manutenção corretiva.","Apontamento manual de produção em papel, gerando atraso e erros nos dados de chão de fábrica.","Falta de visibilidade precisa do índice OEE (Overall Equipment Effectiveness) em tempo real."],"roteiro_bancada":["Acione a esteira transportadora motorizada para demonstrar o fluxo de peças físicas no laboratório.","Mostre a impressora 3D em funcionamento, explicando o conceito de prototipagem rápida e peças sob demanda na manufatura.","Aponte para o monitor 'Visão TOTVS MES' e mostre o gráfico de OEE atualizando conforme as peças transitam na esteira."],"perguntas_visitante":["Como é feito hoje o apontamento de produção na fábrica de vocês? Ainda usam fichas de papel ou planilhas?","Vocês conseguem saber em tempo real se uma linha de montagem está com velocidade reduzida ou parada?"],"midias":{"fotos":[{"titulo":"Bancada Industrial com Esteira e Sensores","url":"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Simulação de Chão de Fábrica - TOTVS MES","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 10:58:35","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC Manufatura","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105834_esta__o_2_totvs_manufatura.jpeg"},{"id":"backoffice","ordem":3,"nome":"Backoffice","icone":"Building","cor":"sky","tagline":"Gestão empresarial integrada, controladoria, financeiro e compras","badge_solucoes":["TOTVS Protheus","Linha Datasul","Linha RM","TOTVS Gestão Financeira","Controladoria & Fiscal"],"cenario_fisico":"Bancada com estação corporativa, telas com dashboards gerenciais e cockpit financeiro/fiscal.","pitch":"O Backoffice da TOTVS é o coração pulsante das organizações brasileiras. Nossos ERPs líderes de mercado unificam toda a operação administrativa: financeiro, fiscal, compras, faturamento e contabilidade com automação inteligente e conformidade tributária total.","dores_setor":["Complexidade tributária e risco constante de autuações fiscais.","Falta de integração ágil entre compras, estoque e contas a pagar.","Demora no fechamento contábil e na consolidação de resultados gerenciais."],"roteiro_bancada":["Mostre na tela a visão consolidada de fluxo de caixa e DRE em tempo real.","Destaque a segurança e atualização automática das regras tributárias brasileiras.","Explique como o ERP conecta os sistemas especialistas de todos os segmentos ao núcleo da empresa."],"perguntas_visitante":["Como é feita hoje a gestão do fechamento contábil e conciliação bancária da sua empresa?","Vocês enfrentam gargalos no cumprimento das obrigações fiscais e tributárias?"],"midias":{"fotos":[],"videos":[{"titulo":"Vídeo do Tour no Espaço Experiência","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 11:30:08","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC Backoffice","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113005_esta__o_3_backoffice.jpeg"},{"id":"totvs_mes_ppi","ordem":4,"nome":"TOTVS MES / PPI Multitask","icone":"Cpu","cor":"cyan","tagline":"Chão de fábrica digital, apontamento de produção em tempo real e OEE","badge_solucoes":["TOTVS MES","PPI Multitask","Apontamento IoT","OEE em Tempo Real","Manutenção Industrial"],"cenario_fisico":"Bancada industrial com sensores IoT, coletores de chão de fábrica e monitores com KPIs de linha de produção.","pitch":"Com o TOTVS MES e a solução PPI Multitask, digitalizamos o chão de fábrica sem papel. Monitoramos cada máquina, operador e ordem de produção em tempo real, calculando a eficiência global (OEE) e eliminando paradas não planejadas.","dores_setor":["Apontamento de produção manual em papel com atraso e retrabalho de digitação.","Desconhecimento dos reais gargalos e causas de paradas de máquinas na linha.","Perda de produtividade por falta de visibilidade do índice OEE em tempo real."],"roteiro_bancada":["Aponte para os sensores industriais e simule o ciclo de produção de uma peça.","Mostre na tela o cockpit do TOTVS MES atualizando a velocidade e qualidade da linha.","Destaque a integração direta com o ERP para baixa automática de matérias-primas."],"perguntas_visitante":["Como vocês acompanham o ritmo e as paradas de produção na fábrica hoje?","Vocês têm os índices de OEE e refugo disponíveis em tempo real para os gestores?"],"midias":{"fotos":[],"videos":[{"titulo":"Simulação de Chão de Fábrica - TOTVS MES","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 11:30:17","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC MES Multitask","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113016_esta__o_4_totvs_ppi_multitask_mes.jpeg"},{"id":"totvs_logistica","ordem":5,"nome":"TOTVS Logística","icone":"Truck","cor":"amber","tagline":"Armazenagem inteligente, roteirização e visibilidade da frota","badge_solucoes":["TOTVS WMS","TOTVS TMS","Torre de Controle Logística","Cockpit Logístico"],"cenario_fisico":"Traseira real de caminhão embutida na parede, doca de carga e descarga com paletes e caixas organizadas.","pitch":"A logística é a espinha dorsal que conecta a fábrica ao ponto de venda. Com o TOTVS WMS e TMS, gerenciamos desde a armazenagem e separação por voice picking até a expedição no baú do caminhão, roteirização inteligente e rastreamento em tempo real com comprovante digital de entrega.","dores_setor":["Erros no picking e separação de mercadorias no centro de distribuição, gerando devoluções.","Custo elevado de frete e ociosidade da frota por falta de otimização de rotas e cubagem.","Falta de rastreabilidade do status de entrega para o cliente final (last mile)."],"roteiro_bancada":["Leve o visitante em direção ao baú do caminhão cenográfico: destaque o realismo da operação de doca.","Explique como o WMS direciona a melhor localização de armazenagem no palete com base em giro e validade (FIFO/FEFO).","Mostre na tela a Torre de Controle Logística rastreando os veículos no mapa com alertas de desvio de rota e temperatura."],"perguntas_visitante":["Sua operação logística possui frota própria ou terceirizada?","Qual é o maior gargalo hoje: a acuracidade de estoque no CD ou o cumprimento dos prazos de entrega no destino?"],"midias":{"fotos":[{"titulo":"Cenário de Doca e Baú de Transporte","url":"https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Operação Logística no Espaço Experiência","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"16/09/2026 15:15","autor":"Especialista TOTVS Logística"},"credenciais":{"equipamento":"PC Logistica","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/bancada_totvs_logistica.jpg"},{"id":"totvs_moda","ordem":6,"nome":"Loja Totvs Moda","icone":"ShoppingBag","cor":"rose","tagline":"A solução completa para toda a cadeia da moda e confecção","badge_solucoes":["TOTVS Moda ERP","Gestão de Franquias","Controle de Grade (Cor/Tam)","PDV Móvel Moda","Omnichannel Têxtil"],"cenario_fisico":"Vitrine de boutique de moda completa com manequins, bolsas, coleções e telas com a campanha 'A Força que Move o Brasil'.","pitch":"O TOTVS Moda é a solução líder que veste as maiores marcas do Brasil. Desenvolvida especificamente para as particularidades do segmento têxtil e calçadista, a solução gerencia todo o ciclo de vida da peça: desenvolvimento de coleções, ficha técnica com controle minucioso de grade de cores e tamanhos, faturamento no atacado, controle de facções e frentes de caixa ágeis para lojas próprias e franquias.","dores_setor":["Dificuldade de controle de estoque com variações complexas de grade (tamanhos P/M/G e cartela de cores).","Perda de prazos no lançamento de coleções e falta de rastreabilidade de facções externas.","Desconexão entre o estoque das lojas físicas, franquias e o e-commerce de moda."],"roteiro_bancada":["Posicione-se diante da vitrine de boutique de moda no laboratório.","Mostre na tela do TOTVS Moda a facilidade de consulta de peças por grade de cor e tamanho e a velocidade de fechamento de venda no PDV.","Destaque que a TOTVS atende desde confecções de vestuário e calçados até grandes redes de franquias de moda em shoppings."],"perguntas_visitante":["A operação de vocês trabalha com gestão de grade de produtos (cor/tamanho) ou coleções sazonais?","Como vocês integram hoje a venda das lojas físicas com as vendas do e-commerce?"],"midias":{"fotos":[{"titulo":"Vitrine Boutique TOTVS Moda","url":"https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Espaço TOTVS Moda no Laboratório","tipo":"local","url":"/Video Espaço Experiência.mp4"},{"titulo":"Vídeo Demonstrativo de Loja Totvs Moda","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160649_totvs_moda.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:06:55","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Moda","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120933_totvs_moda.jpeg"},{"id":"totvs_consinco","ordem":7,"nome":"Loja TOTVS Consinco","icone":"ShoppingCart","cor":"red","tagline":"Líder absoluto para supermercados, atacarejo e grandes redes","badge_solucoes":["Consinco ERP","Portais de Leitura RFID","Self-Checkout Touch","WMS Supermercados","Prevenção de Perdas"],"cenario_fisico":"Gôndolas de supermercado com produtos de limpeza e alimentos reais, esteira de checkout, portais RFID e totens interativos de autoatendimento.","pitch":"O TOTVS Consinco é o padrão de mercado para as maiores redes de supermercados, atacarejos e hipermercados do Brasil. Aqui no laboratório demonstramos o futuro do varejo supermercadista: portais de leitura RFID onde o cliente passa com a cesta de produtos e a leitura é feita instantaneamente sem bipar código por código, além de totens de self-checkout intuitivos e gestão integrada de prevenção de perdas.","dores_setor":["Filas longas no checkout em horários de pico, gerando insatisfação e abandono de carrinhos.","Altas taxas de ruptura de gôndola e perdas por produtos com validade vencida.","Margem de lucro apertada exigindo controle rigoroso de preços, compras conjuntas e acordos de fornecedores."],"roteiro_bancada":["Convide o visitante a testar o totem de Self-Checkout: mostre a simplicidade da interface com tela touch.","Apresente os portais RFID e explique a economia drástica de tempo de inventário e de fila no supermercado.","Aponte para a gôndola real e comente sobre o controle automatizado de reposição e precificação eletrônica do Consinco."],"perguntas_visitante":["Vocês já utilizam ou avaliam tecnologias de autoatendimento (self-checkout) para reduzir filas?","Qual o impacto das perdas de estoque e quebras operacionais na margem do negócio hoje?"],"midias":{"fotos":[{"titulo":"Gôndola Inteligente e Self-Checkout","url":"https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Demonstração de Supermercado e RFID","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:07:24","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Supermercado Consinco","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120944_totvs_consinco.jpeg"},{"id":"totvs_varejo_online","ordem":8,"nome":"TOTVS Varejo On-line","icone":"Globe","cor":"purple","tagline":"Omnichannel integrado, e-commerce, marketplaces e prateleira infinita","badge_solucoes":["TOTVS Omnichannel","Hub de Marketplaces","Ship from Store","Click & Collect","Catálogo Digital"],"cenario_fisico":"Displays digitais integrados com soluções de varejo, postos de combustíveis, lojas de conveniência e integração e-commerce.","pitch":"No TOTVS Varejo On-line, quebramos a barreira entre a loja física e o mundo virtual. Nossas soluções conectam o varejista aos principais marketplaces do mercado e transformam as lojas físicas em mini-centros de distribuição com o 'Ship from Store'. O cliente compra online e retira na loja mais próxima, enquanto a empresa opera com estoque unificado e sem ruptura.","dores_setor":["Divergência entre o estoque anunciado no e-commerce e a disponibilidade real na loja física.","Dificuldade e lentidão para cadastrar e sincronizar produtos em múltiplos marketplaces.","Custos de frete elevados e prazos de entrega longos por falta de envio a partir da loja física mais próxima."],"roteiro_bancada":["Demonstre na tela como um pedido realizado em marketplace cai instantaneamente no sistema central.","Explique o conceito de 'Prateleira Infinita': o vendedor na loja física vende um produto que está no estoque central ou em outra filial.","Mostre a experiência do cliente que compra no site e retira na loja física em poucas horas."],"perguntas_visitante":["A operação de vocês já vende em marketplaces (Mercado Livre, Amazon, Shopee) com estoque integrado?","Vocês já utilizam as lojas físicas como pontos de envio rápido de pedidos para baratear o frete?"],"midias":{"fotos":[{"titulo":"Integração Digital e E-commerce","url":"https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Vídeo Demonstrativo de TOTVS Varejo On-line","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160329_varejo_on_line.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:03:36","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Varejo On-line","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120958_totvs_varejo.jpeg"},{"id":"totvs_rm_clinicas","ordem":9,"nome":"TOTVS RM Clínicas","icone":"Stethoscope","cor":"teal","tagline":"Gestão completa para clínicas, consultórios médicos e policlínicas","badge_solucoes":["Linha RM Clínicas","Prontuário Eletrônico (PEP)","Faturamento TISS/TUSS","Agendamento Inteligente","Repasse Médico"],"cenario_fisico":"Consultório médico completo com maca hospitalar, mesa de atendimento clínico, estante de medicamentos e telas com indicadores clínicos.","pitch":"O TOTVS RM Clínicas é a solução consagrada da Linha RM especializada no atendimento de consultórios, clínicas de especialidades, centros diagnósticos e policlínicas. A solução unifica toda a jornada do paciente: agendamento online, prontuário eletrônico completo (PEP), prescrição digital com checagem de interações medicamentosas, além de blindar o faturamento com regras rigorosas de TISS/TUSS e repasse médico transparente.","dores_setor":["Alto índice de glosas médicas por preenchimento incorreto de guias dos convênios de saúde.","Faltas de pacientes (no-show) por falta de confirmação automatizada de consultas.","Complexidade e demora no cálculo de repasse financeiro para o corpo clínico de médicos especialistas."],"roteiro_bancada":["Aponte para o cenário de consultório com a maca clínica e a mesa de atendimento médico.","Mostre na tela o Prontuário Eletrônico (PEP) da Linha RM, demonstrando a facilidade de evolução clínica e prescrição digital.","Explique a inteligência do motor de faturamento TISS que valida códigos e autorizações antes de enviar para as operadoras de saúde."],"perguntas_visitante":["A instituição de vocês realiza atendimentos ambulatoriais, consultas ou exames com múltiplos convênios?","Qual o percentual de glosas e como é feito hoje o controle do repasse para os médicos?"],"midias":{"fotos":[{"titulo":"Consultório Médico no Espaço Experiência","url":"https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Estação Clínica no Espaço Experiência","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:07:50","autor":"André Gianotti"},"credenciais":{"equipamento":"PC RM Saude","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121009_totvs_rm_saude.jpeg"},{"id":"mesa_interativa","ordem":10,"nome":"Mesa Interativa","icone":"MonitorPlay","cor":"indigo","tagline":"Grandes telões, mesa touch com LED e cases de sucesso do ecossistema","badge_solucoes":["TOTVS Fluig","Carol AI (Inteligência Artificial)","TOTVS Techfin","Cases de Sucesso"],"cenario_fisico":"Mesa digital touch monumental com iluminação LED azul, banquetas para visitantes e telões suspensos em parceria com Cisco e Samsung.","pitch":"Finalizamos a visita na Mesa Interativa. Aqui consolidamos a visão de ecossistema: além dos sistemas especialistas de cada segmento, a TOTVS oferece Inteligência Artificial com a Carol, soluções de crédito e serviços financeiros com a Techfin e integração com o Fluig. É o momento perfeito para exibir vídeos institucionais de cases de sucesso e responder às dúvidas finais dos clientes.","dores_setor":["Sistemas legados desconectados que não conversam entre si.","Dificuldade de acesso a crédito ágil para capital de giro e antecipação de recebíveis.","Falta de inteligência de dados centralizada para suporte à tomada de decisão executiva."],"roteiro_bancada":["Convide os visitantes a se acomodarem nas banquetas ao redor da mesa iluminada em azul.","Utilize a superfície interativa para demonstrar gráficos de ecossistema e acionar vídeos de cases no telão principal.","Abra espaço para perguntas, agradeça a visita institucional e colete os contatos para o envio de propostas ou aprofundamentos."],"perguntas_visitante":["Quais das estações que visitamos hoje mais chamou a atenção para o momento atual da sua empresa?","Gostariam de agendar uma reunião técnica focada com o especialista daquele segmento?"],"midias":{"fotos":[{"titulo":"Mesa Interativa Central com Iluminação LED","url":"https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Apresentação e Telões da Mesa Central","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 12:12:16","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC Mesa Interativa","usuario":".","senha":"totvsdiretoria ou rsxw7"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121049_mesa_interativa.jpeg"},{"id":"solucoes_cross","ordem":11,"nome":"SOLUÇÕES CROSS","icone":"Cpu","cor":"purple","tagline":"Soluções horizontais, inteligência artificial e ecossistema conectado","badge_solucoes":["TOTVS Fluig","Carol AI","TOTVS Assinatura Eletrônica","iPaaS / Integrações","TOTVS Techfin"],"cenario_fisico":"Bancada e estação dedicada à demonstração de soluções transversais, inteligência artificial integrada e automação de fluxos corporativos.","pitch":"As Soluções Cross conectam e potencializam todos os sistemas da TOTVS. Independentemente do setor — seja agro, manufatura, saúde, logística ou varejo —, nossas soluções transversais trazem Inteligência Artificial com a Carol, automação de fluxos de trabalho com o Fluig, assinatura eletrônica com validade jurídica e integração de plataformas com o iPaaS.","dores_setor":["Sistemas departamentais desconectados e perda de produtividade com processos manuais.","Lentidão e insegurança na coleta de assinaturas e gestão física de documentos.","Dificuldade em consolidar dados de múltiplos sistemas para gerar insights preditivos com IA."],"roteiro_bancada":["Apresente o conceito de soluções transversais que atendem a qualquer ERP ou segmento de negócio.","Mostre na tela a automação de processos inteligentes e integrações entre diferentes plataformas.","Destaque os benefícios de segurança jurídica, rapidez e redução de custos da assinatura eletrônica."],"perguntas_visitante":["Como é feita hoje a integração entre os diferentes sistemas e setores na sua empresa?","Vocês já utilizam inteligência artificial ou fluxos digitais de aprovação no dia a dia?"],"midias":{"fotos":[],"videos":[]},"ultima_atualizacao":{"data":"05/10/2026, 18:29:16","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Soluções Cross","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":""}];
+        const FALLBACK_SEGMENTOS_APPS_SCRIPT = [{"id":"totvs_agro","ordem":1,"nome":"TOTVS Agro","icone":"Sprout","cor":"emerald","tagline":"Tecnologia de ponta do plantio à mesa do consumidor","badge_solucoes":["Multicultivo","Agrodistribuidor"],"cenario_fisico":"Cenário com painel de colheita e lavoura de trigo com pragas e um drone acima.\nUm PC na tela com as soluções na bancada\nUm tablet na bancada","pitch":"O agronegócio move o PIB brasileiro e a TOTVS oferece sistemas completos que conectam desde a gestão da lavoura e insumos até o beneficiamento, comercialização e exportação de grãos, café, cana e algodão.","dores_setor":["Falta de controle de custos de insumos e maquinário por talhão/área de plantio.","Perda de eficiência no transporte, pesagem e classificação de grãos nos armazéns.","Dificuldade em gerenciar contratos futuros e oscilações do mercado de commodities."],"roteiro_bancada":["Aponte para o cenário de sacarias e grãos: explique que o Brasil é líder mundial e a TOTVS atende os maiores produtores do país.","Mostre na tela do Agro o mapa de produtividade e a gestão integrada de contratos e estoques.","Destaque que a TOTVS atua tanto no pequeno produtor de café quanto nas gigantes de cana-de-açúcar, soja e algodão."],"perguntas_visitante":["Vocês possuem operações ligadas ao agronegócio ou fornecem insumos para produtores rurais?","Como vocês controlam hoje a rastreabilidade e o custo por hectare/safra?"],"midias":{"fotos":[{"titulo":"Cenário Agro & Sacaria de Café","url":"https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Vídeo Demonstrativo de TOTVS Agro","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160250_totvs_agro.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:03:00","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Agro","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105823_esta__o_1_totvs_agro.jpeg","equipamentos":[{"id":"eq-totvs_agro-1","titulo":"PC Agro","descricao":"Usuário: ens.experiencia@totvs.com.br • Senha: Experienciastotvs@2026","foto":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105823_esta__o_1_totvs_agro.jpeg"}],"video_discurso":{"tipo":"google_drive","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160250_totvs_agro.mp4","titulo":"Vídeo Demonstrativo de TOTVS Agro"}},{"id":"totvs_manufatura","ordem":2,"nome":"TOTVS Manufatura","icone":"Factory","cor":"blue","tagline":"Indústria 4.0, chão de fábrica em tempo real e automação","badge_solucoes":["TOTVS Manufatura","TOTVS MES","APS Avançado","Manutenção de Ativos"],"cenario_fisico":"Bancada industrial com esteira transportadora motorizada, impressora 3D para prototipagem rápida, coletores de dados e telas de monitoramento OEE.","pitch":"Aqui na bancada de Manufatura, demonstramos a Indústria 4.0 na prática. Quando uma peça passa pela esteira, sensores capturam a produção em tempo real no TOTVS MES, calculando disponibilidade, performance e qualidade (OEE). Integramos desde o planejamento fino da produção (APS) até a impressora 3D e a manutenção preventiva das máquinas.","dores_setor":["Paradas não programadas de maquinário e alto custo de manutenção corretiva.","Apontamento manual de produção em papel, gerando atraso e erros nos dados de chão de fábrica.","Falta de visibilidade precisa do índice OEE (Overall Equipment Effectiveness) em tempo real."],"roteiro_bancada":["Acione a esteira transportadora motorizada para demonstrar o fluxo de peças físicas no laboratório.","Mostre a impressora 3D em funcionamento, explicando o conceito de prototipagem rápida e peças sob demanda na manufatura.","Aponte para o monitor 'Visão TOTVS MES' e mostre o gráfico de OEE atualizando conforme as peças transitam na esteira."],"perguntas_visitante":["Como é feito hoje o apontamento de produção na fábrica de vocês? Ainda usam fichas de papel ou planilhas?","Vocês conseguem saber em tempo real se uma linha de montagem está com velocidade reduzida ou parada?"],"midias":{"fotos":[{"titulo":"Bancada Industrial com Esteira e Sensores","url":"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Simulação de Chão de Fábrica - TOTVS MES","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 10:58:35","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC Manufatura","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105834_esta__o_2_totvs_manufatura.jpeg","equipamentos":[{"id":"eq_totvs_manufatura_1","titulo":"PC Manufatura","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Simulação de Chão de Fábrica - TOTVS MES"}},{"id":"backoffice","ordem":3,"nome":"Backoffice","icone":"Building","cor":"sky","tagline":"Gestão empresarial integrada, controladoria, financeiro e compras","badge_solucoes":["TOTVS Protheus","Linha Datasul","Linha RM","TOTVS Gestão Financeira","Controladoria & Fiscal"],"cenario_fisico":"Bancada com estação corporativa, telas com dashboards gerenciais e cockpit financeiro/fiscal.","pitch":"O Backoffice da TOTVS é o coração pulsante das organizações brasileiras. Nossos ERPs líderes de mercado unificam toda a operação administrativa: financeiro, fiscal, compras, faturamento e contabilidade com automação inteligente e conformidade tributária total.","dores_setor":["Complexidade tributária e risco constante de autuações fiscais.","Falta de integração ágil entre compras, estoque e contas a pagar.","Demora no fechamento contábil e na consolidação de resultados gerenciais."],"roteiro_bancada":["Mostre na tela a visão consolidada de fluxo de caixa e DRE em tempo real.","Destaque a segurança e atualização automática das regras tributárias brasileiras.","Explique como o ERP conecta os sistemas especialistas de todos os segmentos ao núcleo da empresa."],"perguntas_visitante":["Como é feita hoje a gestão do fechamento contábil e conciliação bancária da sua empresa?","Vocês enfrentam gargalos no cumprimento das obrigações fiscais e tributárias?"],"midias":{"fotos":[],"videos":[{"titulo":"Vídeo do Tour no Espaço Experiência","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 11:30:08","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC Backoffice","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113005_esta__o_3_backoffice.jpeg","equipamentos":[{"id":"eq_backoffice_1","titulo":"PC Backoffice","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113005_esta__o_3_backoffice.jpeg"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Vídeo do Tour no Espaço Experiência"}},{"id":"totvs_mes_ppi","ordem":4,"nome":"TOTVS MES / PPI Multitask","icone":"Cpu","cor":"cyan","tagline":"Chão de fábrica digital, apontamento de produção em tempo real e OEE","badge_solucoes":["TOTVS MES","PPI Multitask","Apontamento IoT","OEE em Tempo Real","Manutenção Industrial"],"cenario_fisico":"Bancada industrial com sensores IoT, coletores de chão de fábrica e monitores com KPIs de linha de produção.","pitch":"Com o TOTVS MES e a solução PPI Multitask, digitalizamos o chão de fábrica sem papel. Monitoramos cada máquina, operador e ordem de produção em tempo real, calculando a eficiência global (OEE) e eliminando paradas não planejadas.","dores_setor":["Apontamento de produção manual em papel com atraso e retrabalho de digitação.","Desconhecimento dos reais gargalos e causas de paradas de máquinas na linha.","Perda de produtividade por falta de visibilidade do índice OEE em tempo real."],"roteiro_bancada":["Aponte para os sensores industriais e simule o ciclo de produção de uma peça.","Mostre na tela o cockpit do TOTVS MES atualizando a velocidade e qualidade da linha.","Destaque a integração direta com o ERP para baixa automática de matérias-primas."],"perguntas_visitante":["Como vocês acompanham o ritmo e as paradas de produção na fábrica hoje?","Vocês têm os índices de OEE e refugo disponíveis em tempo real para os gestores?"],"midias":{"fotos":[],"videos":[{"titulo":"Simulação de Chão de Fábrica - TOTVS MES","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 11:30:17","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC MES Multitask","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113016_esta__o_4_totvs_ppi_multitask_mes.jpeg","equipamentos":[{"id":"eq_totvs_mes_ppi_1","titulo":"PC MES Multitask","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113016_esta__o_4_totvs_ppi_multitask_mes.jpeg"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Simulação de Chão de Fábrica - TOTVS MES"}},{"id":"totvs_logistica","ordem":5,"nome":"TOTVS Logística","icone":"Truck","cor":"amber","tagline":"Armazenagem inteligente, roteirização e visibilidade da frota","badge_solucoes":["TOTVS WMS","TOTVS TMS","Torre de Controle Logística","Cockpit Logístico"],"cenario_fisico":"Traseira real de caminhão embutida na parede, doca de carga e descarga com paletes e caixas organizadas.","pitch":"A logística é a espinha dorsal que conecta a fábrica ao ponto de venda. Com o TOTVS WMS e TMS, gerenciamos desde a armazenagem e separação por voice picking até a expedição no baú do caminhão, roteirização inteligente e rastreamento em tempo real com comprovante digital de entrega.","dores_setor":["Erros no picking e separação de mercadorias no centro de distribuição, gerando devoluções.","Custo elevado de frete e ociosidade da frota por falta de otimização de rotas e cubagem.","Falta de rastreabilidade do status de entrega para o cliente final (last mile)."],"roteiro_bancada":["Leve o visitante em direção ao baú do caminhão cenográfico: destaque o realismo da operação de doca.","Explique como o WMS direciona a melhor localização de armazenagem no palete com base em giro e validade (FIFO/FEFO).","Mostre na tela a Torre de Controle Logística rastreando os veículos no mapa com alertas de desvio de rota e temperatura."],"perguntas_visitante":["Sua operação logística possui frota própria ou terceirizada?","Qual é o maior gargalo hoje: a acuracidade de estoque no CD ou o cumprimento dos prazos de entrega no destino?"],"midias":{"fotos":[{"titulo":"Cenário de Doca e Baú de Transporte","url":"https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Operação Logística no Espaço Experiência","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"16/09/2026 15:15","autor":"Especialista TOTVS Logística"},"credenciais":{"equipamento":"PC Logistica","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/bancada_totvs_logistica.jpg","equipamentos":[{"id":"eq_totvs_logistica_1","titulo":"PC Logistica","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Operação Logística no Espaço Experiência"}},{"id":"totvs_moda","ordem":6,"nome":"Loja Totvs Moda","icone":"ShoppingBag","cor":"rose","tagline":"A solução completa para toda a cadeia da moda e confecção","badge_solucoes":["TOTVS Moda ERP","Gestão de Franquias","Controle de Grade (Cor/Tam)","PDV Móvel Moda","Omnichannel Têxtil"],"cenario_fisico":"Vitrine de boutique de moda completa com manequins, bolsas, coleções e telas com a campanha 'A Força que Move o Brasil'.","pitch":"O TOTVS Moda é a solução líder que veste as maiores marcas do Brasil. Desenvolvida especificamente para as particularidades do segmento têxtil e calçadista, a solução gerencia todo o ciclo de vida da peça: desenvolvimento de coleções, ficha técnica com controle minucioso de grade de cores e tamanhos, faturamento no atacado, controle de facções e frentes de caixa ágeis para lojas próprias e franquias.","dores_setor":["Dificuldade de controle de estoque com variações complexas de grade (tamanhos P/M/G e cartela de cores).","Perda de prazos no lançamento de coleções e falta de rastreabilidade de facções externas.","Desconexão entre o estoque das lojas físicas, franquias e o e-commerce de moda."],"roteiro_bancada":["Posicione-se diante da vitrine de boutique de moda no laboratório.","Mostre na tela do TOTVS Moda a facilidade de consulta de peças por grade de cor e tamanho e a velocidade de fechamento de venda no PDV.","Destaque que a TOTVS atende desde confecções de vestuário e calçados até grandes redes de franquias de moda em shoppings."],"perguntas_visitante":["A operação de vocês trabalha com gestão de grade de produtos (cor/tamanho) ou coleções sazonais?","Como vocês integram hoje a venda das lojas físicas com as vendas do e-commerce?"],"midias":{"fotos":[{"titulo":"Vitrine Boutique TOTVS Moda","url":"https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Espaço TOTVS Moda no Laboratório","tipo":"local","url":"/Video Espaço Experiência.mp4"},{"titulo":"Vídeo Demonstrativo de Loja Totvs Moda","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160649_totvs_moda.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:06:55","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Moda","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120933_totvs_moda.jpeg","equipamentos":[{"id":"eq_totvs_moda_1","titulo":"PC Moda","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Espaço TOTVS Moda no Laboratório"}},{"id":"totvs_consinco","ordem":7,"nome":"Loja TOTVS Consinco","icone":"ShoppingCart","cor":"red","tagline":"Líder absoluto para supermercados, atacarejo e grandes redes","badge_solucoes":["Consinco ERP","Portais de Leitura RFID","Self-Checkout Touch","WMS Supermercados","Prevenção de Perdas"],"cenario_fisico":"Gôndolas de supermercado com produtos de limpeza e alimentos reais, esteira de checkout, portais RFID e totens interativos de autoatendimento.","pitch":"O TOTVS Consinco é o padrão de mercado para as maiores redes de supermercados, atacarejos e hipermercados do Brasil. Aqui no laboratório demonstramos o futuro do varejo supermercadista: portais de leitura RFID onde o cliente passa com a cesta de produtos e a leitura é feita instantaneamente sem bipar código por código, além de totens de self-checkout intuitivos e gestão integrada de prevenção de perdas.","dores_setor":["Filas longas no checkout em horários de pico, gerando insatisfação e abandono de carrinhos.","Altas taxas de ruptura de gôndola e perdas por produtos com validade vencida.","Margem de lucro apertada exigindo controle rigoroso de preços, compras conjuntas e acordos de fornecedores."],"roteiro_bancada":["Convide o visitante a testar o totem de Self-Checkout: mostre a simplicidade da interface com tela touch.","Apresente os portais RFID e explique a economia drástica de tempo de inventário e de fila no supermercado.","Aponte para a gôndola real e comente sobre o controle automatizado de reposição e precificação eletrônica do Consinco."],"perguntas_visitante":["Vocês já utilizam ou avaliam tecnologias de autoatendimento (self-checkout) para reduzir filas?","Qual o impacto das perdas de estoque e quebras operacionais na margem do negócio hoje?"],"midias":{"fotos":[{"titulo":"Gôndola Inteligente e Self-Checkout","url":"https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Demonstração de Supermercado e RFID","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:07:24","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Supermercado Consinco","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120944_totvs_consinco.jpeg","equipamentos":[{"id":"eq_totvs_consinco_1","titulo":"PC Supermercado Consinco","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Demonstração de Supermercado e RFID"}},{"id":"totvs_varejo_online","ordem":8,"nome":"TOTVS Varejo On-line","icone":"Globe","cor":"purple","tagline":"Omnichannel integrado, e-commerce, marketplaces e prateleira infinita","badge_solucoes":["TOTVS Omnichannel","Hub de Marketplaces","Ship from Store","Click & Collect","Catálogo Digital"],"cenario_fisico":"Displays digitais integrados com soluções de varejo, postos de combustíveis, lojas de conveniência e integração e-commerce.","pitch":"No TOTVS Varejo On-line, quebramos a barreira entre a loja física e o mundo virtual. Nossas soluções conectam o varejista aos principais marketplaces do mercado e transformam as lojas físicas em mini-centros de distribuição com o 'Ship from Store'. O cliente compra online e retira na loja mais próxima, enquanto a empresa opera com estoque unificado e sem ruptura.","dores_setor":["Divergência entre o estoque anunciado no e-commerce e a disponibilidade real na loja física.","Dificuldade e lentidão para cadastrar e sincronizar produtos em múltiplos marketplaces.","Custos de frete elevados e prazos de entrega longos por falta de envio a partir da loja física mais próxima."],"roteiro_bancada":["Demonstre na tela como um pedido realizado em marketplace cai instantaneamente no sistema central.","Explique o conceito de 'Prateleira Infinita': o vendedor na loja física vende um produto que está no estoque central ou em outra filial.","Mostre a experiência do cliente que compra no site e retira na loja física em poucas horas."],"perguntas_visitante":["A operação de vocês já vende em marketplaces (Mercado Livre, Amazon, Shopee) com estoque integrado?","Vocês já utilizam as lojas físicas como pontos de envio rápido de pedidos para baratear o frete?"],"midias":{"fotos":[{"titulo":"Integração Digital e E-commerce","url":"https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Vídeo Demonstrativo de TOTVS Varejo On-line","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160329_varejo_on_line.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:03:36","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Varejo On-line","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120958_totvs_varejo.jpeg","equipamentos":[{"id":"eq_totvs_varejo_online_1","titulo":"PC Varejo On-line","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"url","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160329_varejo_on_line.mp4","titulo":"Vídeo Demonstrativo de TOTVS Varejo On-line"}},{"id":"totvs_rm_clinicas","ordem":9,"nome":"TOTVS RM Clínicas","icone":"Stethoscope","cor":"teal","tagline":"Gestão completa para clínicas, consultórios médicos e policlínicas","badge_solucoes":["Linha RM Clínicas","Prontuário Eletrônico (PEP)","Faturamento TISS/TUSS","Agendamento Inteligente","Repasse Médico"],"cenario_fisico":"Consultório médico completo com maca hospitalar, mesa de atendimento clínico, estante de medicamentos e telas com indicadores clínicos.","pitch":"O TOTVS RM Clínicas é a solução consagrada da Linha RM especializada no atendimento de consultórios, clínicas de especialidades, centros diagnósticos e policlínicas. A solução unifica toda a jornada do paciente: agendamento online, prontuário eletrônico completo (PEP), prescrição digital com checagem de interações medicamentosas, além de blindar o faturamento com regras rigorosas de TISS/TUSS e repasse médico transparente.","dores_setor":["Alto índice de glosas médicas por preenchimento incorreto de guias dos convênios de saúde.","Faltas de pacientes (no-show) por falta de confirmação automatizada de consultas.","Complexidade e demora no cálculo de repasse financeiro para o corpo clínico de médicos especialistas."],"roteiro_bancada":["Aponte para o cenário de consultório com a maca clínica e a mesa de atendimento médico.","Mostre na tela o Prontuário Eletrônico (PEP) da Linha RM, demonstrando a facilidade de evolução clínica e prescrição digital.","Explique a inteligência do motor de faturamento TISS que valida códigos e autorizações antes de enviar para as operadoras de saúde."],"perguntas_visitante":["A instituição de vocês realiza atendimentos ambulatoriais, consultas ou exames com múltiplos convênios?","Qual o percentual de glosas e como é feito hoje o controle do repasse para os médicos?"],"midias":{"fotos":[{"titulo":"Consultório Médico no Espaço Experiência","url":"https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Estação Clínica no Espaço Experiência","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:07:50","autor":"André Gianotti"},"credenciais":{"equipamento":"PC RM Saude","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121009_totvs_rm_saude.jpeg","equipamentos":[{"id":"eq_totvs_rm_clinicas_1","titulo":"PC RM Saude","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Estação Clínica no Espaço Experiência"}},{"id":"mesa_interativa","ordem":10,"nome":"Mesa Interativa","icone":"MonitorPlay","cor":"indigo","tagline":"Grandes telões, mesa touch com LED e cases de sucesso do ecossistema","badge_solucoes":["TOTVS Fluig","Carol AI (Inteligência Artificial)","TOTVS Techfin","Cases de Sucesso"],"cenario_fisico":"Mesa digital touch monumental com iluminação LED azul, banquetas para visitantes e telões suspensos em parceria com Cisco e Samsung.","pitch":"Finalizamos a visita na Mesa Interativa. Aqui consolidamos a visão de ecossistema: além dos sistemas especialistas de cada segmento, a TOTVS oferece Inteligência Artificial com a Carol, soluções de crédito e serviços financeiros com a Techfin e integração com o Fluig. É o momento perfeito para exibir vídeos institucionais de cases de sucesso e responder às dúvidas finais dos clientes.","dores_setor":["Sistemas legados desconectados que não conversam entre si.","Dificuldade de acesso a crédito ágil para capital de giro e antecipação de recebíveis.","Falta de inteligência de dados centralizada para suporte à tomada de decisão executiva."],"roteiro_bancada":["Convide os visitantes a se acomodarem nas banquetas ao redor da mesa iluminada em azul.","Utilize a superfície interativa para demonstrar gráficos de ecossistema e acionar vídeos de cases no telão principal.","Abra espaço para perguntas, agradeça a visita institucional e colete os contatos para o envio de propostas ou aprofundamentos."],"perguntas_visitante":["Quais das estações que visitamos hoje mais chamou a atenção para o momento atual da sua empresa?","Gostariam de agendar uma reunião técnica focada com o especialista daquele segmento?"],"midias":{"fotos":[{"titulo":"Mesa Interativa Central com Iluminação LED","url":"https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Apresentação e Telões da Mesa Central","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 12:12:16","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC Mesa Interativa","usuario":".","senha":"totvsdiretoria ou rsxw7"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121049_mesa_interativa.jpeg","equipamentos":[{"id":"eq_mesa_interativa_1","titulo":"PC Mesa Interativa","descricao":"Usuário: .\nSenha: totvsdiretoria ou rsxw7","foto":"https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Apresentação e Telões da Mesa Central"}},{"id":"solucoes_cross","ordem":11,"nome":"SOLUÇÕES CROSS","icone":"Cpu","cor":"purple","tagline":"Soluções horizontais, inteligência artificial e ecossistema conectado","badge_solucoes":["TOTVS Fluig","Carol AI","TOTVS Assinatura Eletrônica","iPaaS / Integrações","TOTVS Techfin"],"cenario_fisico":"Bancada e estação dedicada à demonstração de soluções transversais, inteligência artificial integrada e automação de fluxos corporativos.","pitch":"As Soluções Cross conectam e potencializam todos os sistemas da TOTVS. Independentemente do setor — seja agro, manufatura, saúde, logística ou varejo —, nossas soluções transversais trazem Inteligência Artificial com a Carol, automação de fluxos de trabalho com o Fluig, assinatura eletrônica com validade jurídica e integração de plataformas com o iPaaS.","dores_setor":["Sistemas departamentais desconectados e perda de produtividade com processos manuais.","Lentidão e insegurança na coleta de assinaturas e gestão física de documentos.","Dificuldade em consolidar dados de múltiplos sistemas para gerar insights preditivos com IA."],"roteiro_bancada":["Apresente o conceito de soluções transversais que atendem a qualquer ERP ou segmento de negócio.","Mostre na tela a automação de processos inteligentes e integrações entre diferentes plataformas.","Destaque os benefícios de segurança jurídica, rapidez e redução de custos da assinatura eletrônica."],"perguntas_visitante":["Como é feita hoje a integração entre os diferentes sistemas e setores na sua empresa?","Vocês já utilizam inteligência artificial ou fluxos digitais de aprovação no dia a dia?"],"midias":{"fotos":[],"videos":[]},"ultima_atualizacao":{"data":"05/10/2026, 18:29:16","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Soluções Cross","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"","equipamentos":[{"id":"eq_solucoes_cross_1","titulo":"PC Soluções Cross","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":""}],"video_discurso":{"tipo":"url","url":"","titulo":"Vídeo do Discurso - SOLUÇÕES CROSS"}}];
 
         // Integração nativa Google Apps Script (Execução dentro do Google Workspace)
         if (typeof google !== 'undefined' && google && google.script && google.script.run) {
@@ -2242,9 +2242,6 @@
 
                       {/* Conteúdo Resumido do Card com Fundo Azul Gelo Soft Corporativo */}
                       <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between space-y-2 bg-[#F0F5FA] rounded-b-2xl">
-                        {/* Box de Credenciais do PC da Bancada */}
-                        <StationCredentialsBox credenciais={seg.credenciais} />
-
                         {/* Badges de Soluções do Segmento */}
                         <div className="space-y-1 pt-0.5">
                           <span className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1">
@@ -2292,11 +2289,11 @@
               segment={activeSegment}
               admLogado={admLogado}
               onClose={() => setActiveSegment(null)}
-              onEdit={() => {
-                const segToEdit = activeSegment;
-                setActiveSegment(null);
-                handleOpenEdit(segToEdit);
+              onSegmentChange={(updatedSeg) => {
+                setActiveSegment(updatedSeg);
+                setSegmentos(prev => prev.map(s => s.id === updatedSeg.id ? updatedSeg : s));
               }}
+              showToast={showToast}
             />
           )}
 
@@ -2628,7 +2625,7 @@
       
       const [nome, setNome] = useState('');
       const [email, setEmail] = useState('');
-      const [senhaProvisoria, setSenhaProvisoria] = useState('123');
+      const [senhaProvisoria, setSenhaProvisoria] = useState('totvs123');
       const [novaSenha, setNovaSenha] = useState('');
       const [confirmaSenha, setConfirmaSenha] = useState('');
       const [showNovaSenha, setShowNovaSenha] = useState(false);
@@ -2646,7 +2643,7 @@
                 setConviteData(data.convite);
                 if (data.convite.nome) setNome(data.convite.nome);
                 if (data.convite.email) setEmail(data.convite.email);
-                setSenhaProvisoria('123');
+                setSenhaProvisoria('totvs123');
               } else {
                 setErroToken(data && data.message ? data.message : 'Este link de convite é inválido ou já foi utilizado.');
               }
@@ -2666,7 +2663,7 @@
               setConviteData(data.convite);
               if (data.convite.nome) setNome(data.convite.nome);
               if (data.convite.email) setEmail(data.convite.email);
-              setSenhaProvisoria('123');
+              setSenhaProvisoria(data.convite.senha_provisoria || 'totvs123');
             } else {
               setErroToken(data.message || 'Este link de convite é inválido ou já foi utilizado.');
             }
@@ -2674,6 +2671,8 @@
           .catch(() => setErroToken('Erro ao verificar o convite. Verifique sua conexão.'))
           .finally(() => setCarregando(false));
       }, [token]);
+
+      const isPmm = (conviteData?.perfil === 'pmm') || (token && token.startsWith('pmm_'));
 
       const handleSubmit = async (e) => {
         e.preventDefault();
@@ -2692,8 +2691,9 @@
           return;
         }
 
-        if (senhaProvisoria.trim() !== '123') {
-          setFormErro('Senha provisória incorreta. A senha padrão informada no convite é 123.');
+        const senhaNorm = senhaProvisoria.trim();
+        if (senhaNorm !== 'totvs123' && senhaNorm !== '123') {
+          setFormErro('Senha provisória incorreta. A senha padrão informada no convite é totvs123.');
           return;
         }
 
@@ -2751,7 +2751,7 @@
           if (data.success && data.usuario) {
             onAcceptSuccess(data.usuario);
           } else {
-            setFormErro(data.message || 'Erro ao ativar perfil de administrador.');
+            setFormErro(data.message || 'Erro ao ativar perfil de usuário.');
           }
         } catch (err) {
           setFormErro('Erro de conexão ao ativar convite. Verifique sua rede.');
@@ -2791,11 +2791,13 @@
                     🎉
                   </div>
                   <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-block mb-1">
-                    Convite Oficial de Administrador
+                    {isPmm ? 'Convite Oficial de PMM (Gestor de Segmento)' : 'Convite Oficial de Administrador'}
                   </span>
-                  <h3 className="font-black text-xl text-slate-800">Ative seu Perfil de ADM</h3>
+                  <h3 className="font-black text-xl text-slate-800">
+                    {isPmm ? 'Ative seu Acesso de PMM' : 'Ative seu Perfil de ADM'}
+                  </h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar o Espaço Experiência TOTVS.
+                    Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar os conteúdos e roteiros do Espaço Experiência TOTVS.
                   </p>
                 </div>
 
@@ -2804,7 +2806,7 @@
                   <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between text-xs">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Pré-cadastro confirmado:</span>
-                      <strong className="text-slate-800 block text-xs">{conviteData.nome || 'Novo Administrador'}</strong>
+                      <strong className="text-slate-800 block text-xs">{conviteData.nome || (isPmm ? 'Novo PMM' : 'Novo Administrador')}</strong>
                       <span className="text-[11px] text-totvs-blue font-mono block">{conviteData.email}</span>
                     </div>
                     <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold text-[10px] shrink-0">
@@ -2849,13 +2851,13 @@
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="text-[11px] font-bold text-slate-700">Senha Provisória Recebida:</label>
-                        <span className="text-[10px] text-totvs-blue font-bold">Padrão do convite: 123</span>
+                        <span className="text-[10px] text-totvs-blue font-bold">Padrão do convite: totvs123</span>
                       </div>
                       <input
                         type="text"
                         value={senhaProvisoria}
                         onChange={e => setSenhaProvisoria(e.target.value)}
-                        placeholder="123"
+                        placeholder="totvs123"
                         className="w-full p-2 border border-slate-300 rounded-lg bg-white font-mono text-slate-800 focus:ring-2 focus:ring-totvs-cyan"
                         required
                       />
@@ -2938,276 +2940,887 @@
       );
     }
 
-    // --- COMPONENTE: MODAL DE DETALHES (MODO COPILOTO) ---
-    function SegmentDetailModal({ segment, admLogado, onClose, onEdit }) {
-      const [tab, setTab] = useState('pitch');
-      const IconComp = Icons[segment.icone] || Icons.Factory;
+    // Helper: Resolução inteligente de URLs de vídeo (Google Drive, YouTube ou HTML5 Nativo)
+    function parseVideoUrl(url) {
+      if (!url || typeof url !== 'string') return { tipo: 'empty', url: '', embedUrl: '' };
+      const clean = url.trim();
+      
+      // Google Drive link
+      const driveMatch = clean.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=))([a-zA-Z0-9_-]+)/);
+      if (driveMatch && driveMatch[1]) {
+        return {
+          tipo: 'drive',
+          embedUrl: `https://drive.google.com/file/d/${driveMatch[1]}/preview`,
+          originalUrl: clean
+        };
+      }
+
+      // YouTube link
+      const ytMatch = clean.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/);
+      if (ytMatch && ytMatch[1]) {
+        return {
+          tipo: 'youtube',
+          embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}`,
+          originalUrl: clean
+        };
+      }
+
+      return {
+        tipo: 'video',
+        embedUrl: resolveMediaUrl(clean),
+        originalUrl: clean
+      };
+    }
+
+    // Helper: Compressor de Fotos de Equipamentos via HTML5 Canvas
+    function compressEquipmentPhoto(file, maxWidth = 1200, maxHeight = 900, quality = 0.85) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth || height > maxHeight) {
+              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              width = Math.round(width * ratio);
+              height = Math.round(height * ratio);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = () => reject(new Error('Falha ao processar imagem.'));
+          img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('Falha ao ler arquivo.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // --- COMPONENTE: NOVA GUIA DA ESTAÇÃO (2 ABAS: DISCURSO DO SEGMENTO & EQUIPAMENTOS) ---
+    function SegmentDetailModal({ segment, admLogado, onClose, onSegmentChange, showToast }) {
+      const [tab, setTab] = useState('discurso'); // 'discurso' ou 'equipamentos'
+      const [localSegment, setLocalSegment] = useState(segment);
+      const [salvando, setSalvando] = useState(false);
+
+      // Estado Edição Pitch
+      const [editandoPitch, setEditandoPitch] = useState(false);
+      const [pitchTexto, setPitchTexto] = useState(segment.pitch || '');
+
+      // Estado Edição Vídeo
+      const [editandoVideo, setEditandoVideo] = useState(false);
+      const [videoInputUrl, setVideoInputUrl] = useState(
+        segment.video_discurso?.url || (segment.midias?.videos && segment.midias.videos[0]?.url) || ''
+      );
+
+      // Estado Galeria de Equipamentos
+      const [modalEquipamentoAberto, setModalEquipamentoAberto] = useState(false);
+      const [equipamentoEmEdicao, setEquipamentoEmEdicao] = useState(null);
+      const [eqTitulo, setEqTitulo] = useState('');
+      const [eqDescricao, setEqDescricao] = useState('');
+      const [eqFoto, setEqFoto] = useState('');
+      const [eqProcessandoFoto, setEqProcessandoFoto] = useState(false);
+      const [copiedEqId, setCopiedEqId] = useState(null);
+      const [lightboxFoto, setLightboxFoto] = useState(null);
+
+      const IconComp = Icons[localSegment.icone] || Icons.Factory;
+      const canEdit = Boolean(admLogado);
+
+      useEffect(() => {
+        setLocalSegment(segment);
+        setPitchTexto(segment.pitch || '');
+        setVideoInputUrl(
+          segment.video_discurso?.url || (segment.midias?.videos && segment.midias.videos[0]?.url) || ''
+        );
+      }, [segment]);
 
       useEffect(() => {
         const handleKeyDown = (e) => {
-          if (e.key === 'Escape') onClose();
+          if (e.key === 'Escape') {
+            if (lightboxFoto) setLightboxFoto(null);
+            else if (modalEquipamentoAberto) setModalEquipamentoAberto(false);
+            else onClose();
+          }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-      }, [onClose]);
+      }, [onClose, lightboxFoto, modalEquipamentoAberto]);
+
+      const equipamentos = useMemo(() => {
+        if (Array.isArray(localSegment.equipamentos) && localSegment.equipamentos.length > 0) {
+          return localSegment.equipamentos;
+        }
+        if (localSegment.credenciais) {
+          return [{
+            id: `eq_${localSegment.id}_1`,
+            titulo: localSegment.credenciais.equipamento || `Computador da Bancada`,
+            descricao: `Usuário: ${localSegment.credenciais.usuario || '—'}\nSenha: ${localSegment.credenciais.senha || '—'}`,
+            foto: (localSegment.midias?.fotos && localSegment.midias.fotos[0]?.url) || localSegment.foto_bancada || ''
+          }];
+        }
+        return [];
+      }, [localSegment]);
+
+      const videoInfo = useMemo(() => {
+        const url = localSegment.video_discurso?.url || (localSegment.midias?.videos && localSegment.midias.videos[0]?.url) || '';
+        return parseVideoUrl(url);
+      }, [localSegment]);
+
+      const handlePersistSegment = async (updatedSegment, mensagemSucesso) => {
+        setSalvando(true);
+        const segToSave = {
+          ...updatedSegment,
+          ultima_atualizacao: {
+            data: new Date().toLocaleString('pt-BR'),
+            autor: admLogado?.nome || 'Administrador TOTVS'
+          }
+        };
+
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              setSalvando(false);
+              setLocalSegment(segToSave);
+              if (onSegmentChange) onSegmentChange(segToSave);
+              if (showToast) showToast(mensagemSucesso || 'Estação atualizada com sucesso! ✨');
+            })
+            .withFailureHandler((err) => {
+              setSalvando(false);
+              alert('Erro ao salvar na nuvem TOTVS: ' + (err.message || err));
+            })
+            .salvarEstacao(segToSave);
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/segmentos/${segToSave.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              segmento: segToSave,
+              autor: {
+                nome: admLogado?.nome || 'Administrador TOTVS',
+                email: admLogado?.email || 'admin@totvs.com.br'
+              },
+              detalhes: mensagemSucesso || 'Atualização na Guia da Estação'
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            setLocalSegment(segToSave);
+            if (onSegmentChange) onSegmentChange(segToSave);
+            if (showToast) showToast(mensagemSucesso || 'Estação atualizada com sucesso! ✨');
+          } else {
+            alert(data.message || 'Erro ao salvar alterações.');
+          }
+        } catch (err) {
+          alert('Erro de conexão ao salvar estação.');
+        } finally {
+          setSalvando(false);
+        }
+      };
+
+      const handleSavePitch = async () => {
+        if (!pitchTexto.trim()) {
+          alert('O Pitch Sugerido não pode ficar vazio.');
+          return;
+        }
+        const updated = { ...localSegment, pitch: pitchTexto.trim() };
+        await handlePersistSegment(updated, 'Pitch Sugerido atualizado com sucesso! 🎙️');
+        setEditandoPitch(false);
+      };
+
+      const handleSaveVideo = async () => {
+        const urlLimpa = videoInputUrl.trim();
+        const info = parseVideoUrl(urlLimpa);
+        const updatedVideo = {
+          tipo: info.tipo,
+          url: urlLimpa,
+          titulo: `Vídeo do Discurso - ${localSegment.nome}`
+        };
+        const updated = {
+          ...localSegment,
+          video_discurso: updatedVideo,
+          midias: {
+            ...(localSegment.midias || {}),
+            videos: [updatedVideo]
+          }
+        };
+        await handlePersistSegment(updated, 'Vídeo do discurso atualizado com sucesso! 🎬');
+        setEditandoVideo(false);
+      };
+
+      const handleUploadVideoFile = async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        setSalvando(true);
+        try {
+          const res = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/octet-stream', 'X-Filename': encodeURIComponent(file.name) },
+            body: file
+          });
+          const data = await res.json();
+          if (data.success && data.url) {
+            setVideoInputUrl(data.url);
+            const updatedVideo = {
+              tipo: 'video',
+              url: data.url,
+              titulo: `Vídeo do Discurso - ${localSegment.nome}`
+            };
+            const updated = {
+              ...localSegment,
+              video_discurso: updatedVideo,
+              midias: {
+                ...(localSegment.midias || {}),
+                videos: [updatedVideo]
+              }
+            };
+            await handlePersistSegment(updated, 'Vídeo enviado e vinculado com sucesso! 🎬');
+            setEditandoVideo(false);
+          } else {
+            alert(data.message || 'Falha ao subir arquivo de vídeo.');
+          }
+        } catch (err) {
+          alert('Erro de conexão ao enviar vídeo.');
+        } finally {
+          setSalvando(false);
+        }
+      };
+
+      const handleOpenNovoEquipamento = () => {
+        setEquipamentoEmEdicao(null);
+        setEqTitulo('');
+        setEqDescricao('');
+        setEqFoto('');
+        setModalEquipamentoAberto(true);
+      };
+
+      const handleOpenEditarEquipamento = (eq) => {
+        setEquipamentoEmEdicao(eq);
+        setEqTitulo(eq.titulo || '');
+        setEqDescricao(eq.descricao || '');
+        setEqFoto(eq.foto || '');
+        setModalEquipamentoAberto(true);
+      };
+
+      const handleUploadEqFoto = async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        setEqProcessandoFoto(true);
+        try {
+          const compressedDataUrl = await compressEquipmentPhoto(file);
+          setEqFoto(compressedDataUrl);
+        } catch (err) {
+          alert('Erro ao processar imagem: ' + err.message);
+        } finally {
+          setEqProcessandoFoto(false);
+        }
+      };
+
+      const handleSaveEquipamento = async (e) => {
+        e.preventDefault();
+        if (!eqTitulo.trim()) {
+          alert('Por favor, informe o título do equipamento (ex: Notebook Dell Precision).');
+          return;
+        }
+
+        let novaLista = [...equipamentos];
+        if (equipamentoEmEdicao) {
+          novaLista = novaLista.map(item => {
+            if (item.id === equipamentoEmEdicao.id) {
+              return {
+                ...item,
+                titulo: eqTitulo.trim(),
+                descricao: eqDescricao.trim(),
+                foto: eqFoto
+              };
+            }
+            return item;
+          });
+        } else {
+          const novoEq = {
+            id: `eq_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            titulo: eqTitulo.trim(),
+            descricao: eqDescricao.trim(),
+            foto: eqFoto
+          };
+          novaLista.push(novoEq);
+        }
+
+        const updated = {
+          ...localSegment,
+          equipamentos: novaLista
+        };
+
+        await handlePersistSegment(
+          updated,
+          equipamentoEmEdicao ? 'Equipamento atualizado com sucesso! 🖥️' : 'Novo equipamento adicionado à bancada! 🖥️'
+        );
+        setModalEquipamentoAberto(false);
+      };
+
+      const handleDeleteEquipamento = async (eqId, eqNome) => {
+        if (!confirm(`Deseja realmente remover o equipamento "${eqNome || 'este equipamento'}" da bancada?`)) {
+          return;
+        }
+        const novaLista = equipamentos.filter(item => item.id !== eqId);
+        const updated = {
+          ...localSegment,
+          equipamentos: novaLista
+        };
+        await handlePersistSegment(updated, 'Equipamento removido da bancada.');
+      };
+
+      const handleCopyEqData = (eqId, text) => {
+        if (!text) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text);
+          setCopiedEqId(eqId);
+          setTimeout(() => setCopiedEqId(null), 2000);
+          if (showToast) showToast('Dados copiados para a área de transferência! 📋');
+        } else {
+          prompt('Copie os dados:', text);
+        }
+      };
 
       return (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]">
             
-            {/* Header do Modal */}
-            <div className="bg-gradient-to-r from-totvs-dark to-totvs-blue text-white p-4 sm:p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+            {/* Header do Modal com Identidade Visual TOTVS */}
+            <div className="bg-gradient-to-r from-totvs-dark via-slate-900 to-totvs-blue text-white p-4 sm:p-6 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3.5 sm:gap-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shrink-0 shadow-md">
                   <IconComp />
                 </div>
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-totvs-cyan">
-                    Estação {segment.ordem} do Roteiro Físico
-                  </span>
-                  <h2 className="text-2xl font-black text-white">{segment.nome}</h2>
-                  <p className="text-xs text-slate-200 mt-0.5">{segment.tagline}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-totvs-cyan bg-totvs-cyan/10 px-2.5 py-0.5 rounded-full border border-totvs-cyan/20">
+                      Estação {localSegment.ordem.toString().padStart(2, '0')} do Roteiro Físico
+                    </span>
+                    {canEdit && (
+                      <span className="text-[10px] font-bold text-amber-300 bg-amber-400/20 px-2 py-0.5 rounded-full border border-amber-400/30">
+                        ✏️ Modo de Edição Ativo ({admLogado?.perfil === 'pmm' ? 'PMM' : 'ADM'})
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-white mt-0.5">{localSegment.nome}</h2>
+                  <p className="text-xs text-slate-300 line-clamp-1">{localSegment.tagline}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {admLogado && (
-                  <button
-                    onClick={onEdit}
-                    className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/20 transition cursor-pointer"
-                  >
-                    <Icons.Edit />
-                    <span>Editar Informações</span>
-                  </button>
-                )}
+              <div className="flex items-center gap-2 shrink-0">
                 <button
+                  type="button"
                   onClick={onClose}
-                  className="text-slate-300 hover:text-white p-1 rounded-lg transition"
+                  className="text-slate-300 hover:text-white p-2 rounded-xl hover:bg-white/10 transition cursor-pointer"
+                  title="Fechar Guia"
                 >
                   <Icons.X />
                 </button>
               </div>
             </div>
 
-            {/* Navegação por Abas */}
-            <div className="flex border-b border-slate-200 bg-slate-50 px-4 sm:px-6 overflow-x-auto scrollbar-thin">
+            {/* Navegação por Abas Simplificada (2 Abas) */}
+            <div className="flex border-b border-slate-200 bg-slate-50 px-4 sm:px-6 shrink-0">
               <button
-                onClick={() => setTab('pitch')}
-                className={`py-3.5 px-4 font-semibold text-xs border-b-2 transition flex items-center gap-2 ${
-                  tab === 'pitch'
-                    ? 'border-totvs-blue text-totvs-blue bg-white'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                type="button"
+                onClick={() => setTab('discurso')}
+                className={`py-3.5 px-4 font-bold text-xs border-b-2 transition flex items-center gap-2 cursor-pointer ${
+                  tab === 'discurso'
+                    ? 'border-totvs-blue text-totvs-blue bg-white shadow-2xs'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
-                <span>🎙️ Discurso de Plantão (Pitch)</span>
+                <span>🎙️ Discurso do Segmento</span>
               </button>
               <button
-                onClick={() => setTab('bancada')}
-                className={`py-3.5 px-4 font-semibold text-xs border-b-2 transition flex items-center gap-2 ${
-                  tab === 'bancada'
-                    ? 'border-totvs-blue text-totvs-blue bg-white'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                type="button"
+                onClick={() => setTab('equipamentos')}
+                className={`py-3.5 px-4 font-bold text-xs border-b-2 transition flex items-center gap-2 cursor-pointer ${
+                  tab === 'equipamentos'
+                    ? 'border-totvs-blue text-totvs-blue bg-white shadow-2xs'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
-                <span>🖥️ Bancada Física & Roteiro</span>
-              </button>
-              <button
-                onClick={() => setTab('midias')}
-                className={`py-3.5 px-4 font-semibold text-xs border-b-2 transition flex items-center gap-2 ${
-                  tab === 'midias'
-                    ? 'border-totvs-blue text-totvs-blue bg-white'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <span>🎬 Fotos & Vídeos</span>
+                <span>🖥️ Equipamentos e dados de acesso</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 font-extrabold">
+                  {equipamentos.length}
+                </span>
               </button>
             </div>
 
-            {/* Conteúdo das Abas */}
-            <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
-              {tab === 'pitch' && (
-                <div className="space-y-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50/40 p-5 rounded-2xl border border-blue-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-totvs-blue flex items-center gap-1.5">
-                        <Icons.UserCheck />
-                        <span>Pitch Sugerido de 1 Minuto para o Visitante:</span>
-                      </span>
-                      <span className="text-[11px] font-semibold bg-totvs-blue text-white px-2 py-0.5 rounded-full">
-                        Discurso de Alto Impacto
-                      </span>
+            {/* Conteúdo das Abas com Scroll */}
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1">
+              
+              {/* ABA 1: DISCURSO DO SEGMENTO */}
+              {tab === 'discurso' && (
+                <div className="space-y-6 animate-in fade-in duration-150">
+                  
+                  {/* Bloco 1: Pitch Sugerido de 1 Minuto */}
+                  <div className="bg-gradient-to-br from-blue-50/80 via-indigo-50/40 to-white p-5 sm:p-6 rounded-2xl border border-blue-200/80 shadow-sm relative">
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-totvs-blue flex items-center gap-1.5">
+                          <Icons.UserCheck />
+                          <span>Pitch Sugerido de 1 Minuto para o Visitante:</span>
+                        </span>
+                        <span className="text-[10px] font-black bg-totvs-blue text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                          Discurso de Alto Impacto
+                        </span>
+                      </div>
+
+                      {canEdit && !editandoPitch && (
+                        <button
+                          type="button"
+                          onClick={() => setEditandoPitch(true)}
+                          className="flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-blue-50 text-totvs-blue text-xs font-bold rounded-lg border border-totvs-blue/30 shadow-2xs transition cursor-pointer"
+                        >
+                          <Icons.Edit />
+                          <span>Editar Pitch</span>
+                        </button>
+                      )}
                     </div>
-                    <blockquote className="text-sm font-medium text-slate-800 italic leading-relaxed">
-                      "{segment.pitch}"
-                    </blockquote>
-                  </div>
 
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                      <Icons.AlertCircle />
-                      <span>Dores Críticas do Mercado que a TOTVS Resolve:</span>
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {segment.dores_setor && segment.dores_setor.map((dor, i) => (
-                        <div key={i} className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 text-xs text-slate-700 leading-snug flex gap-2">
-                          <span className="font-bold text-totvs-cyan">{i+1}.</span>
-                          <span>{dor}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-200/70">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 mb-2 flex items-center gap-1.5">
-                      <span>💡 Perguntas-Chave para Provocar e Engajar o Visitante:</span>
-                    </h4>
-                    <ul className="space-y-2 text-xs text-amber-950 font-medium">
-                      {segment.perguntas_visitante && segment.perguntas_visitante.map((perg, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-amber-600 font-bold">•</span>
-                          <span>"{perg}"</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )}
-
-              {tab === 'bancada' && (
-                <div className="space-y-6">
-                  {/* Foto da Bancada e Credenciais Integradas */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {segment.foto_bancada ? (
-                      <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-950 group">
-                        <img src={resolveMediaUrl(segment.foto_bancada)} onError={(e) => handleMediaError(e, segment.foto_bancada)}
-                          alt={`Bancada física ${segment.nome}`}
-                          className="w-full h-48 object-cover group-hover:scale-105 transition duration-500"
+                    {editandoPitch ? (
+                      <div className="space-y-3 pt-1">
+                        <textarea
+                          rows={5}
+                          value={pitchTexto}
+                          onChange={(e) => setPitchTexto(e.target.value)}
+                          placeholder="Digite o discurso de impacto para a estação..."
+                          className="w-full text-xs sm:text-sm p-3.5 rounded-xl border border-totvs-blue/40 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-cyan font-medium leading-relaxed"
                         />
-                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-bold border border-white/20 shadow-sm">
-                          <span>📸 Foto da Bancada Física</span>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPitchTexto(localSegment.pitch || '');
+                              setEditandoPitch(false);
+                            }}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-200 transition cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            disabled={salvando}
+                            onClick={handleSavePitch}
+                            className="px-4 py-1.5 rounded-lg text-xs font-bold bg-totvs-blue hover:bg-totvs-dark text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Icons.Save />
+                            <span>{salvando ? 'Salvando...' : 'Salvar Pitch'}</span>
+                          </button>
                         </div>
                       </div>
                     ) : (
-                      <div className="h-48 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-dashed border-slate-300 flex flex-col items-center justify-center p-4 text-center">
-                        <span className="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mb-2">
-                          <Icons.Image />
-                        </span>
-                        <span className="text-xs font-bold text-slate-600 block">Bancada Física</span>
-                        <span className="text-[11px] text-slate-400">Nenhuma foto vinculada ainda</span>
+                      <blockquote className="text-xs sm:text-sm font-medium text-slate-800 italic leading-relaxed pl-2 border-l-4 border-totvs-blue">
+                        "{localSegment.pitch || 'Nenhum pitch cadastrado ainda.'}"
+                      </blockquote>
+                    )}
+                  </div>
+
+                  {/* Bloco 2: Vídeo do Discurso */}
+                  <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-md">
+                    <div className="p-4 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-totvs-blue/20 text-totvs-cyan flex items-center justify-center">
+                          <Icons.Video />
+                        </div>
+                        <div>
+                          <h4 className="text-xs sm:text-sm font-black text-white">
+                            Vídeo Demonstrativo do Discurso
+                          </h4>
+                          <span className="text-[11px] text-slate-400">
+                            Demonstração prática do roteiro e postura do especialista
+                          </span>
+                        </div>
+                      </div>
+
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={() => setEditandoVideo(!editandoVideo)}
+                          className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-totvs-cyan text-xs font-bold border border-slate-700 transition cursor-pointer"
+                        >
+                          <Icons.Edit />
+                          <span>{editandoVideo ? 'Fechar Edição' : 'Alterar Vídeo'}</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Painel de Edição de Vídeo (ADM/PMM) */}
+                    {editandoVideo && (
+                      <div className="p-4 bg-slate-800 border-b border-slate-700 space-y-3 animate-in fade-in duration-150">
+                        <p className="text-xs text-slate-300">
+                          Cole o link de compartilhamento do <strong>Google Drive</strong>, YouTube ou link direto de vídeo MP4. No ambiente local, você também pode subir o arquivo de vídeo diretamente.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <input
+                            type="text"
+                            placeholder="Ex: https://drive.google.com/file/d/1aBcDeFg.../view?usp=sharing"
+                            value={videoInputUrl}
+                            onChange={(e) => setVideoInputUrl(e.target.value)}
+                            className="flex-1 text-xs px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-totvs-cyan font-mono"
+                          />
+                          <button
+                            type="button"
+                            disabled={salvando}
+                            onClick={handleSaveVideo}
+                            className="px-4 py-2 bg-totvs-cyan hover:bg-totvs-cyan/90 text-slate-950 font-black text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                          >
+                            <Icons.CheckCircle />
+                            <span>{salvando ? 'Salvando...' : 'Aplicar Link'}</span>
+                          </button>
+                        </div>
+
+                        {/* Opção de Upload de Arquivo MP4 Local */}
+                        <div className="pt-2 border-t border-slate-700/60 flex items-center justify-between flex-wrap gap-2 text-xs">
+                          <span className="text-slate-400 text-[11px]">
+                            Ou selecione um arquivo de vídeo do seu computador (MP4):
+                          </span>
+                          <label className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold cursor-pointer transition flex items-center gap-1.5">
+                            <Icons.Upload />
+                            <span>Subir Arquivo de Vídeo</span>
+                            <input
+                              type="file"
+                              accept="video/mp4,video/webm,video/quicktime"
+                              onChange={handleUploadVideoFile}
+                              className="hidden"
+                              disabled={salvando}
+                            />
+                          </label>
+                        </div>
                       </div>
                     )}
 
-                    <div className="flex flex-col justify-between">
-                      <StationCredentialsBox credenciais={segment.credenciais} />
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 mt-3 text-xs text-slate-600 leading-relaxed">
-                        <strong className="text-totvs-blue block mb-1">Dica para a Visita:</strong>
-                        Mantenha este computador ligado e logado com as credenciais acima antes do início da jornada dos clientes.
+                    {/* Player de Vídeo Responsivo Inteligente */}
+                    <div className="relative w-full aspect-video bg-black flex items-center justify-center">
+                      {videoInfo.tipo === 'drive' || videoInfo.tipo === 'youtube' ? (
+                        <iframe
+                          src={videoInfo.embedUrl}
+                          title={`Vídeo do Discurso - ${localSegment.nome}`}
+                          className="w-full h-full border-0"
+                          allow="autoplay; encrypted-media; fullscreen"
+                          allowFullScreen
+                        />
+                      ) : videoInfo.tipo === 'video' && videoInfo.embedUrl ? (
+                        <video
+                          controls
+                          className="w-full h-full object-contain bg-black"
+                          src={videoInfo.embedUrl}
+                        >
+                          Seu navegador não suporta reprodução nativa de vídeo.
+                        </video>
+                      ) : (
+                        <div className="text-center p-6 space-y-2">
+                          <div className="w-12 h-12 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mx-auto text-xl">
+                            🎬
+                          </div>
+                          <p className="text-xs font-bold text-slate-300">
+                            Nenhum vídeo vinculado a esta estação ainda.
+                          </p>
+                          {canEdit && (
+                            <p className="text-[11px] text-totvs-cyan cursor-pointer hover:underline" onClick={() => setEditandoVideo(true)}>
+                              Clique em "Alterar Vídeo" acima para colar um link do Google Drive ou subir um vídeo.
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* ABA 2: EQUIPAMENTOS E DADOS DE ACESSO */}
+              {tab === 'equipamentos' && (
+                <div className="space-y-5 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                      <h3 className="font-extrabold text-sm sm:text-base text-slate-800 flex items-center gap-2">
+                        <span>Equipamentos Físicos & Credenciais da Bancada</span>
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Consulte as fotos dos dispositivos da estação, títulos e informações de login/acesso
+                      </p>
+                    </div>
+
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={handleOpenNovoEquipamento}
+                        className="px-3.5 py-2 rounded-xl bg-totvs-blue hover:bg-totvs-dark text-white font-bold text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                      >
+                        <Icons.Plus />
+                        <span>Adicionar Equipamento</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Grid de Cards de Equipamentos */}
+                  {equipamentos.length === 0 ? (
+                    <div className="p-8 rounded-2xl bg-slate-50 border border-dashed border-slate-300 text-center space-y-2">
+                      <div className="w-12 h-12 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto text-xl">
+                        🖥️
                       </div>
+                      <h4 className="text-xs font-bold text-slate-700">Nenhum equipamento cadastrado</h4>
+                      <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                        Esta bancada ainda não possui dispositivos ou credenciais configuradas.
+                      </p>
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={handleOpenNovoEquipamento}
+                          className="mt-2 px-3 py-1.5 bg-totvs-blue text-white rounded-lg text-xs font-bold cursor-pointer"
+                        >
+                          + Cadastrar Primeiro Equipamento
+                        </button>
+                      )}
                     </div>
-                  </div>
-
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                      O Que Há Fisicamente no Laboratório:
-                    </h4>
-                    <p className="text-xs text-slate-700 font-medium leading-relaxed">
-                      {segment.cenario_fisico}
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-totvs-blue mb-3">
-                      Passo a Passo de Demonstração na Bancada:
-                    </h4>
-                    <div className="space-y-3">
-                      {segment.roteiro_bancada && segment.roteiro_bancada.map((passo, idx) => (
-                        <div key={idx} className="flex items-start gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-                          <span className="w-6 h-6 rounded-full bg-totvs-blue text-white flex items-center justify-center text-xs font-bold shrink-0">
-                            {idx + 1}
-                          </span>
-                          <span className="text-xs text-slate-800 font-medium leading-relaxed">
-                            {passo}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                      Sistemas & Módulos TOTVS Exibidos:
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {segment.badge_solucoes && segment.badge_solucoes.map((sol, idx) => (
-                        <span key={idx} className="bg-totvs-blue/10 text-totvs-blue font-bold text-xs px-3 py-1 rounded-lg border border-totvs-blue/20">
-                          {sol}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {tab === 'midias' && (
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                      <Icons.Video />
-                      <span>Vídeos de Demonstração & Tour no Laboratório:</span>
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {segment.midias?.videos && segment.midias.videos.map((vid, idx) => (
-                        <div key={idx} className="bg-slate-900 rounded-2xl overflow-hidden shadow-md border border-slate-800">
-                          <video
-                            controls
-                            className="w-full h-48 object-cover bg-black"
-                            src={vid.url}
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {equipamentos.map((eq, idx) => {
+                        const isCopied = copiedEqId === eq.id;
+                        return (
+                          <div
+                            key={eq.id || idx}
+                            className="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between group"
                           >
-                            Seu navegador não suporta reprodução de vídeo.
-                          </video>
-                          <div className="p-3 bg-slate-900 text-white">
-                            <h5 className="font-bold text-xs">{vid.titulo}</h5>
-                            <span className="text-[10px] text-slate-400">Vídeo local gravado no Espaço Experiência</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                            <div>
+                              {/* Foto do Equipamento */}
+                              <div className="relative h-40 bg-slate-100 overflow-hidden border-b border-slate-100">
+                                {eq.foto ? (
+                                  <>
+                                    <img
+                                      src={resolveMediaUrl(eq.foto)}
+                                      onError={(e) => handleMediaError(e, eq.foto)}
+                                      alt={eq.titulo}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500 cursor-pointer"
+                                      onClick={() => setLightboxFoto(eq.foto)}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => setLightboxFoto(eq.foto)}
+                                      title="Ampliar Foto"
+                                      className="absolute bottom-2 right-2 w-7 h-7 rounded-lg bg-slate-900/80 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                                    >
+                                      🔍
+                                    </button>
+                                  </>
+                                ) : (
+                                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+                                    <span className="text-3xl mb-1">💻</span>
+                                    <span className="text-[10px] font-bold text-slate-400">Sem foto vinculada</span>
+                                  </div>
+                                )}
+                              </div>
 
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                      <Icons.Image />
-                      <span>Fotos dos Equipamentos e Telas do Laboratório:</span>
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                      {segment.midias?.fotos && segment.midias.fotos.map((foto, idx) => (
-                        <div key={idx} className="rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
-                          <img src={resolveMediaUrl(foto.url)} onError={(e) => handleMediaError(e, foto.url)}
-                            alt={foto.titulo}
-                            className="w-full h-36 object-cover hover:scale-105 transition duration-300"
-                          />
-                          <div className="p-2 text-[11px] font-semibold text-slate-700 bg-white">
-                            {foto.titulo}
+                              {/* Conteúdo do Card */}
+                              <div className="p-3.5 space-y-2">
+                                <h4 className="font-extrabold text-xs text-slate-800 leading-snug line-clamp-1" title={eq.titulo}>
+                                  {eq.titulo || 'Dispositivo da Bancada'}
+                                </h4>
+
+                                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-[11px] text-slate-700 font-mono whitespace-pre-wrap leading-relaxed select-all">
+                                  {eq.descricao || 'Nenhuma informação de acesso informada.'}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Ações do Card */}
+                            <div className="p-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-2">
+                              {eq.descricao ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyEqData(eq.id, eq.descricao)}
+                                  className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold flex items-center gap-1 transition cursor-pointer ${
+                                    isCopied
+                                      ? 'bg-emerald-600 text-white'
+                                      : 'bg-white hover:bg-slate-100 text-totvs-blue border border-slate-200'
+                                  }`}
+                                >
+                                  <Icons.Copy />
+                                  <span>{isCopied ? 'Copiado!' : 'Copiar Dados'}</span>
+                                </button>
+                              ) : <span />}
+
+                              {canEdit && (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEditarEquipamento(eq)}
+                                    className="p-1.5 text-slate-600 hover:text-totvs-blue hover:bg-white rounded-lg transition cursor-pointer"
+                                    title="Editar Dados do Equipamento"
+                                  >
+                                    <Icons.Edit />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteEquipamento(eq.id, eq.titulo)}
+                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                    title="Remover Equipamento da Bancada"
+                                  >
+                                    <Icons.Trash />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
+
             </div>
 
             {/* Rodapé do Modal */}
-            <div className="bg-slate-100 px-6 py-3.5 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-              <span>Última revisão por {segment.ultima_atualizacao?.autor} em {segment.ultima_atualizacao?.data}</span>
+            <div className="bg-slate-100 px-6 py-3.5 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 shrink-0">
+              <span className="text-[11px]">
+                Última revisão por <strong>{localSegment.ultima_atualizacao?.autor || 'Especialista TOTVS'}</strong> em {localSegment.ultima_atualizacao?.data || 'Recente'}
+              </span>
               <button
+                type="button"
                 onClick={onClose}
-                className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-lg font-semibold transition"
+                className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer"
               >
                 Fechar
               </button>
             </div>
 
           </div>
+
+          {/* MODAL CONTEXTUAL: ADICIONAR / EDITAR EQUIPAMENTO */}
+          {modalEquipamentoAberto && (
+            <div className="fixed inset-0 z-60 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <h3 className="font-black text-sm sm:text-base text-slate-800 flex items-center gap-2">
+                    <span>{equipamentoEmEdicao ? 'Editar Equipamento' : 'Novo Equipamento da Bancada'}</span>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setModalEquipamentoAberto(false)}
+                    className="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
+                  >
+                    <Icons.X />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveEquipamento} className="space-y-3.5 text-xs">
+                  {/* Foto do Equipamento */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Foto do Equipamento:
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <div className="w-20 h-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                        {eqFoto ? (
+                          <img src={eqFoto} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-xl text-slate-400">📷</span>
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs cursor-pointer border border-slate-300 transition">
+                          <Icons.Upload />
+                          <span>{eqProcessandoFoto ? 'Otimizando...' : (eqFoto ? 'Trocar Foto' : 'Subir Foto')}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleUploadEqFoto}
+                            disabled={eqProcessandoFoto}
+                            className="hidden"
+                          />
+                        </label>
+                        <p className="text-[10px] text-slate-500">
+                          Redimensionamento e compressão automática via Canvas para máxima performance.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Título */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Título do Equipamento *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Notebook Dell Precision - Agro"
+                      value={eqTitulo}
+                      onChange={(e) => setEqTitulo(e.target.value)}
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-cyan"
+                      required
+                    />
+                  </div>
+
+                  {/* Descrição e Dados de Acesso */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Descrição & Dados de Acesso / Instruções:
+                    </label>
+                    <textarea
+                      rows={4}
+                      placeholder={"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026\nObservação: Conectar na rede TOTVS-Showroom"}
+                      value={eqDescricao}
+                      onChange={(e) => setEqDescricao(e.target.value)}
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-cyan leading-relaxed"
+                    />
+                  </div>
+
+                  {/* Botões do Modal de Equipamento */}
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setModalEquipamentoAberto(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={salvando || eqProcessandoFoto}
+                      className="px-5 py-2 rounded-xl text-xs font-bold bg-totvs-blue hover:bg-totvs-dark text-white shadow-md transition flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Icons.Save />
+                      <span>{salvando ? 'Salvando...' : 'Salvar Equipamento'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* LIGHTBOX: FOTO AMPLIADA DO EQUIPAMENTO */}
+          {lightboxFoto && (
+            <div
+              className="fixed inset-0 z-70 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 cursor-pointer"
+              onClick={() => setLightboxFoto(null)}
+            >
+              <div className="relative max-w-3xl w-full max-h-[85vh] flex items-center justify-center">
+                <img
+                  src={resolveMediaUrl(lightboxFoto)}
+                  alt="Visualização do Equipamento"
+                  className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain border border-white/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => setLightboxFoto(null)}
+                  className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white text-slate-900 font-bold flex items-center justify-center shadow-lg hover:bg-slate-200 transition cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
         </div>
       );
     }
@@ -5511,6 +6124,13 @@
         };
       }, [onClose]);
 
+      // Usuário PMM não pode visualizar abas de administradores ou convites
+      useEffect(() => {
+        if (admLogado?.perfil === 'pmm' && (activeTab === 'adms' || activeTab === 'convites')) {
+          if (onTabChange) onTabChange('visitas');
+        }
+      }, [admLogado?.perfil, activeTab, onTabChange]);
+
       const [copiedToken, setCopiedToken] = useState(null);
       const [gerandoConvite, setGerandoConvite] = useState(false);
       const [conviteRecemCriado, setConviteRecemCriado] = useState(null);
@@ -5523,6 +6143,74 @@
       // Estados para Novo Convite com Nome e E-mail obrigatórios
       const [novoAdmNome, setNovoAdmNome] = useState('');
       const [novoAdmEmail, setNovoAdmEmail] = useState('');
+      const [perfilConvite, setPerfilConvite] = useState('pmm');
+
+      // Estados para Troca de Senha Própria
+      const [modalTrocarSenha, setModalTrocarSenha] = useState(false);
+      const [novaSenhaInput, setNovaSenhaInput] = useState('');
+      const [confirmaNovaSenhaInput, setConfirmaNovaSenhaInput] = useState('');
+      const [salvandoSenha, setSalvandoSenha] = useState(false);
+      const [erroTrocaSenha, setErroTrocaSenha] = useState('');
+
+      const handleTrocarSenha = async (e) => {
+        if (e) e.preventDefault();
+        setErroTrocaSenha('');
+        const senhaLimpa = novaSenhaInput.trim();
+        if (senhaLimpa.length < 6 || !/^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(senhaLimpa)) {
+          setErroTrocaSenha('A nova senha deve possuir no mínimo 6 caracteres e conter letras e números.');
+          return;
+        }
+        if (senhaLimpa !== confirmaNovaSenhaInput.trim()) {
+          setErroTrocaSenha('A confirmação da nova senha não confere.');
+          return;
+        }
+
+        setSalvandoSenha(true);
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              setSalvandoSenha(false);
+              if (res && res.success) {
+                setModalTrocarSenha(false);
+                setNovaSenhaInput('');
+                setConfirmaNovaSenhaInput('');
+                if (showToast) showToast('Sua senha foi alterada com sucesso! 🔐');
+              } else {
+                setErroTrocaSenha(res.message || 'Erro ao alterar senha.');
+              }
+            })
+            .withFailureHandler((err) => {
+              setSalvandoSenha(false);
+              setErroTrocaSenha('Falha ao comunicar com a nuvem TOTVS: ' + (err.message || err));
+            })
+            .alterarSenhaUsuario(admLogado.email, senhaLimpa);
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/admin/password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: admLogado.email,
+              novaSenha: senhaLimpa
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            setModalTrocarSenha(false);
+            setNovaSenhaInput('');
+            setConfirmaNovaSenhaInput('');
+            if (showToast) showToast('Sua senha foi alterada com sucesso! 🔐');
+          } else {
+            setErroTrocaSenha(data.message || 'Erro ao alterar senha.');
+          }
+        } catch (err) {
+          setErroTrocaSenha('Erro de conexão ao alterar senha.');
+        } finally {
+          setSalvandoSenha(false);
+        }
+      };
 
       // Estados e Ref para Upload de Foto de Perfil
       const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -5598,6 +6286,7 @@
             .salvarConviteAdmin({
               nome: novoAdmNome.trim(),
               email: novoAdmEmail.trim(),
+              perfil: perfilConvite,
               criado_por: admLogado?.nome || 'Administrador'
             });
           return;
@@ -5609,6 +6298,7 @@
             body: JSON.stringify({
               nome: novoAdmNome.trim(),
               email: novoAdmEmail.trim(),
+              perfil: perfilConvite,
               criado_por: admLogado?.nome || 'Administrador'
             })
           });
@@ -5863,6 +6553,10 @@
                       <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40">
                         👑 Dono do Produto
                       </span>
+                    ) : admLogado?.perfil === 'pmm' ? (
+                      <span className="text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                        🎯 PMM (Gestor de Segmento)
+                      </span>
                     ) : (
                       <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
                         Administrador
@@ -5883,6 +6577,14 @@
               </div>
 
               <div className="flex items-center gap-2 self-end sm:self-center">
+                <button
+                  type="button"
+                  onClick={() => setModalTrocarSenha(true)}
+                  className="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold border border-white/20 transition flex items-center gap-1 cursor-pointer"
+                  title="Alterar minha senha de acesso"
+                >
+                  <span>🔑 Trocar Senha</span>
+                </button>
                 <button
                   type="button"
                   onClick={onRefresh}
@@ -5914,35 +6616,39 @@
               </div>
             </div>
 
-            {/* Abas de Navegação */}
+            {/* Abas de Navegação (Restritas se for PMM) */}
             <div className="flex border-b border-slate-200 bg-slate-50 px-6 gap-2 pt-2 overflow-x-auto">
-              <button
-                onClick={() => onTabChange('adms')}
-                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
-                  activeTab === 'adms'
-                    ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <Icons.Shield />
-                <span>Administradores ({admsList.length})</span>
-              </button>
+              {admLogado?.perfil !== 'pmm' && (
+                <>
+                  <button
+                    onClick={() => onTabChange('adms')}
+                    className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
+                      activeTab === 'adms'
+                        ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Icons.Shield />
+                    <span>Administradores ({admsList.length})</span>
+                  </button>
 
-              <button
-                onClick={() => onTabChange('convites')}
-                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
-                  activeTab === 'convites'
-                    ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <Icons.Plus />
-                <span>Convites de ADM ({convitesList.length})</span>
-              </button>
+                  <button
+                    onClick={() => onTabChange('convites')}
+                    className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
+                      activeTab === 'convites'
+                        ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Icons.Plus />
+                    <span>Convites ({convitesList.length})</span>
+                  </button>
+                </>
+              )}
 
               <button
                 onClick={() => onTabChange('visitas')}
-                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
+                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'visitas'
                     ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -5954,7 +6660,7 @@
 
               <button
                 onClick={() => onTabChange('audit')}
-                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
+                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'audit'
                     ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -5966,7 +6672,7 @@
 
               <button
                 onClick={() => onTabChange('video')}
-                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 ${
+                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'video'
                     ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -6051,9 +6757,14 @@
                                       Você
                                     </span>
                                   )}
-                                  {!isDono && (
-                                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
-                                      ADM Ativo
+                                  {!isDono && adm.perfil === 'pmm' && (
+                                    <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
+                                      🎯 PMM (Gestão)
+                                    </span>
+                                  )}
+                                  {!isDono && adm.perfil !== 'pmm' && (
+                                    <span className="text-[10px] bg-blue-50 text-totvs-blue font-bold px-2 py-0.5 rounded-full border border-blue-200 flex items-center gap-1">
+                                      🛡️ ADM Ativo
                                     </span>
                                   )}
                                 </div>
@@ -6101,7 +6812,7 @@
                 </div>
               )}
 
-              {/* ABA 2: CONVITES DE ADM */}
+              {/* ABA 2: CONVITES DE ADM E PMM */}
               {activeTab === 'convites' && (
                 <div className="space-y-6">
                   {/* Card Gerador de Convite com Formulário Obrigatório */}
@@ -6109,18 +6820,68 @@
                     <div>
                       <h4 className="font-extrabold text-base text-white flex items-center gap-2">
                         <Icons.Plus />
-                        <span>Novo Convite de Administrador</span>
+                        <span>Novo Convite de Acesso (PMM ou Administrador)</span>
                       </h4>
                       <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                        Preencha o nome completo e o e-mail corporativo do colega para gerar um link exclusivo com a senha provisória padrão <strong className="text-totvs-cyan font-mono">123</strong>. O link só pode ser gerado após o preenchimento completo dos campos.
+                        Preencha o nome completo e o e-mail corporativo do colega para gerar um link exclusivo com a senha provisória padrão <strong className="text-totvs-cyan font-mono">totvs123</strong>. O link só pode ser gerado após o preenchimento completo dos campos.
                       </p>
                     </div>
 
-                    <form onSubmit={handleGerarConvite} className="mt-4 pt-4 border-t border-slate-700/80 space-y-3">
+                    <form onSubmit={handleGerarConvite} className="mt-4 pt-4 border-t border-slate-700/80 space-y-4">
+                      {/* Seletor de Perfil: PMM vs ADM */}
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-300 mb-1.5">
+                          Perfil de Acesso do Convidado *
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => setPerfilConvite('pmm')}
+                            className={`p-3 rounded-xl border text-left transition flex items-start gap-2.5 cursor-pointer ${
+                              perfilConvite === 'pmm'
+                                ? 'bg-emerald-950/60 border-emerald-400 text-white shadow-sm ring-1 ring-emerald-400/50'
+                                : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600'
+                            }`}
+                          >
+                            <span className="text-base shrink-0 mt-0.5">🎯</span>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <strong className="text-xs font-bold text-white">PMM (Product Marketing)</strong>
+                                <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-extrabold px-1.5 py-0.2 rounded">Recomendado</span>
+                              </div>
+                              <p className="text-[10px] text-slate-300 mt-0.5 leading-snug">
+                                Edita pitch, vídeos, fotos e equipamentos de qualquer estação. Altera sua própria senha e foto de perfil. Não convida nem exclui outros usuários.
+                              </p>
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setPerfilConvite('adm')}
+                            className={`p-3 rounded-xl border text-left transition flex items-start gap-2.5 cursor-pointer ${
+                              perfilConvite === 'adm'
+                                ? 'bg-totvs-blue/30 border-totvs-cyan text-white shadow-sm ring-1 ring-totvs-cyan/50'
+                                : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600'
+                            }`}
+                          >
+                            <span className="text-base shrink-0 mt-0.5">🛡️</span>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <strong className="text-xs font-bold text-white">Administrador Geral</strong>
+                                <span className="text-[9px] bg-totvs-cyan/20 text-totvs-cyan font-extrabold px-1.5 py-0.2 rounded">Acesso Total</span>
+                              </div>
+                              <p className="text-[10px] text-slate-300 mt-0.5 leading-snug">
+                                Acesso irrestrito a todas as estações, vídeos da gestão, métricas, logs de auditoria e gestão de outros administradores e convites.
+                              </p>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                            Nome Completo do Novo ADM *
+                            Nome Completo do Convidado *
                           </label>
                           <input
                             type="text"
@@ -6133,7 +6894,7 @@
 
                         <div>
                           <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                            E-mail Corporativo Válido *
+                            E-mail Corporativo Válido (TOTVS) *
                           </label>
                           <input
                             type="email"
@@ -6149,7 +6910,7 @@
                         <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
                           <span>Senha Provisória Configurada:</span>
                           <span className="font-mono font-bold text-totvs-cyan bg-totvs-blue/20 px-2 py-0.5 rounded-lg border border-totvs-cyan/30">
-                            123
+                            totvs123
                           </span>
                         </div>
 
@@ -6163,7 +6924,7 @@
                           }`}
                         >
                           <Icons.Plus />
-                          <span>{gerandoConvite ? 'Gerando Link...' : 'Gerar Link de Convite (Senha 123)'}</span>
+                          <span>{gerandoConvite ? 'Gerando Link...' : `Gerar Link de Convite (${perfilConvite === 'pmm' ? 'PMM' : 'ADM'})`}</span>
                         </button>
                       </div>
                     </form>
@@ -6174,10 +6935,10 @@
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <span className="text-xs font-bold text-totvs-cyan flex items-center gap-1.5">
                             <Icons.CheckCircle />
-                            Link Pronto para Envio a {conviteRecemCriado.nome}:
+                            Link Pronto para Envio a {conviteRecemCriado.nome} ({conviteRecemCriado.perfil === 'pmm' ? 'PMM' : 'ADM'}):
                           </span>
                           <span className="text-[11px] text-slate-300 font-mono">
-                            Senha Provisória: <strong className="text-totvs-cyan">123</strong>
+                            Senha Provisória: <strong className="text-totvs-cyan font-bold">totvs123</strong>
                           </span>
                         </div>
 
@@ -6198,26 +6959,41 @@
                           </button>
                         </div>
 
+                        {/* Botões de Ação Imediata: Enviar por E-mail Corporativo e WhatsApp/Teams */}
                         <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <a
+                              href={`mailto:${encodeURIComponent(conviteRecemCriado.email || '')}?subject=${encodeURIComponent('Convite: Acesso ao Espaço Experiência TOTVS (' + (conviteRecemCriado.perfil === 'pmm' ? 'PMM' : 'Administrador') + ')')}&body=${encodeURIComponent(
+                                `Olá, ${conviteRecemCriado.nome}!\n\nVocê foi convidado para gerenciar e editar conteúdos no Espaço Experiência TOTVS com o perfil de ${conviteRecemCriado.perfil === 'pmm' ? 'PMM (Product Marketing Manager)' : 'Administrador'}.\n\nPara ativar o seu acesso, clique no link exclusivo abaixo:\n${getPublicInviteUrl(conviteRecemCriado.token)}\n\nSenha provisória de primeiro acesso: totvs123\n(No primeiro acesso, você definirá sua senha definitiva com no mínimo 6 caracteres, contendo letras e números).\n\nAtenciosamente,\nEquipe Espaço Experiência TOTVS`
+                              )}`}
+                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+                            >
+                              <span>✉️ Enviar por E-mail Corporativo</span>
+                            </a>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const linkCompleto = getPublicInviteUrl(conviteRecemCriado.token);
+                                const cargo = conviteRecemCriado.perfil === 'pmm' ? 'PMM (Product Marketing Manager)' : 'Administrador';
+                                const textoPronto = `Olá, ${conviteRecemCriado.nome}! Você foi convidado para o Espaço Experiência TOTVS (${cargo}).\nLink de ativação: ${linkCompleto}\nSenha provisória: totvs123 (no primeiro acesso, cadastre sua senha definitiva com letras e números).`;
+                                if (navigator.clipboard && navigator.clipboard.writeText) {
+                                  navigator.clipboard.writeText(textoPronto);
+                                  if (showToast) showToast('Mensagem formatada copiada para Teams/WhatsApp! 📋');
+                                } else {
+                                  prompt('Copie o texto para envio:', textoPronto);
+                                }
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-totvs-cyan text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                            >
+                              <Icons.Copy />
+                              <span>Copiar Mensagem (Teams / Whats)</span>
+                            </button>
+                          </div>
+
                           <p className="text-[11px] text-slate-300">
-                            ℹ️ O novo ADM acessará o link com a senha provisória <strong>123</strong> e cadastrará sua nova senha definitiva.
+                            ℹ️ Senha provisória: <strong>totvs123</strong> • Nova senha: letras e números (mín. 6)
                           </p>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const linkCompleto = getPublicInviteUrl(conviteRecemCriado.token);
-                              const textoPronto = `Olá, ${conviteRecemCriado.nome}! Você foi convidado para ser Administrador do Espaço Experiência TOTVS.\nLink de ativação: ${linkCompleto}\nSenha provisória: 123 (no primeiro acesso, cadastre sua senha definitiva com letras e números).`;
-                              if (navigator.clipboard && navigator.clipboard.writeText) {
-                                navigator.clipboard.writeText(textoPronto);
-                                if (showToast) showToast('Mensagem formatada copiada para WhatsApp/Teams! 📋');
-                              } else {
-                                prompt('Copie o texto para envio:', textoPronto);
-                              }
-                            }}
-                            className="text-xs text-totvs-cyan hover:underline font-bold flex items-center gap-1 cursor-pointer"
-                          >
-                            <span>Copiar Mensagem Pronta (Teams / WhatsApp)</span>
-                          </button>
                         </div>
                       </div>
                     )}
@@ -6238,6 +7014,7 @@
                         {convitesList.map((convite) => {
                           const isUsado = convite.utilizado === true || convite.status === 'utilizado';
                           const isCopied = copiedToken === convite.token;
+                          const isPMM = convite.perfil === 'pmm' || (convite.token && convite.token.startsWith('pmm_'));
 
                           return (
                             <div key={convite.token} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition">
@@ -6249,13 +7026,22 @@
                                   <span className="text-[11px] text-totvs-blue font-mono">
                                     ({convite.email || '—'})
                                   </span>
+                                  {isPMM ? (
+                                    <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-extrabold px-2 py-0.5 rounded-full">
+                                      🎯 PMM
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] bg-blue-50 text-totvs-blue border border-blue-200 font-extrabold px-2 py-0.5 rounded-full">
+                                      🛡️ ADM
+                                    </span>
+                                  )}
                                   {isUsado ? (
                                     <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
                                       Utilizado
                                     </span>
                                   ) : (
                                     <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full">
-                                      Pendente (Senha 123)
+                                      Pendente (Senha totvs123)
                                     </span>
                                   )}
                                 </div>
@@ -6591,6 +7377,103 @@
             </div>
 
           </div>
+
+          {/* Modal de Troca de Senha Própria (ADM ou PMM) */}
+          {modalTrocarSenha && (
+            <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-totvs-blue text-white flex items-center justify-center font-bold text-sm shadow">
+                      🔑
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-sm text-white">Alterar Minha Senha</h4>
+                      <p className="text-[11px] text-slate-300">
+                        {admLogado?.nome} ({admLogado?.perfil === 'pmm' ? 'PMM' : 'Administrador'})
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setModalTrocarSenha(false);
+                      setErroTrocaSenha('');
+                      setNovaSenhaInput('');
+                      setConfirmaNovaSenhaInput('');
+                    }}
+                    className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition"
+                  >
+                    <Icons.X />
+                  </button>
+                </div>
+
+                <form onSubmit={handleTrocarSenha} className="p-6 space-y-4">
+                  <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-slate-700 text-xs leading-relaxed">
+                    <span className="font-bold text-totvs-blue block mb-0.5">Regra de Criação de Senha:</span>
+                    A nova senha deve possuir no <strong>mínimo 6 caracteres</strong> e conter uma combinação de <strong>letras e números</strong>.
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Nova Senha *
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Mínimo 6 caracteres (letras e números)"
+                      value={novaSenhaInput}
+                      onChange={(e) => setNovaSenhaInput(e.target.value)}
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
+                      required
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Confirmar Nova Senha *
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Repita a nova senha"
+                      value={confirmaNovaSenhaInput}
+                      onChange={(e) => setConfirmaNovaSenhaInput(e.target.value)}
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
+                      required
+                    />
+                  </div>
+
+                  {erroTrocaSenha && (
+                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+                      ⚠️ {erroTrocaSenha}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModalTrocarSenha(false);
+                        setErroTrocaSenha('');
+                        setNovaSenhaInput('');
+                        setConfirmaNovaSenhaInput('');
+                      }}
+                      className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs transition cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={salvandoSenha || !novaSenhaInput || !confirmaNovaSenhaInput}
+                      className="px-5 py-2 rounded-xl bg-totvs-blue hover:bg-totvs-dark text-white font-bold text-xs transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    >
+                      {salvandoSenha ? 'Salvando...' : 'Salvar Nova Senha'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       );
     }

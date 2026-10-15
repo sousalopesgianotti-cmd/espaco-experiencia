@@ -11,7 +11,7 @@
       "Agrodistribuidor"
     ],
     "cenario_fisico": "Cenário com painel de colheita e lavoura de trigo com pragas e um drone acima.\nUm PC na tela com as soluções na bancada\nUm tablet na bancada",
-    "pitch": "No agronegócio, a TOTVS conecta toda a cadeia produtiva, desde o preparo do solo e controle de pragas até a armazenagem em silos e comercialização internacional de grãos e café. Nossas soluções dão ao produtor e à agroindústria previsibilidade de safra, rastreabilidade de ponta a ponta e redução de perdas operacionais.",
+    "pitch": "O agronegócio move o PIB brasileiro e a TOTVS oferece sistemas completos que conectam desde a gestão da lavoura e insumos até o beneficiamento, comercialização e exportação de grãos, café, cana e algodão.",
     "dores_setor": [
       "Falta de controle de custos de insumos e maquinário por talhão/área de plantio.",
       "Perda de eficiência no transporte, pesagem e classificação de grãos nos armazéns.",
@@ -49,7 +49,20 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105823_esta__o_1_totvs_agro.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105823_esta__o_1_totvs_agro.jpeg",
+    "equipamentos": [
+      {
+        "id": "eq-totvs_agro-1",
+        "titulo": "PC Agro",
+        "descricao": "Usuário: ens.experiencia@totvs.com.br • Senha: Experienciastotvs@2026",
+        "foto": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105823_esta__o_1_totvs_agro.jpeg"
+      }
+    ],
+    "video_discurso": {
+      "tipo": "google_drive",
+      "url": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160250_totvs_agro.mp4",
+      "titulo": "Vídeo Demonstrativo de TOTVS Agro"
+    }
   },
   {
     "id": "totvs_manufatura",
@@ -104,7 +117,20 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105834_esta__o_2_totvs_manufatura.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105834_esta__o_2_totvs_manufatura.jpeg",
+    "equipamentos": [
+      {
+        "id": "eq_totvs_manufatura_1",
+        "titulo": "PC Manufatura",
+        "descricao": "Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026",
+        "foto": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "video_discurso": {
+      "tipo": "local",
+      "url": "/Video Espaço Experiência.mp4",
+      "titulo": "Simulação de Chão de Fábrica - TOTVS MES"
+    }
   },
   {
     "id": "backoffice",
@@ -155,7 +181,20 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113005_esta__o_3_backoffice.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113005_esta__o_3_backoffice.jpeg",
+    "equipamentos": [
+      {
+        "id": "eq_backoffice_1",
+        "titulo": "PC Backoffice",
+        "descricao": "Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026",
+        "foto": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113005_esta__o_3_backoffice.jpeg"
+      }
+    ],
+    "video_discurso": {
+      "tipo": "local",
+      "url": "/Video Espaço Experiência.mp4",
+      "titulo": "Vídeo do Tour no Espaço Experiência"
+    }
   },
   {
     "id": "totvs_mes_ppi",
@@ -206,7 +245,20 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113016_esta__o_4_totvs_ppi_multitask_mes.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113016_esta__o_4_totvs_ppi_multitask_mes.jpeg",
+    "equipamentos": [
+      {
+        "id": "eq_totvs_mes_ppi_1",
+        "titulo": "PC MES Multitask",
+        "descricao": "Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026",
+        "foto": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113016_esta__o_4_totvs_ppi_multitask_mes.jpeg"
+      }
+    ],
+    "video_discurso": {
+      "tipo": "local",
+      "url": "/Video Espaço Experiência.mp4",
+      "titulo": "Simulação de Chão de Fábrica - TOTVS MES"
+    }
   },
   {
     "id": "totvs_logistica",
@@ -261,7 +313,20 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/bancada_totvs_logistica.jpg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/bancada_totvs_logistica.jpg",
+    "equipamentos": [
+      {
+        "id": "eq_totvs_logistica_1",
+        "titulo": "PC Logistica",
+        "descricao": "Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026",
+        "foto": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "video_discurso": {
+      "tipo": "local",
+      "url": "/Video Espaço Experiência.mp4",
+      "titulo": "Operação Logística no Espaço Experiência"
+    }
   },
   {
     "id": "totvs_moda",
@@ -321,7 +386,20 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120933_totvs_moda.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120933_totvs_moda.jpeg",
+    "equipamentos": [
+      {
+        "id": "eq_totvs_moda_1",
+        "titulo": "PC Moda",
+        "descricao": "Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026",
+        "foto": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "video_discurso": {
+      "tipo": "local",
+      "url": "/Video Espaço Experiência.mp4",
+      "titulo": "Espaço TOTVS Moda no Laboratório"
+    }
   },
   {
     "id": "totvs_consinco",
@@ -377,7 +455,20 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120944_totvs_consinco.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120944_totvs_consinco.jpeg",
+    "equipamentos": [
+      {
+        "id": "eq_totvs_consinco_1",
+        "titulo": "PC Supermercado Consinco",
+        "descricao": "Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026",
+        "foto": "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "video_discurso": {
+      "tipo": "local",
+      "url": "/Video Espaço Experiência.mp4",
+      "titulo": "Demonstração de Supermercado e RFID"
+    }
   },
   {
     "id": "totvs_varejo_online",
@@ -432,7 +523,20 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120958_totvs_varejo.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120958_totvs_varejo.jpeg",
+    "equipamentos": [
+      {
+        "id": "eq_totvs_varejo_online_1",
+        "titulo": "PC Varejo On-line",
+        "descricao": "Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026",
+        "foto": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "video_discurso": {
+      "tipo": "url",
+      "url": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160329_varejo_on_line.mp4",
+      "titulo": "Vídeo Demonstrativo de TOTVS Varejo On-line"
+    }
   },
   {
     "id": "totvs_rm_clinicas",
@@ -488,7 +592,20 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121009_totvs_rm_saude.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121009_totvs_rm_saude.jpeg",
+    "equipamentos": [
+      {
+        "id": "eq_totvs_rm_clinicas_1",
+        "titulo": "PC RM Saude",
+        "descricao": "Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026",
+        "foto": "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "video_discurso": {
+      "tipo": "local",
+      "url": "/Video Espaço Experiência.mp4",
+      "titulo": "Estação Clínica no Espaço Experiência"
+    }
   },
   {
     "id": "mesa_interativa",
@@ -543,7 +660,20 @@
       "usuario": ".",
       "senha": "totvsdiretoria ou rsxw7"
     },
-    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121049_mesa_interativa.jpeg"
+    "foto_bancada": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121049_mesa_interativa.jpeg",
+    "equipamentos": [
+      {
+        "id": "eq_mesa_interativa_1",
+        "titulo": "PC Mesa Interativa",
+        "descricao": "Usuário: .\nSenha: totvsdiretoria ou rsxw7",
+        "foto": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "video_discurso": {
+      "tipo": "local",
+      "url": "/Video Espaço Experiência.mp4",
+      "titulo": "Apresentação e Telões da Mesa Central"
+    }
   },
   {
     "id": "solucoes_cross",
@@ -588,6 +718,19 @@
       "usuario": "ens.experiencia@totvs.com.br",
       "senha": "Experienciastotvs@2026"
     },
-    "foto_bancada": ""
+    "foto_bancada": "",
+    "equipamentos": [
+      {
+        "id": "eq_solucoes_cross_1",
+        "titulo": "PC Soluções Cross",
+        "descricao": "Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026",
+        "foto": ""
+      }
+    ],
+    "video_discurso": {
+      "tipo": "url",
+      "url": "",
+      "titulo": "Vídeo do Discurso - SOLUÇÕES CROSS"
+    }
   }
 ]
