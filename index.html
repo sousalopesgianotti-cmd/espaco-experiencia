@@ -1803,14 +1803,15 @@
         showToast('Você saiu do modo administrador. Ambiente em modo somente leitura.');
       };
 
-      // Ativação bem-sucedida de novo Administrador convidado
+      // Ativação bem-sucedida de novo Convidado (PMM ou ADM)
       const handleAcceptInviteSuccess = (usuario) => {
         setAdmLogado(usuario);
         localStorage.setItem('totvs_adm_session', JSON.stringify(usuario));
         setShowAcceptInviteModal(false);
         setConviteToken(null);
         window.history.replaceState({}, document.title, window.location.pathname);
-        showToast(`Olá, ${usuario.nome}! Bem-vindo ao Espaço Experiência TOTVS. Perfil de ADM ativado! 🎉`);
+        const perfilLabel = (usuario && (usuario.perfil === 'pmm' || (usuario.cargo && usuario.cargo.includes('PMM')))) ? 'PMM' : 'ADM';
+        showToast(`Olá, ${usuario.nome}! Bem-vindo ao Espaço Experiência TOTVS. Perfil de ${perfilLabel} ativado! 🎉`);
       };
 
       // Atualizar dados de perfil do Administrador (ex: upload de foto)
@@ -2639,7 +2640,10 @@
                     {isPmm ? 'Ative seu Acesso de PMM' : 'Ative seu Perfil de ADM'}
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar os conteúdos e roteiros do Espaço Experiência TOTVS.
+                    {isPmm
+                      ? <span>Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar e atualizar os conteúdos e roteiros das estações como PMM (Gestor de Segmento).</span>
+                      : <span>Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar e administrar o Espaço Experiência TOTVS com perfil de Administrador Geral.</span>
+                    }
                   </p>
                 </div>
 
@@ -2652,7 +2656,7 @@
                       <span className="text-[11px] text-totvs-blue font-mono block">{conviteData.email}</span>
                     </div>
                     <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold text-[10px] shrink-0">
-                      ✓ Validado
+                      {isPmm ? 'Perfil: PMM' : 'Perfil: ADM'} • ✓ Validado
                     </span>
                   </div>
                 )}
@@ -2771,7 +2775,7 @@
                       className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-totvs-blue to-totvs-cyan hover:from-[#003B8E] hover:to-[#00B4D8] text-white font-black text-xs transition shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                     >
                       <Icons.Check />
-                      <span>{salvando ? 'Ativando...' : 'Ativar e Entrar como ADM'}</span>
+                      <span>{salvando ? 'Ativando...' : (isPmm ? 'Ativar e Entrar como PMM' : 'Ativar e Entrar como ADM')}</span>
                     </button>
                   </div>
                 </form>
