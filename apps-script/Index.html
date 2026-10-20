@@ -2399,6 +2399,7 @@
               currentYear={visitorMetrics.ano_atual || new Date().getFullYear()}
               onClose={() => setShowVisitorHistoryModal(false)}
               showToast={showToast}
+              visitorsList={visitorsList}
             />
           )}
 
@@ -4902,12 +4903,48 @@
       );
     }
 
-    // --- COMPONENTE: HISTÓRICO DE VISITANTES (MESES & ANOS ANTERIORES) ---
-    function VisitorHistoryModal({ onClose, currentYear = new Date().getFullYear(), showToast }) {
+    // --- COMPONENTE: HISTÓRICO DE VISITANTES COM GESTÃO À VISTA & RELATÓRIO PDF ---
+    function VisitorHistoryModal({ onClose, currentYear = new Date().getFullYear(), showToast, visitorsList = [] }) {
       const [selectedYear, setSelectedYear] = useState(currentYear);
       const [selectedMonth, setSelectedMonth] = useState(null);
       const [historyData, setHistoryData] = useState(null);
       const [loading, setLoading] = useState(true);
+
+      // Estados de Filtro Temporal da Gestão à Vista
+      const [periodoFiltro, setPeriodoFiltro] = useState('ano'); // 'hoje', 'semana', 'mes', 'ano', 'custom'
+      const [dataInicio, setDataInicio] = useState('');
+      const [dataFim, setDataFim] = useState('');
+
+      // Helper fuso Brasília para Hoje
+      const getBrasiliaTodayStr = () => {
+        try {
+          const formatter = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'America/Sao_Paulo',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          });
+          return formatter.format(new Date());
+        } catch (e) {
+          return new Date().toISOString().slice(0, 10);
+        }
+      };
+
+      // Helper fuso Brasília para Semana Atual (Segunda a Domingo)
+      const getBrasiliaWeekRange = () => {
+        const todayStr = getBrasiliaTodayStr();
+        const [y, m, d] = todayStr.split('-').map(Number);
+        const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+        const dayOfWeek = dt.getDay(); // 0 é Domingo, 1 é Segunda...
+        const monOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const sunOffset = monOffset + 6;
+        const mon = new Date(dt.getTime() + monOffset * 86400000);
+        const sun = new Date(dt.getTime() + sunOffset * 86400000);
+        return {
+          start: mon.toISOString().slice(0, 10),
+          end: sun.toISOString().slice(0, 10)
+        };
+      };
 
       // Bloquear rolagem do fundo (body + html) e fechar com ESC
       useEffect(() => {
@@ -4946,7 +4983,350 @@
 
       const anosDisponiveis = historyData?.anos_disponiveis || [currentYear];
       const meses = historyData?.meses || [];
-      const visitantesMes = historyData?.visitantes_mes || [];
+
+      // Conjunto consolidado de visitantes (lista viva ou dados do ano)
+      const poolVisitantes = useMemo(() => {
+        if (visitorsList && visitorsList.length > 0) return visitorsList;
+        if (historyData?.visitantes_ano && historyData.visitantes_ano.length > 0) return historyData.visitantes_ano;
+        return [];
+      }, [visitorsList, historyData]);
+
+      // Filtragem dinâmica baseada no período selecionado
+      const filteredVisitors = useMemo(() => {
+        const todayStr = getBrasiliaTodayStr();
+        const week = getBrasiliaWeekRange();
+
+        return poolVisitantes.filter(v => {
+          if (!v || !v.data) return false;
+          const dataV = String(v.data).slice(0, 10);
+
+          if (periodoFiltro === 'hoje') {
+            return dataV === todayStr;
+          }
+          if (periodoFiltro === 'semana') {
+            return dataV >= week.start && dataV <= week.end;
+          }
+          if (periodoFiltro === 'mes') {
+            const mesAlvo = selectedMonth || (new Date().getMonth() + 1);
+            const mesStr = String(mesAlvo).padStart(2, '0');
+            return dataV.startsWith(`${selectedYear}-${mesStr}`);
+          }
+          if (periodoFiltro === 'custom') {
+            if (dataInicio && dataV < dataInicio) return false;
+            if (dataFim && dataV > dataFim) return false;
+            return true;
+          }
+          // Default: 'ano'
+          return dataV.startsWith(String(selectedYear));
+        });
+      }, [poolVisitantes, periodoFiltro, selectedYear, selectedMonth, dataInicio, dataFim]);
+
+      // Métricas e agregação dos 3 blocos (Cliente, Prospect, Visitante Interno)
+      const metrics3Blocos = useMemo(() => {
+        let clientePessoas = 0, clienteVisitas = 0;
+        let prospectPessoas = 0, prospectVisitas = 0;
+        let internoPessoas = 0, internoVisitas = 0;
+
+        filteredVisitors.forEach(v => {
+          const qtd = Math.max(1, parseInt(v.numero_pessoas, 10) || 1);
+          const tipo = (v.tipo_visitante || '').toLowerCase();
+          if (tipo === 'cliente') {
+            clientePessoas += qtd;
+            clienteVisitas += 1;
+          } else if (tipo === 'prospect') {
+            prospectPessoas += qtd;
+            prospectVisitas += 1;
+          } else {
+            // visitante_interno ou visitante_externo legado
+            internoPessoas += qtd;
+            internoVisitas += 1;
+          }
+        });
+
+        const totalPessoas = clientePessoas + prospectPessoas + internoPessoas;
+        const totalVisitas = clienteVisitas + prospectVisitas + internoVisitas;
+
+        const clientePct = totalPessoas > 0 ? (clientePessoas / totalPessoas) * 100 : 0;
+        const prospectPct = totalPessoas > 0 ? (prospectPessoas / totalPessoas) * 100 : 0;
+        const internoPct = totalPessoas > 0 ? (internoPessoas / totalPessoas) * 100 : 0;
+
+        return {
+          cliente: { pessoas: clientePessoas, visitas: clienteVisitas, pct: clientePct },
+          prospect: { pessoas: prospectPessoas, visitas: prospectVisitas, pct: prospectPct },
+          interno: { pessoas: internoPessoas, visitas: internoVisitas, pct: internoPct },
+          totalPessoas,
+          totalVisitas
+        };
+      }, [filteredVisitors]);
+
+      // Rótulo textual amigável do período ativo
+      const getPeriodoLabel = () => {
+        if (periodoFiltro === 'hoje') {
+          const t = getBrasiliaTodayStr().split('-').reverse().join('/');
+          return `Hoje (${t})`;
+        }
+        if (periodoFiltro === 'semana') {
+          const w = getBrasiliaWeekRange();
+          return `Esta Semana (${w.start.split('-').reverse().join('/')} a ${w.end.split('-').reverse().join('/')})`;
+        }
+        if (periodoFiltro === 'mes') {
+          const mIdx = (selectedMonth || (new Date().getMonth() + 1)) - 1;
+          const nomeM = meses[mIdx]?.nome || `Mês ${mIdx + 1}`;
+          return `${nomeM} de ${selectedYear}`;
+        }
+        if (periodoFiltro === 'custom') {
+          const ini = dataInicio ? dataInicio.split('-').reverse().join('/') : 'Início';
+          const fim = dataFim ? dataFim.split('-').reverse().join('/') : 'Fim';
+          return `Período Personalizado: ${ini} até ${fim}`;
+        }
+        return `Ano de ${selectedYear}`;
+      };
+
+      // Exportação Executiva para PDF via template de impressão corporativo
+      const handleExportarPDF = () => {
+        const periodoTxt = getPeriodoLabel();
+        const dataEmissao = new Date().toLocaleString('pt-BR');
+        const { cliente, prospect, interno, totalPessoas, totalVisitas } = metrics3Blocos;
+
+        const linhasTabela = filteredVisitors.map(v => {
+          const dtFmt = v.data ? v.data.split('-').reverse().join('/') : '—';
+          let catLabel = 'Visitante Interno';
+          let catColor = '#D97706';
+          if (v.tipo_visitante === 'cliente') {
+            catLabel = 'Cliente';
+            catColor = '#002554';
+          } else if (v.tipo_visitante === 'prospect') {
+            catLabel = 'Prospect';
+            catColor = '#0D9488';
+          }
+          return `
+            <tr>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-size: 11px;">${dtFmt}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-size: 11px; font-weight: bold; color: #0F172A;">${v.empresa || v.nome || '—'}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-size: 11px;">
+                <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: bold; color: #FFF; background-color: ${catColor};">
+                  ${catLabel}
+                </span>
+              </td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-size: 11px; text-align: center; font-weight: bold;">${v.numero_pessoas || 1}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-size: 11px; color: #475569;">${v.responsavel || 'Equipe TOTVS'}</td>
+            </tr>
+          `;
+        }).join('');
+
+        const htmlRelatorio = `
+          <!DOCTYPE html>
+          <html lang="pt-BR">
+          <head>
+            <meta charset="utf-8">
+            <title>Relatório Executivo de Visitação - TOTVS Espaço Experiência</title>
+            <style>
+              @page { size: A4 portrait; margin: 12mm 15mm; }
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                color: #1E293B;
+                background-color: #FFFFFF;
+                margin: 0;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+              .header {
+                border-bottom: 3px solid #002554;
+                padding-bottom: 12px;
+                margin-bottom: 18px;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
+              }
+              .brand-title {
+                font-size: 20px;
+                font-weight: 900;
+                color: #002554;
+                margin: 0;
+                letter-spacing: -0.5px;
+              }
+              .brand-sub {
+                font-size: 11px;
+                font-weight: bold;
+                color: #0066CC;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin-top: 3px;
+              }
+              .meta-box {
+                text-align: right;
+                font-size: 10px;
+                color: #64748B;
+              }
+              .dash-cards {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 18px;
+              }
+              .card {
+                flex: 1;
+                border-radius: 12px;
+                padding: 12px 14px;
+                border: 1px solid #CBD5E1;
+              }
+              .card-cliente { background: #F8FAFC; border-left: 5px solid #002554; }
+              .card-prospect { background: #F0FDFA; border-left: 5px solid #0D9488; }
+              .card-interno { background: #FFFBEB; border-left: 5px solid #D97706; }
+              .card-total { background: #002554; color: #FFF; border-left: 5px solid #00B4D8; }
+              .card-title {
+                font-size: 10px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 4px;
+              }
+              .card-val {
+                font-size: 22px;
+                font-weight: 900;
+                line-height: 1.1;
+              }
+              .card-sub {
+                font-size: 10px;
+                margin-top: 4px;
+                opacity: 0.85;
+              }
+              .section-title {
+                font-size: 12px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                color: #0F172A;
+                margin: 16px 0 8px 0;
+                border-left: 3px solid #0066CC;
+                padding-left: 6px;
+              }
+              table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 6px;
+              }
+              th {
+                background-color: #F1F5F9;
+                color: #334155;
+                font-size: 10px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                padding: 8px 10px;
+                text-align: left;
+                border-bottom: 2px solid #CBD5E1;
+              }
+              .footer {
+                margin-top: 24px;
+                padding-top: 10px;
+                border-top: 1px solid #E2E8F0;
+                display: flex;
+                justify-content: space-between;
+                font-size: 9px;
+                color: #94A3B8;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div>
+                <h1 class="brand-title">TOTVS • Espaço Experiência</h1>
+                <div class="brand-sub">Relatório Executivo de Visitação & Gestão à Vista</div>
+              </div>
+              <div class="meta-box">
+                <div><strong>Período Analisado:</strong> ${periodoTxt}</div>
+                <div><strong>Emissão:</strong> ${dataEmissao}</div>
+                <div><strong>Responsável Institucional:</strong> André Gianotti</div>
+              </div>
+            </div>
+
+            <div class="dash-cards">
+              <div class="card card-cliente">
+                <div class="card-title" style="color: #002554;">🏢 Clientes</div>
+                <div class="card-val" style="color: #002554;">${cliente.pessoas} <span style="font-size: 11px; font-weight: normal;">pessoas</span></div>
+                <div class="card-sub" style="color: #334155;">${cliente.visitas} comitivas • <strong>${cliente.pct.toFixed(1)}% do total</strong></div>
+              </div>
+
+              <div class="card card-prospect">
+                <div class="card-title" style="color: #0D9488;">🎯 Prospects</div>
+                <div class="card-val" style="color: #0D9488;">${prospect.pessoas} <span style="font-size: 11px; font-weight: normal;">pessoas</span></div>
+                <div class="card-sub" style="color: #115E59;">${prospect.visitas} comitivas • <strong>${prospect.pct.toFixed(1)}% do total</strong></div>
+              </div>
+
+              <div class="card card-interno">
+                <div class="card-title" style="color: #D97706;">🌐 Visitantes Internos</div>
+                <div class="card-val" style="color: #D97706;">${interno.pessoas} <span style="font-size: 11px; font-weight: normal;">pessoas</span></div>
+                <div class="card-sub" style="color: #92400E;">${interno.visitas} comitivas • <strong>${interno.pct.toFixed(1)}% do total</strong></div>
+              </div>
+
+              <div class="card card-total">
+                <div class="card-title" style="color: #00B4D8;">📊 Total Consolidado</div>
+                <div class="card-val">${totalPessoas} <span style="font-size: 11px; font-weight: normal;">pessoas</span></div>
+                <div class="card-sub" style="color: #E2E8F0;">${totalVisitas} visitas no período</div>
+              </div>
+            </div>
+
+            <div class="section-title">Extrato Analítico de Comitivas e Visitas (${filteredVisitors.length} registros)</div>
+            ${filteredVisitors.length === 0 ? '<p style="font-size: 11px; color: #64748B; font-style: italic; padding: 12px 0;">Nenhum registro de visita encontrado para o período selecionado.</p>' : `
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 12%;">Data</th>
+                    <th style="width: 38%;">Empresa / Instituição</th>
+                    <th style="width: 20%;">Classificação</th>
+                    <th style="width: 10%; text-align: center;">Pessoas</th>
+                    <th style="width: 20%;">Anfitrião TOTVS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${linhasTabela}
+                </tbody>
+              </table>
+            `}
+
+            <div class="footer">
+              <span>TOTVS S.A. • Espaço Experiência TOTVS • Documento Oficial para Gestão e Prestação de Contas</span>
+              <span>Página 1 de 1</span>
+            </div>
+          </body>
+          </html>
+        `;
+
+        try {
+          const printWin = window.open('', '_blank');
+          if (printWin) {
+            printWin.document.write(htmlRelatorio);
+            printWin.document.close();
+            printWin.focus();
+            setTimeout(() => {
+              printWin.print();
+            }, 300);
+          } else {
+            // Fallback iframe invisível
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
+            iframe.contentDocument.write(htmlRelatorio);
+            iframe.contentDocument.close();
+            setTimeout(() => {
+              iframe.contentWindow.focus();
+              iframe.contentWindow.print();
+              setTimeout(() => {
+                if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+              }, 2000);
+            }, 300);
+          }
+          if (showToast) showToast('Relatório gerado! Utilize a opção "Salvar como PDF" do seu navegador. 📄');
+        } catch (err) {
+          alert('Não foi possível abrir a janela de impressão. Verifique se o bloqueador de popups está desativado.');
+        }
+      };
 
       return (
         <div 
@@ -4962,7 +5342,7 @@
           }}
         >
           <div 
-            className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150 my-auto"
+            className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150 my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header Fixo */}
@@ -4977,13 +5357,13 @@
                 </div>
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
-                    Consulta Histórica
+                    Gestão à Vista & Histórico
                   </span>
                   <h3 className="font-extrabold text-base sm:text-lg text-white mt-0.5 leading-tight">
-                    Histórico de Visitantes por Mês & Ano
+                    Painel de Visitação do Espaço Experiência
                   </h3>
                   <p className="text-[11px] sm:text-xs text-slate-200">
-                    Contabilização de meses e anos anteriores no Espaço Experiência
+                    Métricas de público por classificação, comparativo gráfico e emissão de relatório oficial
                   </p>
                 </div>
               </div>
@@ -4997,191 +5377,311 @@
               </button>
             </div>
 
-            {/* Conteúdo com rolagem suave isolada */}
-            <div 
-              className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 scrollbar-thin"
-              style={{
-                overscrollBehavior: 'contain',
-                overscrollBehaviorY: 'contain',
-                WebkitOverflowScrolling: 'touch',
-                touchAction: 'pan-y'
-              }}
-            >
-              {/* Barra de Seleção de Ano */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Icons.Clock />
-                  <span>Selecione o Ano de Consulta:</span>
-                </label>
-                <div className="flex flex-wrap items-center gap-2">
-                  {anosDisponiveis.map(anoItem => {
-                    const isSelected = selectedYear === anoItem;
-                    const isCurrentYear = anoItem === currentYear;
-                    return (
-                      <button
-                        key={anoItem}
-                        type="button"
-                        onClick={() => {
-                          setSelectedYear(anoItem);
-                          setSelectedMonth(null);
-                        }}
-                        className={`px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
-                          isSelected
-                            ? 'bg-totvs-blue text-white shadow-totvs-blue/30'
-                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-                        }`}
-                      >
-                        <span>{anoItem}</span>
-                        {isCurrentYear ? (
-                          <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded-full font-bold ${
-                            isSelected ? 'bg-white/20 text-white' : 'bg-totvs-cyan/20 text-totvs-blue'
-                          }`}>
-                            Ano Atual
-                          </span>
-                        ) : (
-                          <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded-full font-bold ${
-                            isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-                          }`}>
-                            Ano Anterior
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
+            {/* Conteúdo em Tela Única (Sem Rolagem) */}
+            <div className="p-4 sm:p-5 space-y-4">
+              {/* Barra de Filtros de Período & Exportação PDF */}
+              <div className="bg-slate-50 p-2.5 sm:p-3 rounded-2xl border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-xs">
+                <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
+                  <span className="text-[10.5px] font-extrabold text-slate-500 uppercase tracking-wider mr-1 flex items-center gap-1">
+                    <Icons.Clock /> Período:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { setPeriodoFiltro('hoje'); setSelectedMonth(null); }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      periodoFiltro === 'hoje'
+                        ? 'bg-totvs-blue text-white shadow-sm'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    Hoje
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setPeriodoFiltro('semana'); setSelectedMonth(null); }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      periodoFiltro === 'semana'
+                        ? 'bg-totvs-blue text-white shadow-sm'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    Esta Semana
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPeriodoFiltro('mes');
+                      if (!selectedMonth) setSelectedMonth(new Date().getMonth() + 1);
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      periodoFiltro === 'mes'
+                        ? 'bg-totvs-blue text-white shadow-sm'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    Este Mês
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setPeriodoFiltro('ano'); setSelectedMonth(null); }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      periodoFiltro === 'ano'
+                        ? 'bg-totvs-blue text-white shadow-sm'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    Ano ({selectedYear})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setPeriodoFiltro('custom'); setSelectedMonth(null); }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      periodoFiltro === 'custom'
+                        ? 'bg-totvs-blue text-white shadow-sm'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    Personalizado 📅
+                  </button>
                 </div>
+
+                {/* Botão de Exportação Executiva em PDF */}
+                <button
+                  type="button"
+                  onClick={handleExportarPDF}
+                  className="w-full md:w-auto px-4 py-2 bg-gradient-to-r from-totvs-blue to-[#003B8E] hover:from-[#001D42] hover:to-totvs-blue text-white rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition cursor-pointer shrink-0"
+                  title="Exportar relatório consolidado com gráfico e tabela em PDF"
+                >
+                  <span>📄 Exportar Relatório em PDF</span>
+                </button>
               </div>
 
-              {/* Card Resumo do Ano Selecionado */}
-              <div className="bg-gradient-to-br from-slate-900 to-totvs-dark text-white p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-slate-700 shadow-md">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-totvs-cyan tracking-wider">
-                    Total Acumulado em {selectedYear}
-                  </span>
-                  <div className="text-3xl font-black text-white mt-0.5 flex items-baseline gap-1.5">
-                    <span>{loading ? '...' : (historyData?.total_ano || 0)}</span>
-                    <span className="text-xs font-medium text-totvs-cyan">pessoas registradas</span>
+              {/* Seletor Customizado De / Até */}
+              {periodoFiltro === 'custom' && (
+                <div className="bg-blue-50/70 border border-blue-200 p-2.5 rounded-2xl flex flex-wrap items-center gap-3 text-xs animate-in fade-in duration-150">
+                  <span className="font-bold text-totvs-blue text-xs">Definir Intervalo:</span>
+                  <div className="flex items-center gap-1.5">
+                    <label className="text-[11px] font-semibold text-slate-600">De:</label>
+                    <input
+                      type="date"
+                      value={dataInicio}
+                      onChange={(e) => setDataInicio(e.target.value)}
+                      className="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-totvs-blue"
+                    />
                   </div>
-                </div>
-                <div className="bg-white/10 px-3.5 py-2 rounded-xl border border-white/15 text-right">
-                  <span className="text-[11px] text-slate-300 block">Comitivas / Visitas</span>
-                  <span className="text-base font-extrabold text-white">
-                    {loading ? '...' : (historyData?.visitas_ano || 0)} <span className="text-xs font-normal text-slate-300">registros</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Grade de 12 Meses */}
-              <div>
-                <div className="flex items-center justify-between mb-2.5">
-                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Meses de {selectedYear} (Clique em um mês para detalhar)
-                  </span>
-                  {selectedMonth && (
+                  <div className="flex items-center gap-1.5">
+                    <label className="text-[11px] font-semibold text-slate-600">Até:</label>
+                    <input
+                      type="date"
+                      value={dataFim}
+                      onChange={(e) => setDataFim(e.target.value)}
+                      className="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-totvs-blue"
+                    />
+                  </div>
+                  {(dataInicio || dataFim) && (
                     <button
                       type="button"
-                      onClick={() => setSelectedMonth(null)}
-                      className="text-xs text-totvs-blue hover:underline font-semibold cursor-pointer"
+                      onClick={() => { setDataInicio(''); setDataFim(''); }}
+                      className="text-[11px] text-totvs-blue hover:underline font-bold ml-auto cursor-pointer"
                     >
-                      Limpar filtro de mês
+                      Limpar datas
                     </button>
                   )}
                 </div>
+              )}
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                  {meses.map(m => {
-                    const isSelected = selectedMonth === m.mes;
-                    const hasData = m.total_pessoas > 0;
-                    return (
-                      <div
-                        key={m.mes}
-                        onClick={() => {
-                          if (hasData) {
-                            setSelectedMonth(isSelected ? null : m.mes);
-                          }
-                        }}
-                        className={`p-3 rounded-2xl border transition text-left flex flex-col justify-between ${
-                          hasData ? 'cursor-pointer hover:shadow-md' : 'opacity-60 cursor-default'
-                        } ${
-                          isSelected
-                            ? 'bg-totvs-blue text-white border-totvs-blue shadow-lg ring-2 ring-totvs-cyan'
-                            : hasData
-                            ? 'bg-white hover:bg-slate-50 border-slate-200 shadow-sm'
-                            : 'bg-slate-50/70 border-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-slate-800'}`}>
-                            {m.nome}
+              {/* PAINEL DE GESTÃO À VISTA: GRÁFICO DOS 3 BLOCOS (CLIENTE, PROSPECT, VISITANTE INTERNO) */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-totvs-blue bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                      Gestão à Vista • Distribuição de Público
+                    </span>
+                    <h4 className="font-black text-sm sm:text-base text-slate-900 mt-0.5">
+                      {getPeriodoLabel()}
+                    </h4>
+                  </div>
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
+                    <div className="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-right">
+                      <span className="text-[9px] text-slate-400 block uppercase font-bold">Total no Período</span>
+                      <strong className="text-sm font-black text-totvs-cyan">{metrics3Blocos.totalPessoas} pessoas</strong>
+                      <span className="text-[10px] text-slate-300 ml-1.5 font-medium">({metrics3Blocos.totalVisitas} comitivas)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ÁREA DO GRÁFICO EM BARRAS VERTICAIS ESTILO DASHBOARD */}
+                <div className="bg-slate-50/60 rounded-2xl border border-slate-200 p-3 sm:p-4">
+                  <div className="relative">
+                    {/* Linhas Guias Horizontais Pontilhadas (0%, 20%, 40%, 60%, 80%, 100%) */}
+                    <div className="absolute inset-x-0 top-6 h-40 sm:h-44 flex flex-col justify-between pointer-events-none pr-2">
+                      {[100, 80, 60, 40, 20, 0].map((val) => (
+                        <div key={val} className="flex items-center gap-2 w-full">
+                          <span className="text-[10px] font-mono text-slate-400 w-8 text-right shrink-0">
+                            {val}%
                           </span>
-                          {hasData && (
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                              isSelected ? 'bg-white/20 text-white' : 'bg-totvs-cyan/15 text-totvs-blue border border-totvs-cyan/30'
-                            }`}>
-                              {m.total_visitas} vis.
-                            </span>
-                          )}
+                          <div className="flex-1 border-b border-dashed border-slate-200"></div>
                         </div>
-                        <div className="mt-2">
-                          <span className={`text-lg font-black block leading-none ${
-                            isSelected ? 'text-totvs-cyan' : hasData ? 'text-totvs-blue' : 'text-slate-400'
-                          }`}>
-                            {m.total_pessoas}
+                      ))}
+                    </div>
+
+                    {/* As 3 Colunas de Barras */}
+                    <div className="relative z-10 grid grid-cols-3 gap-3 sm:gap-6 pl-10 pr-2 h-40 sm:h-44 items-end pt-1">
+                      {/* Bloco 1: CLIENTES */}
+                      <div className="flex flex-col items-center h-full justify-end">
+                        {/* Apenas Percentual no Topo do Bloco (sem tag) */}
+                        <div className="text-center mb-1">
+                          <span className="text-xs sm:text-sm font-black text-slate-900">
+                            {metrics3Blocos.cliente.pct.toFixed(1)}%
                           </span>
-                          <span className={`text-[10px] font-medium ${isSelected ? 'text-slate-200' : 'text-slate-400'}`}>
+                        </div>
+
+                        {/* Barra */}
+                        <div 
+                          className="w-full max-w-[90px] sm:max-w-[125px] rounded-t-xl bg-[#2B3E50] hover:bg-[#1E2B37] transition-all duration-300 relative shadow-sm flex flex-col justify-center items-center py-1.5"
+                          style={{
+                            height: `${Math.max(8, Math.min(100, metrics3Blocos.cliente.pct))}%`,
+                            minHeight: '28px'
+                          }}
+                        >
+                          <span className="text-[11px] sm:text-xs font-black text-white px-1 text-center">
+                            {metrics3Blocos.cliente.pessoas}
+                          </span>
+                          <span className="text-[9px] text-slate-200 hidden sm:block font-medium leading-none">
                             pessoa(s)
                           </span>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
 
-              {/* Detalhamento do Mês Selecionado */}
-              {selectedMonth && (
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 animate-in fade-in duration-200">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-                      <Icons.Building />
-                      <span>Visitas registradas em {meses.find(m => m.mes === selectedMonth)?.nome} de {selectedYear} ({visitantesMes.length}):</span>
-                    </h4>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedMonth(null)}
-                      className="text-xs text-slate-500 hover:text-slate-800 p-1 rounded-lg"
-                      title="Fechar detalhe do mês"
-                    >
-                      <Icons.X />
-                    </button>
-                  </div>
-
-                  {visitantesMes.length === 0 ? (
-                    <p className="text-xs text-slate-500">Nenhum registro detalhado para este período.</p>
-                  ) : (
-                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
-                      {visitantesMes.map(v => (
-                        <div key={v.id} className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between text-xs shadow-xs">
-                          <div>
-                            <span className="font-bold text-slate-800 block">{v.empresa || v.nome}</span>
-                            <span className="text-[10px] text-slate-500 block">
-                              Data: {v.data} • Anfitrião: {v.responsavel || 'Equipe TOTVS'}
-                            </span>
-                          </div>
-                          <span className="px-2.5 py-1 rounded-lg bg-totvs-blue/10 text-totvs-blue font-black text-xs shrink-0">
-                            👥 {v.numero_pessoas || 1}
+                      {/* Bloco 2: PROSPECTS */}
+                      <div className="flex flex-col items-center h-full justify-end">
+                        {/* Apenas Percentual no Topo do Bloco (sem tag) */}
+                        <div className="text-center mb-1">
+                          <span className="text-xs sm:text-sm font-black text-emerald-800">
+                            {metrics3Blocos.prospect.pct.toFixed(1)}%
                           </span>
                         </div>
-                      ))}
+
+                        {/* Barra */}
+                        <div 
+                          className="w-full max-w-[90px] sm:max-w-[125px] rounded-t-xl bg-[#2E7D32] hover:bg-[#1B5E20] transition-all duration-300 relative shadow-sm flex flex-col justify-center items-center py-1.5"
+                          style={{
+                            height: `${Math.max(8, Math.min(100, metrics3Blocos.prospect.pct))}%`,
+                            minHeight: '28px'
+                          }}
+                        >
+                          <span className="text-[11px] sm:text-xs font-black text-white px-1 text-center">
+                            {metrics3Blocos.prospect.pessoas}
+                          </span>
+                          <span className="text-[9px] text-emerald-100 hidden sm:block font-medium leading-none">
+                            pessoa(s)
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Bloco 3: VISITANTES INTERNOS */}
+                      <div className="flex flex-col items-center h-full justify-end">
+                        {/* Apenas Percentual no Topo do Bloco (sem tag) */}
+                        <div className="text-center mb-1">
+                          <span className="text-xs sm:text-sm font-black text-amber-800">
+                            {metrics3Blocos.interno.pct.toFixed(1)}%
+                          </span>
+                        </div>
+
+                        {/* Barra */}
+                        <div 
+                          className="w-full max-w-[90px] sm:max-w-[125px] rounded-t-xl bg-[#EF6C00] hover:bg-[#E65100] transition-all duration-300 relative shadow-sm flex flex-col justify-center items-center py-1.5"
+                          style={{
+                            height: `${Math.max(8, Math.min(100, metrics3Blocos.interno.pct))}%`,
+                            minHeight: '28px'
+                          }}
+                        >
+                          <span className="text-[11px] sm:text-xs font-black text-white px-1 text-center">
+                            {metrics3Blocos.interno.pessoas}
+                          </span>
+                          <span className="text-[9px] text-amber-100 hidden sm:block font-medium leading-none">
+                            pessoa(s)
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  )}
+
+                    {/* Linha Sólida de Base do Eixo X */}
+                    <div className="pl-10 pr-2">
+                      <div className="border-b-2 border-slate-300 w-full"></div>
+                    </div>
+
+                    {/* RÓTULOS CLAROS ABAIXO DE CADA BLOCO (EIXO X) */}
+                    <div className="grid grid-cols-3 gap-3 sm:gap-6 pl-10 pr-2 pt-2 text-center">
+                      <div className="p-1">
+                        <strong className="text-xs sm:text-sm font-black text-[#2B3E50] block truncate">
+                          🏢 Cliente
+                        </strong>
+                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 block mt-0.5">
+                          {metrics3Blocos.cliente.pessoas} {metrics3Blocos.cliente.pessoas === 1 ? 'pessoa' : 'pessoas'} • {metrics3Blocos.cliente.visitas} {metrics3Blocos.cliente.visitas === 1 ? 'visita' : 'visitas'}
+                        </span>
+                      </div>
+
+                      <div className="p-1">
+                        <strong className="text-xs sm:text-sm font-black text-[#2E7D32] block truncate">
+                          🎯 Prospect
+                        </strong>
+                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 block mt-0.5">
+                          {metrics3Blocos.prospect.pessoas} {metrics3Blocos.prospect.pessoas === 1 ? 'pessoa' : 'pessoas'} • {metrics3Blocos.prospect.visitas} {metrics3Blocos.prospect.visitas === 1 ? 'visita' : 'visitas'}
+                        </span>
+                      </div>
+
+                      <div className="p-1">
+                        <strong className="text-xs sm:text-sm font-black text-[#EF6C00] block truncate">
+                          🌐 Visitante Interno
+                        </strong>
+                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 block mt-0.5">
+                          {metrics3Blocos.interno.pessoas} {metrics3Blocos.interno.pessoas === 1 ? 'pessoa' : 'pessoas'} • {metrics3Blocos.interno.visitas} {metrics3Blocos.interno.visitas === 1 ? 'visita' : 'visitas'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              )}
+
+                {/* Cards Inferiores com Percentuais e Médias */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-xs">
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-slate-500 font-bold block uppercase">Clientes</span>
+                      <strong className="text-slate-800 text-xs">{metrics3Blocos.cliente.pessoas} participantes</strong>
+                    </div>
+                    <span className="font-extrabold text-xs text-slate-700 bg-white px-2 py-0.5 rounded-lg border border-slate-200">
+                      {metrics3Blocos.cliente.pct.toFixed(1)}%
+                    </span>
+                  </div>
+
+                  <div className="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-emerald-700 font-bold block uppercase">Prospects</span>
+                      <strong className="text-emerald-900 text-xs">{metrics3Blocos.prospect.pessoas} participantes</strong>
+                    </div>
+                    <span className="font-extrabold text-xs text-emerald-800 bg-white px-2 py-0.5 rounded-lg border border-emerald-200">
+                      {metrics3Blocos.prospect.pct.toFixed(1)}%
+                    </span>
+                  </div>
+
+                  <div className="bg-amber-50/60 p-2.5 rounded-xl border border-amber-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-amber-700 font-bold block uppercase">Visitantes Internos</span>
+                      <strong className="text-amber-900 text-xs">{metrics3Blocos.interno.pessoas} participantes</strong>
+                    </div>
+                    <span className="font-extrabold text-xs text-amber-800 bg-white px-2 py-0.5 rounded-lg border border-amber-200">
+                      {metrics3Blocos.interno.pct.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
 
             </div>
 
             {/* Footer Fixo */}
             <div 
-              className="shrink-0 bg-slate-50 px-4 sm:px-6 py-3.5 sm:py-4 border-t border-slate-200 flex items-center justify-end"
+              className="shrink-0 bg-slate-50 px-4 sm:px-6 py-3 border-t border-slate-200 flex items-center justify-end"
               onTouchMove={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
             >
