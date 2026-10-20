@@ -486,7 +486,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       const isDono = adm.dono_produto === true || adm.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br';
-      const perfil = adm.perfil || (isDono ? 'adm' : (adm.cargo && adm.cargo.toLowerCase().includes('pmm') ? 'pmm' : 'adm'));
+      const perfil = adm.perfil || (isDono ? 'adm' : (adm.cargo && adm.cargo.toLowerCase().includes('pmm') ? 'pmm' : (adm.cargo && adm.cargo.toLowerCase().includes('especialista') ? 'especialista' : 'adm')));
 
       // Registrar evento de login autenticado em logs_acesso.json
       try {
@@ -495,7 +495,7 @@ const server = http.createServer(async (req, res) => {
         if (!Array.isArray(logsAcesso)) logsAcesso = [];
         logsAcesso.unshift({
           id: `acc-${Date.now()}`,
-          tipo: perfil === 'pmm' ? 'Login de PMM' : 'Login de Administrador',
+          tipo: perfil === 'especialista' ? 'Login de Especialista' : (perfil === 'pmm' ? 'Login de PMM' : 'Login de Administrador'),
           usuario: adm.nome,
           email: adm.email,
           perfil: perfil,
@@ -503,7 +503,7 @@ const server = http.createServer(async (req, res) => {
           data_formatada: new Date().toLocaleDateString('pt-BR'),
           horario_formatado: new Date().toLocaleTimeString('pt-BR'),
           timestamp: Date.now(),
-          acao: perfil === 'pmm' ? 'Autenticação de PMM no Showroom' : 'Autenticação de Administrador no Painel'
+          acao: perfil === 'especialista' ? 'Autenticação de Especialista no Showroom' : (perfil === 'pmm' ? 'Autenticação de PMM no Showroom' : 'Autenticação de Administrador no Painel')
         });
         writeJsonFile(accessFile, logsAcesso);
       } catch (errAcesso) {
@@ -517,7 +517,7 @@ const server = http.createServer(async (req, res) => {
           nome: adm.nome,
           email: adm.email,
           perfil: perfil,
-          cargo: adm.cargo || (isDono ? 'Dono do Produto' : (perfil === 'pmm' ? 'PMM (Gestor de Segmento)' : 'Administrador')),
+          cargo: adm.cargo || (isDono ? 'Dono do Produto' : (perfil === 'pmm' ? 'PMM (Gestor de Segmento)' : (perfil === 'especialista' ? 'Especialista do Espaço Experiência' : 'Administrador'))),
           dono_produto: isDono,
           foto: adm.foto || ''
         }
@@ -567,14 +567,30 @@ const server = http.createServer(async (req, res) => {
       let convites = readJsonFile(convitesFile, []);
       if (!Array.isArray(convites)) convites = [];
 
-      const perfil = (body.perfil || 'pmm').toLowerCase().trim() === 'adm' ? 'adm' : 'pmm';
-      const token = (perfil === 'adm' ? 'adm_' : 'pmm_') + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+      // Se já existe convite pendente para este email, reutilizar
+      const existingUnused = convites.find(c => c.email && c.email.toLowerCase().trim() === email && !c.utilizado);
+      if (existingUnused) {
+        return sendJson(res, {
+          success: true,
+          token: existingUnused.token,
+          convite: existingUnused,
+          reused: true
+        });
+      }
+
+      let perfil = (body.perfil || 'especialista').toLowerCase().trim();
+      if (perfil !== 'adm' && perfil !== 'pmm' && perfil !== 'especialista') {
+        perfil = 'especialista';
+      }
+      const prefix = perfil === 'adm' ? 'adm_' : (perfil === 'especialista' ? 'esp_' : 'pmm_');
+      const token = prefix + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
       const novoConvite = {
         id: `conv-${Date.now()}`,
         token,
         nome,
         email,
         perfil,
+        cargo: body.cargo || (perfil === 'especialista' ? 'Especialista do Espaço Experiência' : (perfil === 'pmm' ? 'PMM' : 'Administrador')),
         senha_provisoria: 'totvs123',
         criado_por: criadoPor,
         criado_em: new Date().toLocaleString('pt-BR'),
@@ -651,8 +667,8 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, { success: false, message: 'Já existe um usuário cadastrado com este e-mail.' }, 400);
       }
 
-      const perfil = convite.perfil || (convite.token && convite.token.startsWith('adm_') ? 'adm' : 'pmm');
-      const cargoDefault = perfil === 'adm' ? 'Administrador' : 'PMM (Gestor de Segmento)';
+      const perfil = convite.perfil || (convite.token && convite.token.startsWith('adm_') ? 'adm' : (convite.token && convite.token.startsWith('esp_') ? 'especialista' : 'pmm'));
+      const cargoDefault = perfil === 'adm' ? 'Administrador' : (perfil === 'especialista' ? (convite.cargo || 'Especialista do Espaço Experiência') : 'PMM (Gestor de Segmento)');
 
       const novoUsuario = {
         id: `usr-${Date.now()}`,
@@ -662,7 +678,7 @@ const server = http.createServer(async (req, res) => {
         perfil: perfil,
         cargo: cargoDefault,
         dono_produto: false,
-        foto: '',
+        foto: (body.foto || '').trim(),
         criado_em: new Date().toLocaleString('pt-BR')
       };
 
@@ -685,7 +701,7 @@ const server = http.createServer(async (req, res) => {
           perfil: novoUsuario.perfil,
           cargo: novoUsuario.cargo,
           dono_produto: false,
-          foto: ''
+          foto: novoUsuario.foto
         }
       });
     }
@@ -808,7 +824,7 @@ const server = http.createServer(async (req, res) => {
       const logs = readJsonFile(path.join(DATA_DIR, 'logs_acesso.json'), []);
       const formatted = (Array.isArray(logs) ? logs : []).map(l => ({
         ...l,
-        perfil: l.perfil || (l.tipo && l.tipo.toLowerCase().includes('pmm') ? 'pmm' : (l.tipo && (l.tipo.toLowerCase().includes('admin') || l.usuario) ? 'adm' : 'visitante'))
+        perfil: l.perfil || (l.tipo && l.tipo.toLowerCase().includes('especialista') ? 'especialista' : (l.tipo && l.tipo.toLowerCase().includes('pmm') ? 'pmm' : (l.tipo && (l.tipo.toLowerCase().includes('admin') || l.usuario) ? 'adm' : 'visitante')))
       }));
       return sendJson(res, formatted);
     }
@@ -818,7 +834,7 @@ const server = http.createServer(async (req, res) => {
       const logs = readJsonFile(path.join(DATA_DIR, 'logs_auditoria.json'), []);
       const formatted = (Array.isArray(logs) ? logs : []).map(l => ({
         ...l,
-        perfil: l.perfil || (l.acao && l.acao.toLowerCase().includes('pmm') ? 'pmm' : 'adm')
+        perfil: l.perfil || (l.autor?.perfil ? l.autor.perfil : (l.acao && l.acao.toLowerCase().includes('especialista') ? 'especialista' : (l.acao && l.acao.toLowerCase().includes('pmm') ? 'pmm' : 'adm')))
       }));
       return sendJson(res, formatted);
     }

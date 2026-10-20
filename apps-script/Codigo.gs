@@ -46,7 +46,7 @@ function autenticarUsuario(email, senha) {
         if (String(row[1]).toLowerCase().trim() === emailLimpo && String(row[4]).trim() === senhaLimpa) {
           var cargoStr = String(row[3] || "Administrador");
           var isDono = String(row[5]) === "true";
-          var perfilVal = String(row[9] || (isDono ? "adm" : (cargoStr.toLowerCase().indexOf("pmm") >= 0 ? "pmm" : "adm")));
+          var perfilVal = String(row[9] || (isDono ? "adm" : (cargoStr.toLowerCase().indexOf("especialista") >= 0 ? "especialista" : (cargoStr.toLowerCase().indexOf("pmm") >= 0 ? "pmm" : "adm"))));
           var u = {
             id: String(row[0]),
             email: String(row[1]),
@@ -225,8 +225,11 @@ function salvarConviteAdmin(dados) {
       aba.appendRow(["ID", "Token", "Email", "Nome", "CriadoPor", "CriadoEm", "Utilizado", "Perfil"]);
       aba.getRange("A1:H1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
     }
-    var perfil = String(dados.perfil || "pmm").toLowerCase().trim() === "adm" ? "adm" : "pmm";
-    var prefix = perfil === "adm" ? "adm_" : "pmm_";
+    var perfil = String(dados.perfil || "especialista").toLowerCase().trim();
+    if (perfil !== "adm" && perfil !== "pmm" && perfil !== "especialista") {
+      perfil = "especialista";
+    }
+    var prefix = perfil === "adm" ? "adm_" : (perfil === "especialista" ? "esp_" : "pmm_");
     var token = prefix + Math.random().toString(36).substring(2, 10) + new Date().getTime().toString(36);
     var id = "conv-" + new Date().getTime();
     var agora = new Date().toLocaleString("pt-BR");
@@ -4023,7 +4026,7 @@ function aceitarConvite(dados) {
 
   var idNovo = "usr-" + new Date().getTime();
   var agora = new Date().toLocaleString("pt-BR");
-  var perfil = token.startsWith("pmm_") ? "pmm" : "adm";
+  var perfil = token.startsWith("esp_") ? "especialista" : (token.startsWith("pmm_") ? "pmm" : "adm");
   
   try {
     var ss = getSpreadsheet();
@@ -4036,14 +4039,15 @@ function aceitarConvite(dados) {
         if (String(dConv[i][1]).trim() === token) {
           abaConv.getRange(i + 1, 7).setValue(true);
           if (dConv[i][7]) {
-            perfil = String(dConv[i][7]).toLowerCase().trim() === "adm" ? "adm" : "pmm";
+            var pStr = String(dConv[i][7]).toLowerCase().trim();
+            perfil = pStr === "adm" ? "adm" : (pStr === "especialista" ? "especialista" : "pmm");
           }
           break;
         }
       }
     }
 
-    var cargo = perfil === "adm" ? "Administrador" : "PMM (Gestor de Segmento)";
+    var cargo = perfil === "adm" ? "Administrador" : (perfil === "especialista" ? "Especialista do Espaço Experiência" : "PMM (Gestor de Segmento)");
     var novoUsuario = {
       id: idNovo,
       nome: nome,
@@ -4053,7 +4057,7 @@ function aceitarConvite(dados) {
       tipo: "administrador",
       dono_produto: false,
       precisa_trocar_senha: false,
-      foto: "",
+      foto: String(dados.foto || "").trim(),
       criado_em: agora
     };
 

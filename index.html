@@ -1064,49 +1064,77 @@
                 )}
               </button>
 
-              {/* 4. Área ADM */}
+              {/* 4. Área Corporativa / Perfil */}
               <button
                 type="button"
                 onClick={onOpenAdmin}
                 className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
-                  admLogado 
-                    ? 'bg-totvs-blue/20 text-totvs-cyan border border-totvs-cyan/30 hover:bg-totvs-blue/30' 
-                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                  admLogado?.perfil === 'especialista'
+                    ? 'bg-purple-900/30 text-purple-200 border border-purple-400/40 hover:bg-purple-900/50'
+                    : admLogado 
+                      ? 'bg-totvs-blue/20 text-totvs-cyan border border-totvs-cyan/30 hover:bg-totvs-blue/30' 
+                      : 'text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
-                title={admLogado ? `Área ADM (${admLogado.nome})` : "Área Administrativa"}
+                title={
+                  admLogado?.perfil === 'especialista'
+                    ? `Meu Perfil (${admLogado.nome})`
+                    : admLogado
+                      ? `Área ADM (${admLogado.nome})`
+                      : "Entrar / Identificar-se"
+                }
               >
                 <span className="shrink-0 relative">
                   {admLogado && admLogado.foto ? (
                     <img
                       src={admLogado.foto}
                       alt={admLogado.nome}
-                      className="w-7 h-7 rounded-full object-cover border-2 border-totvs-cyan shadow-sm"
+                      className={`w-7 h-7 rounded-full object-cover border-2 shadow-sm ${
+                        admLogado.perfil === 'especialista' ? 'border-purple-400' : 'border-totvs-cyan'
+                      }`}
                     />
                   ) : admLogado ? (
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-totvs-blue to-totvs-cyan text-white text-xs font-black flex items-center justify-center border border-totvs-cyan shadow-sm">
-                      {admLogado.nome ? admLogado.nome.charAt(0).toUpperCase() : 'A'}
+                    <div className={`w-7 h-7 rounded-full text-white text-xs font-black flex items-center justify-center border shadow-sm ${
+                      admLogado.perfil === 'especialista'
+                        ? 'bg-gradient-to-tr from-purple-700 to-totvs-blue border-purple-300'
+                        : 'bg-gradient-to-tr from-totvs-blue to-totvs-cyan border-totvs-cyan'
+                    }`}>
+                      {admLogado.nome ? admLogado.nome.charAt(0).toUpperCase() : (admLogado.perfil === 'especialista' ? 'E' : 'A')}
                     </div>
                   ) : (
                     <Icons.Shield />
                   )}
                   {admLogado && (
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-pulse border border-[#07162c]"></span>
+                    <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-[#07162c] ${
+                      admLogado.perfil === 'especialista' ? 'bg-purple-400' : 'bg-emerald-400 animate-pulse'
+                    }`}></span>
                   )}
                 </span>
                 {isExpanded && (
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-bold block truncate">
-                        {admLogado ? admLogado.nome : 'Área ADM'}
+                        {admLogado ? admLogado.nome : 'Entrar'}
                       </span>
                       {admLogado && (
-                        <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
-                          {admLogado.dono_produto ? 'DONO' : (admLogado.perfil === 'pmm' ? 'PMM' : 'ON')}
+                        <span className={`text-[8px] font-black uppercase px-1 py-0.2 rounded ${
+                          admLogado.dono_produto 
+                            ? 'bg-emerald-500/20 text-emerald-300' 
+                            : admLogado.perfil === 'especialista'
+                              ? 'bg-purple-500/20 text-purple-300'
+                              : (admLogado.perfil === 'pmm' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-cyan-500/20 text-cyan-300')
+                        }`}>
+                          {admLogado.dono_produto ? 'DONO' : (admLogado.perfil === 'especialista' ? 'ESP' : (admLogado.perfil === 'pmm' ? 'PMM' : 'ADM'))}
                         </span>
                       )}
                     </div>
                     <span className="text-[9.5px] text-slate-400 block truncate">
-                      {admLogado ? (admLogado.dono_produto ? '👑 Dono do Produto' : (admLogado.perfil === 'pmm' ? '🎯 PMM (Gestão)' : 'Administrador')) : 'Acesso Restrito'}
+                      {admLogado 
+                        ? (admLogado.dono_produto 
+                            ? '👑 Dono do Produto' 
+                            : (admLogado.perfil === 'especialista'
+                                ? '🌟 Especialista'
+                                : (admLogado.perfil === 'pmm' ? '🎯 PMM (Gestão)' : 'Administrador')))
+                        : 'Identificar-se'}
                     </span>
                   </div>
                 )}
@@ -1629,25 +1657,38 @@
                   </button>
                   {admLogado && (
                     <>
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-totvs-blue to-totvs-vibrant hover:from-totvs-dark hover:to-totvs-blue text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs"
-                        title={`Importar escala anual a partir da planilha oficial TOTVS para o ano de ${viewYear}`}
-                      >
-                        <Icons.FileSpreadsheet />
-                        <span>Importar Escala {viewYear} (.xlsx)</span>
-                      </button>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".xlsx, .xls, .csv"
-                        className="hidden"
-                        onChange={handleFileSelected}
-                      />
-                      <span className="text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
+                      {/* Botão de Importar Planilha (.xlsx) exclusivo para ADM / Dono do Produto */}
+                      {(admLogado.perfil === 'adm' || admLogado.dono_produto) && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-totvs-blue to-totvs-vibrant hover:from-totvs-dark hover:to-totvs-blue text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                            title={`Importar escala anual a partir da planilha oficial TOTVS para o ano de ${viewYear}`}
+                          >
+                            <Icons.FileSpreadsheet />
+                            <span>Importar Escala {viewYear} (.xlsx)</span>
+                          </button>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".xlsx, .xls, .csv"
+                            className="hidden"
+                            onChange={handleFileSelected}
+                          />
+                        </>
+                      )}
+                      <span className={`text-[10.5px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1 ${
+                        admLogado.perfil === 'especialista'
+                          ? 'text-purple-700 bg-purple-50 border-purple-200'
+                          : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                      }`}>
                         <Icons.Shield />
-                        <span>Modo Edição Ativo</span>
+                        <span>
+                          {admLogado.perfil === 'especialista'
+                            ? 'Modo Plantonista Ativo (Especialista)'
+                            : (admLogado.perfil === 'pmm' ? 'Modo Edição (PMM)' : 'Modo Edição Geral (ADM)')}
+                        </span>
                       </span>
                     </>
                   )}
@@ -1983,6 +2024,7 @@
       // Modais
       const [showLoginModal, setShowLoginModal] = useState(false);
       const [showAcceptInviteModal, setShowAcceptInviteModal] = useState(false);
+      const [showMeuPerfilModal, setShowMeuPerfilModal] = useState(false);
       const [conviteToken, setConviteToken] = useState(null);
       const [activeSegment, setActiveSegment] = useState(null);
       const [editSegment, setEditSegment] = useState(null);
@@ -2131,7 +2173,9 @@
             setAdmLogado(null);
           } else {
             // 3. Restaurar sessão salva de administrador apenas se NÃO houver convite ativo
-            const savedAdm = localStorage.getItem('totvs_adm_session');
+            // Para garantir que cada nova sessão de navegador abra deslogada, usamos sessionStorage e limpamos localStorage legado
+            try { localStorage.removeItem('totvs_adm_session'); } catch(e){}
+            const savedAdm = sessionStorage.getItem('totvs_adm_session');
             if (savedAdm) {
               try {
                 const parsed = JSON.parse(savedAdm);
@@ -2139,7 +2183,8 @@
                 if (!sessionStorage.getItem('totvs_adm_welcome_shown')) {
                   sessionStorage.setItem('totvs_adm_welcome_shown', '1');
                   setTimeout(() => {
-                    showToast(`Olá, ${parsed.nome}! Bem-vindo ao Espaço Experiência TOTVS. 👋`);
+                    const cargoNome = parsed.perfil === 'especialista' ? 'Especialista' : (parsed.perfil === 'pmm' ? 'PMM' : 'Administrador');
+                    showToast(`Olá, ${parsed.nome}! Bem-vindo ao Espaço Experiência TOTVS (${cargoNome}). 👋`);
                   }, 700);
                 }
               } catch(e){}
@@ -2169,36 +2214,41 @@
           });
       }, []);
 
-      // Login bem-sucedido de Administrador
+      // Login bem-sucedido (Especialista, PMM ou Administrador)
       const handleLoginSuccess = (usuario) => {
         setAdmLogado(usuario);
-        localStorage.setItem('totvs_adm_session', JSON.stringify(usuario));
+        sessionStorage.setItem('totvs_adm_session', JSON.stringify(usuario));
+        try { localStorage.removeItem('totvs_adm_session'); } catch(e){}
         setShowLoginModal(false);
-        showToast(`Olá, ${usuario.nome}! Bem-vindo ao Espaço Experiência TOTVS. Modo Administrador ativado. 🚀`);
+        const perfilLabel = usuario.perfil === 'especialista' ? 'Especialista' : (usuario.perfil === 'pmm' ? 'PMM' : 'Administrador');
+        showToast(`Olá, ${usuario.nome}! Bem-vindo ao Espaço Experiência TOTVS. Perfil de ${perfilLabel} ativado! 🚀`);
       };
 
-      // Logout do Administrador
+      // Logout da Conta Corporativa
       const handleLogoutAdm = () => {
         setAdmLogado(null);
-        localStorage.removeItem('totvs_adm_session');
-        showToast('Você saiu do modo administrador. Ambiente em modo somente leitura.');
+        sessionStorage.removeItem('totvs_adm_session');
+        try { localStorage.removeItem('totvs_adm_session'); } catch(e){}
+        showToast('Você saiu da sua conta corporativa. Ambiente em modo somente leitura.');
       };
 
-      // Ativação bem-sucedida de novo Convidado (PMM ou ADM)
+      // Ativação bem-sucedida de novo Convidado (Especialista, PMM ou ADM)
       const handleAcceptInviteSuccess = (usuario) => {
         setAdmLogado(usuario);
-        localStorage.setItem('totvs_adm_session', JSON.stringify(usuario));
+        sessionStorage.setItem('totvs_adm_session', JSON.stringify(usuario));
+        try { localStorage.removeItem('totvs_adm_session'); } catch(e){}
         setShowAcceptInviteModal(false);
         setConviteToken(null);
         window.history.replaceState({}, document.title, window.location.pathname);
-        const perfilLabel = (usuario && (usuario.perfil === 'pmm' || (usuario.cargo && usuario.cargo.includes('PMM')))) ? 'PMM' : 'ADM';
+        const perfilLabel = usuario.perfil === 'especialista' ? 'Especialista' : (usuario.perfil === 'pmm' ? 'PMM' : 'ADM');
         showToast(`Olá, ${usuario.nome}! Bem-vindo ao Espaço Experiência TOTVS. Perfil de ${perfilLabel} ativado! 🎉`);
       };
 
-      // Atualizar dados de perfil do Administrador (ex: upload de foto)
+      // Atualizar dados de perfil (foto / senha)
       const handleUpdateAdmProfile = (usuarioAtualizado) => {
         setAdmLogado(usuarioAtualizado);
-        localStorage.setItem('totvs_adm_session', JSON.stringify(usuarioAtualizado));
+        sessionStorage.setItem('totvs_adm_session', JSON.stringify(usuarioAtualizado));
+        try { localStorage.removeItem('totvs_adm_session'); } catch(e){}
       };
 
       // Abrir Edição Completa (apenas ADM)
@@ -2311,10 +2361,14 @@
         });
       };
 
-      // Painel ADM
+      // Painel ADM / Meu Perfil
       const handleOpenAdmin = () => {
         if (!admLogado) {
           setShowLoginModal(true);
+          return;
+        }
+        if (admLogado.perfil === 'especialista') {
+          setShowMeuPerfilModal(true);
           return;
         }
         setAdminModal(true);
@@ -2446,7 +2500,14 @@
                     {/* Botão Registrar Visitante */}
                     <button
                       type="button"
-                      onClick={() => setShowVisitorModal(true)}
+                      onClick={() => {
+                        if (!admLogado) {
+                          showToast('Identifique-se para registrar visitantes presenciais.');
+                          setShowLoginModal(true);
+                          return;
+                        }
+                        setShowVisitorModal(true);
+                      }}
                       className="flex items-center gap-1.5 bg-gradient-to-r from-totvs-cyan to-teal-300 hover:from-cyan-300 hover:to-teal-200 text-slate-900 font-black px-2.5 sm:px-3 py-1 rounded-lg text-xs shadow-xs transition transform hover:scale-102 active:scale-98 cursor-pointer ml-0.5"
                       title="Registrar visita presencial no Espaço Experiência TOTVS"
                     >
@@ -2455,6 +2516,57 @@
                       <span className="md:hidden">Registrar</span>
                     </button>
                   </div>
+
+                  {/* Identificação de Usuário / Entrar */}
+                  {!admLogado ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginModal(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-totvs-blue/30 hover:bg-totvs-blue/50 text-totvs-cyan hover:text-white border border-totvs-cyan/40 text-xs font-bold transition shadow-xs cursor-pointer ml-1"
+                      title="Acessar com perfil de Especialista, PMM ou Administrador"
+                    >
+                      <Icons.Shield />
+                      <span className="hidden sm:inline">Entrar</span>
+                      <span className="text-[10px] sm:hidden">Entrar</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (admLogado.perfil === 'especialista') {
+                          setShowMeuPerfilModal(true);
+                        } else {
+                          handleOpenAdmin();
+                        }
+                      }}
+                      className={`flex items-center gap-2 px-2.5 py-1 rounded-xl border text-xs transition cursor-pointer ml-1 ${
+                        admLogado.perfil === 'especialista'
+                          ? 'bg-purple-950/50 hover:bg-purple-900/60 border-purple-400/40 text-purple-200'
+                          : 'bg-slate-800/90 hover:bg-slate-700 border-slate-700 text-white'
+                      }`}
+                      title={admLogado.perfil === 'especialista' ? "Meu Perfil de Especialista" : "Painel do Administrador"}
+                    >
+                      {admLogado.foto ? (
+                        <img src={admLogado.foto} alt={admLogado.nome} className="w-5 h-5 rounded-full object-cover border border-totvs-cyan" />
+                      ) : (
+                        <div className={`w-5 h-5 rounded-full text-white flex items-center justify-center font-black text-[10px] ${
+                          admLogado.perfil === 'especialista' ? 'bg-purple-700' : 'bg-totvs-blue'
+                        }`}>
+                          {admLogado.nome ? admLogado.nome.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                      )}
+                      <span className="font-bold text-xs truncate max-w-[110px] hidden md:inline">{admLogado.nome}</span>
+                      <span className={`text-[8.5px] font-black uppercase px-1.5 py-0.2 rounded ${
+                        admLogado.dono_produto 
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' 
+                          : admLogado.perfil === 'especialista'
+                            ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30'
+                            : (admLogado.perfil === 'pmm' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' : 'bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30')
+                      }`}>
+                        {admLogado.dono_produto ? 'DONO' : (admLogado.perfil === 'especialista' ? 'ESP' : (admLogado.perfil === 'pmm' ? 'PMM' : 'ADM'))}
+                      </span>
+                    </button>
+                  )}
                 </div>
 
               </div>
@@ -2547,8 +2659,8 @@
                             </div>
                           </div>
 
-                          {/* Botão Único de Edição do Card (Apenas para ADM autenticado) */}
-                          {admLogado && (
+                          {/* Botão Único de Edição do Card (Apenas para ADM / PMM autenticado) */}
+                          {admLogado && admLogado.perfil !== 'especialista' && (
                             <button
                               type="button"
                               onClick={() => setQuickBancadaSegment(seg)}
@@ -2727,6 +2839,20 @@
             />
           )}
 
+          {/* MODAL EXCLUSIVO "MEU PERFIL" DO ESPECIALISTA */}
+          {showMeuPerfilModal && admLogado && (
+            <MeuPerfilModal
+              usuario={admLogado}
+              onClose={() => setShowMeuPerfilModal(false)}
+              onUpdateUser={handleUpdateAdmProfile}
+              onLogout={() => {
+                setShowMeuPerfilModal(false);
+                handleLogoutAdm();
+              }}
+              showToast={showToast}
+            />
+          )}
+
           {/* MODAL LIGHTBOX DE FOTO AMPLIADA */}
           {lightboxSegment && (
             <PhotoLightboxModal
@@ -2765,7 +2891,314 @@
       );
     }
 
-    // --- COMPONENTE: MODAL DE LOGIN DO ADMINISTRADOR ---
+    // --- COMPONENTE: MODAL "MEU PERFIL" DO ESPECIALISTA ---
+    function MeuPerfilModal({ usuario, onClose, onUpdateUser, onLogout, showToast }) {
+      const [novaSenha, setNovaSenha] = useState('');
+      const [confirmaSenha, setConfirmaSenha] = useState('');
+      const [salvandoSenha, setSalvandoSenha] = useState(false);
+      const [erroSenha, setErroSenha] = useState('');
+      const [fotoCarregando, setFotoCarregando] = useState(false);
+      const fileInputRef = useRef(null);
+
+      // Bloquear scroll ao abrir modal
+      useEffect(() => {
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+          window.removeEventListener('keydown', handleKeyDown);
+          document.body.style.overflow = originalOverflow;
+        };
+      }, [onClose]);
+
+      const handleFileSelected = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          if (showToast) showToast('Por favor, selecione um arquivo de imagem (JPEG, PNG ou WEBP).');
+          return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+          if (showToast) showToast('A foto deve ter no máximo 2MB.');
+          return;
+        }
+
+        setFotoCarregando(true);
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+          const base64 = evt.target.result;
+          try {
+            if (window.google && google.script && google.script.run) {
+              google.script.run
+                .withSuccessHandler((res) => {
+                  setFotoCarregando(false);
+                  if (res && res.success) {
+                    const updated = { ...usuario, foto: base64 };
+                    onUpdateUser(updated);
+                    if (showToast) showToast('Foto de perfil atualizada com sucesso! 📸');
+                  } else {
+                    if (showToast) showToast('Erro ao salvar foto: ' + (res?.message || 'Falha'));
+                  }
+                })
+                .withFailureHandler(() => {
+                  setFotoCarregando(false);
+                  if (showToast) showToast('Erro de comunicação com o Google Apps Script.');
+                })
+                .atualizarFotoUsuario(usuario.email, base64);
+            } else {
+              const res = await fetch('/api/admin/avatar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: usuario.email, foto: base64 })
+              });
+              const data = await res.json();
+              setFotoCarregando(false);
+              if (data.success) {
+                const updated = { ...usuario, foto: base64 };
+                onUpdateUser(updated);
+                if (showToast) showToast('Foto de perfil atualizada com sucesso! 📸');
+              } else {
+                if (showToast) showToast(data.message || 'Erro ao salvar foto de perfil.');
+              }
+            }
+          } catch (err) {
+            setFotoCarregando(false);
+            if (showToast) showToast('Erro ao atualizar foto de perfil.');
+          }
+        };
+        reader.readAsDataURL(file);
+      };
+
+      const handleSalvarSenha = async (e) => {
+        e.preventDefault();
+        setErroSenha('');
+
+        const senhaLimpa = novaSenha.trim();
+        const senhaValida = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(senhaLimpa);
+        if (!senhaValida) {
+          setErroSenha('A nova senha deve possuir no mínimo 6 caracteres e conter letras e números.');
+          return;
+        }
+
+        if (senhaLimpa !== confirmaSenha.trim()) {
+          setErroSenha('A confirmação da nova senha não confere.');
+          return;
+        }
+
+        setSalvandoSenha(true);
+        try {
+          if (window.google && google.script && google.script.run) {
+            google.script.run
+              .withSuccessHandler((res) => {
+                setSalvandoSenha(false);
+                if (res && res.success) {
+                  setNovaSenha('');
+                  setConfirmaSenha('');
+                  if (showToast) showToast('Senha alterada com sucesso! 🔒');
+                } else {
+                  setErroSenha(res?.message || 'Erro ao alterar senha.');
+                }
+              })
+              .withFailureHandler(() => {
+                setSalvandoSenha(false);
+                setErroSenha('Falha de conexão com o servidor.');
+              })
+              .alterarSenhaUsuario(usuario.email, senhaLimpa);
+          } else {
+            const res = await fetch('/api/admin/password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: usuario.email, novaSenha: senhaLimpa })
+            });
+            const data = await res.json();
+            setSalvandoSenha(false);
+            if (data.success) {
+              setNovaSenha('');
+              setConfirmaSenha('');
+              if (showToast) showToast('Senha alterada com sucesso! 🔒');
+            } else {
+              setErroSenha(data.message || 'Erro ao atualizar senha.');
+            }
+          }
+        } catch (err) {
+          setSalvandoSenha(false);
+          setErroSenha('Erro de conexão ao salvar nova senha.');
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Topo / Header */}
+            <div className="bg-gradient-to-r from-totvs-dark via-slate-900 to-purple-900 p-5 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-400/40 flex items-center justify-center text-sm font-black shadow-xs">
+                  🌟
+                </span>
+                <div>
+                  <h3 className="font-extrabold text-sm sm:text-base text-white">Meu Perfil • Especialista</h3>
+                  <p className="text-[11px] text-slate-300">Espaço Experiência TOTVS</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
+                title="Fechar (ESC)"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Conteúdo */}
+            <div className="p-5 sm:p-6 space-y-5">
+              {/* Card de Identificação */}
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 rounded-2xl bg-purple-50/50 border border-purple-100">
+                <div className="relative group shrink-0">
+                  {usuario.foto ? (
+                    <img
+                      src={usuario.foto}
+                      alt={usuario.nome}
+                      className="w-20 h-20 rounded-2xl object-cover border-2 border-purple-400 shadow-md"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-purple-700 to-totvs-blue text-white flex items-center justify-center font-black text-2xl border-2 border-purple-300 shadow-md">
+                      {usuario.nome ? usuario.nome.charAt(0).toUpperCase() : 'E'}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={fotoCarregando}
+                    className="absolute -bottom-1 -right-1 p-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white shadow-md border-2 border-white transition cursor-pointer group-hover:scale-105"
+                    title="Alterar Foto de Perfil"
+                  >
+                    <Icons.Camera />
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileSelected}
+                  />
+                </div>
+
+                <div className="text-center sm:text-left min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    <h4 className="font-extrabold text-base text-slate-900 truncate">{usuario.nome}</h4>
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                      Especialista
+                    </span>
+                  </div>
+                  <p className="text-xs text-totvs-blue font-mono mt-0.5 truncate">{usuario.email}</p>
+                  <p className="text-[11px] text-slate-500 font-medium mt-1">
+                    {usuario.cargo || 'Especialista do Espaço Experiência'}
+                  </p>
+
+                  <div className="mt-2 text-[10.5px] text-purple-900 bg-white/80 rounded-xl p-2.5 border border-purple-200/80 leading-relaxed text-left">
+                    <strong>Permissões de Acesso:</strong>
+                    <ul className="list-disc list-inside mt-0.5 space-y-0.5 text-slate-600">
+                      <li>Registro de visitantes presenciais no showroom;</li>
+                      <li>Edição da escala diária de plantonistas no calendário;</li>
+                      <li>Visualização completa de todas as estações e guias (somente leitura).</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Formulário: Alterar Senha */}
+              <form onSubmit={handleSalvarSenha} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                <h5 className="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <Icons.Lock />
+                  <span>Alterar Minha Senha de Acesso</span>
+                </h5>
+
+                {erroSenha && (
+                  <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                    <Icons.AlertCircle />
+                    <span>{erroSenha}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Nova Senha *
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Mínimo 6 chars (letras e números)"
+                      value={novaSenha}
+                      onChange={(e) => setNovaSenha(e.target.value)}
+                      className="w-full text-xs px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Confirmar Nova Senha *
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Repita a nova senha"
+                      value={confirmaSenha}
+                      onChange={(e) => setConfirmaSenha(e.target.value)}
+                      className="w-full text-xs px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[10px] text-slate-400">
+                    Alfanumérica (letras e números, mín. 6 dígitos).
+                  </span>
+                  <button
+                    type="submit"
+                    disabled={salvandoSenha || !novaSenha || !confirmaSenha}
+                    className={`px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                      salvandoSenha || !novaSenha || !confirmaSenha
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        : 'bg-purple-700 hover:bg-purple-800 text-white shadow-xs'
+                    }`}
+                  >
+                    <Icons.CheckCircle />
+                    <span>{salvandoSenha ? 'Salvando...' : 'Salvar Nova Senha'}</span>
+                  </button>
+                </div>
+              </form>
+
+              {/* Ações de Saída e Fechamento */}
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="px-4 py-2 rounded-xl text-rose-600 hover:bg-rose-50 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Icons.LogOut />
+                  <span>Sair da Minha Conta</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- COMPONENTE: MODAL DE IDENTIFICAÇÃO / LOGIN CORPORATIVO ---
     function LoginModal({ onClose, onLoginSuccess }) {
       const [email, setEmail] = useState('');
       const [senha, setSenha] = useState('');
@@ -2819,9 +3252,9 @@
               <div className="w-12 h-12 rounded-2xl bg-totvs-blue/10 text-totvs-blue flex items-center justify-center mx-auto mb-3 font-black text-xl">
                 <Icons.Shield />
               </div>
-              <h3 className="font-black text-xl text-slate-800">Área do Administrador</h3>
+              <h3 className="font-black text-xl text-slate-800">Identificação Corporativa</h3>
               <p className="text-xs text-slate-500 mt-1">
-                Acesso exclusivo para administradores com permissão de edição
+                Acesse como Especialista, PMM ou Administrador do Espaço Experiência
               </p>
             </div>
 
@@ -2875,7 +3308,7 @@
                   className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-totvs-blue to-totvs-cyan hover:from-[#003B8E] hover:to-[#00B4D8] text-white font-black text-xs transition shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   <Icons.Key />
-                  <span>{loading ? 'Entrando...' : 'Entrar como Administrador'}</span>
+                  <span>{loading ? 'Entrando...' : 'Entrar no Sistema'}</span>
                 </button>
               </div>
 
@@ -2888,7 +3321,7 @@
       );
     }
 
-    // --- COMPONENTE: MODAL DE ATIVAÇÃO DE CONVITE DE NOVO ADM ---
+    // --- COMPONENTE: MODAL DE ATIVAÇÃO DE CONVITE DE NOVO USUÁRIO ---
     function AcceptInviteModal({ token, onClose, onAcceptSuccess }) {
       const [conviteData, setConviteData] = useState(null);
       const [carregando, setCarregando] = useState(true);
@@ -2896,6 +3329,7 @@
       
       const [nome, setNome] = useState('');
       const [email, setEmail] = useState('');
+      const [foto, setFoto] = useState('');
       const [senhaProvisoria, setSenhaProvisoria] = useState('totvs123');
       const [novaSenha, setNovaSenha] = useState('');
       const [confirmaSenha, setConfirmaSenha] = useState('');
@@ -2903,6 +3337,7 @@
       const [showConfirmaSenha, setShowConfirmaSenha] = useState(false);
       const [salvando, setSalvando] = useState(false);
       const [formErro, setFormErro] = useState('');
+      const fileInputRef = useRef(null);
 
       useEffect(() => {
         if (!token) return;
@@ -2922,7 +3357,26 @@
           .finally(() => setCarregando(false));
       }, [token]);
 
-      const isPmm = (conviteData?.perfil === 'pmm') || (token && token.startsWith('pmm_'));
+      const isEspecialista = (conviteData?.perfil === 'especialista') || (token && token.startsWith('esp_'));
+      const isPmm = !isEspecialista && ((conviteData?.perfil === 'pmm') || (token && token.startsWith('pmm_')));
+
+      const handleFotoChange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          setFormErro('Por favor, selecione um arquivo de imagem (JPEG, PNG ou WEBP).');
+          return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+          setFormErro('A foto deve ter no máximo 2MB.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          setFoto(evt.target.result);
+        };
+        reader.readAsDataURL(file);
+      };
 
       const handleSubmit = async (e) => {
         e.preventDefault();
@@ -2969,7 +3423,8 @@
               nome: nomeTrim,
               email: emailTrim,
               senhaProvisoria: senhaProvisoria.trim(),
-              novaSenha: novaSenha.trim()
+              novaSenha: novaSenha.trim(),
+              foto: foto
             })
           });
           const data = await res.json();
@@ -3015,16 +3470,27 @@
                   <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto mb-2 text-2xl font-black">
                     🎉
                   </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-block mb-1">
-                    {isPmm ? 'Convite Oficial de PMM (Gestor de Segmento)' : 'Convite Oficial de Administrador'}
+                  <span className={`text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full border inline-block mb-1 ${
+                    isEspecialista
+                      ? 'bg-purple-50 text-purple-700 border-purple-200'
+                      : (isPmm ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-totvs-blue/10 text-totvs-blue border-totvs-blue/20')
+                  }`}>
+                    {isEspecialista 
+                      ? 'Convite Oficial • Especialista do Espaço Experiência' 
+                      : (isPmm ? 'Convite Oficial de PMM (Gestor de Segmento)' : 'Convite Oficial de Administrador')}
                   </span>
                   <h3 className="font-black text-xl text-slate-800">
-                    {isPmm ? 'Ative seu Acesso de PMM' : 'Ative seu Perfil de ADM'}
+                    {isEspecialista 
+                      ? 'Ative seu Acesso de Especialista' 
+                      : (isPmm ? 'Ative seu Acesso de PMM' : 'Ative seu Perfil de ADM')}
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    {isPmm
-                      ? <span>Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar e atualizar os conteúdos e roteiros das estações como PMM (Gestor de Segmento).</span>
-                      : <span>Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar e administrar o Espaço Experiência TOTVS com perfil de Administrador Geral.</span>
+                    {isEspecialista
+                      ? <span>Você foi convidado para o <strong>Espaço Experiência TOTVS</strong> com perfil de Especialista para registrar visitantes e gerenciar a escala diária no calendário de plantonistas.</span>
+                      : (isPmm
+                          ? <span>Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar e atualizar os conteúdos e roteiros das estações como PMM (Gestor de Segmento).</span>
+                          : <span>Você foi convidado por <strong>{conviteData?.criado_por || 'um Administrador'}</strong> para gerenciar e administrar o Espaço Experiência TOTVS com perfil de Administrador Geral.</span>
+                        )
                     }
                   </p>
                 </div>
@@ -3034,11 +3500,15 @@
                   <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between text-xs">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Pré-cadastro confirmado:</span>
-                      <strong className="text-slate-800 block text-xs">{conviteData.nome || (isPmm ? 'Novo PMM' : 'Novo Administrador')}</strong>
+                      <strong className="text-slate-800 block text-xs">{conviteData.nome || (isEspecialista ? 'Especialista' : (isPmm ? 'Novo PMM' : 'Novo Administrador'))}</strong>
                       <span className="text-[11px] text-totvs-blue font-mono block">{conviteData.email}</span>
                     </div>
-                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold text-[10px] shrink-0">
-                      {isPmm ? 'Perfil: PMM' : 'Perfil: ADM'} • ✓ Validado
+                    <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] shrink-0 ${
+                      isEspecialista
+                        ? 'bg-purple-100 text-purple-800'
+                        : (isPmm ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800')
+                    }`}>
+                      {isEspecialista ? 'Perfil: Especialista' : (isPmm ? 'Perfil: PMM' : 'Perfil: ADM')} • ✓ Validado
                     </span>
                   </div>
                 )}
@@ -3073,6 +3543,37 @@
                       className="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-medium text-slate-800 focus:ring-2 focus:ring-totvs-cyan"
                       required
                     />
+                  </div>
+
+                  {/* Foto de Perfil Opcional */}
+                  <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <div className="relative shrink-0">
+                      {foto ? (
+                        <img src={foto} alt="Prévia" className="w-12 h-12 rounded-xl object-cover border-2 border-totvs-cyan" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center font-bold text-lg">
+                          <Icons.Camera />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-[11px] font-bold text-slate-700 block">Foto de Perfil (Opcional):</span>
+                      <p className="text-[10px] text-slate-400">Adicione uma foto para seu perfil corporativo.</p>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="mt-1 text-[11px] text-totvs-blue hover:underline font-bold cursor-pointer"
+                      >
+                        {foto ? 'Alterar foto' : 'Selecionar foto do dispositivo'}
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFotoChange}
+                      />
+                    </div>
                   </div>
 
                   <div className="bg-blue-50/60 p-3 rounded-2xl border border-blue-100 space-y-2.5">
@@ -3256,7 +3757,7 @@
       const [lightboxFoto, setLightboxFoto] = useState(null);
 
       const IconComp = Icons[localSegment.icone] || Icons.Factory;
-      const canEdit = Boolean(admLogado);
+      const canEdit = Boolean(admLogado && admLogado.perfil !== 'especialista');
 
       useEffect(() => {
         setLocalSegment(segment);
@@ -6851,7 +7352,28 @@
       // Estados para Novo Convite com Nome e E-mail obrigatórios
       const [novoAdmNome, setNovoAdmNome] = useState('');
       const [novoAdmEmail, setNovoAdmEmail] = useState('');
-      const [perfilConvite, setPerfilConvite] = useState('pmm');
+      const [perfilConvite, setPerfilConvite] = useState('especialista');
+
+      // Estados para Catálogo e Links Rápidos de Especialistas (44 especialistas da planilha oficial)
+      const [especialistasCatalogo, setEspecialistasCatalogo] = useState([]);
+      const [buscaEspecialista, setBuscaEspecialista] = useState('');
+      const [copiandoEspId, setCopiandoEspId] = useState(null);
+
+      // Estados para Filtro de Período em Auditoria / Acessos
+      const [filterAccessPeriodo, setFilterAccessPeriodo] = useState('todos'); // 'todos', 'hoje', 'semana', 'mes', 'custom'
+      const [filterAccessDataInicio, setFilterAccessDataInicio] = useState('');
+      const [filterAccessDataFim, setFilterAccessDataFim] = useState('');
+
+      useEffect(() => {
+        fetch('/api/plantonistas')
+          .then(res => res.json())
+          .then(data => {
+            if (data && Array.isArray(data.especialistas)) {
+              setEspecialistasCatalogo(data.especialistas);
+            }
+          })
+          .catch(() => {});
+      }, []);
 
       // Estados para Exclusão e Limpeza de Convites
       const [modalLimparConvites, setModalLimparConvites] = useState(false);
@@ -7004,6 +7526,88 @@
           setGerandoConvite(false);
         }
       };
+
+      // Ação de 1 Clique: Gerar/Copiar Link para Especialista da Lista
+      const handleCopiarLinkEspecialista = async (esp) => {
+        setCopiandoEspId(esp.id);
+        try {
+          if (window.google && google.script && google.script.run) {
+            google.script.run
+              .withSuccessHandler((res) => {
+                setCopiandoEspId(null);
+                if (res && res.success && res.convite) {
+                  const url = getPublicInviteUrl(res.convite.token);
+                  copiarLinkEAlertar(url, esp.nome, res.convite);
+                  if (onRefresh) onRefresh();
+                } else {
+                  if (showToast) showToast('Erro ao gerar convite: ' + (res?.message || 'Falha'));
+                }
+              })
+              .withFailureHandler(() => {
+                setCopiandoEspId(null);
+                if (showToast) showToast('Falha ao comunicar com Google Apps Script.');
+              })
+              .salvarConviteAdmin({
+                nome: esp.nome,
+                email: esp.email,
+                perfil: 'especialista',
+                cargo: esp.cargo || 'Especialista do Espaço Experiência',
+                criado_por: admLogado?.nome || 'Administrador'
+              });
+            return;
+          }
+
+          const res = await fetch('/api/admin/invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              nome: esp.nome,
+              email: esp.email,
+              perfil: 'especialista',
+              cargo: esp.cargo || 'Especialista do Espaço Experiência',
+              criado_por: admLogado?.nome || 'Administrador'
+            })
+          });
+          const data = await res.json();
+          setCopiandoEspId(null);
+
+          if (data.success && data.token) {
+            const url = getPublicInviteUrl(data.token);
+            copiarLinkEAlertar(url, esp.nome, data.convite);
+            if (onConvitesChange) onConvitesChange();
+          } else {
+            if (showToast) showToast(data.message || 'Erro ao gerar link de acesso.');
+          }
+        } catch (err) {
+          setCopiandoEspId(null);
+          if (showToast) showToast('Erro de conexão ao gerar link do especialista.');
+        }
+      };
+
+      const copiarLinkEAlertar = (url, nome, convite) => {
+        setCopiedToken(convite.token);
+        setConviteRecemCriado(convite);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(() => {
+            if (showToast) showToast(`Link de acesso de ${nome} copiado com sucesso! 📋`);
+          }).catch(() => {
+            prompt(`Copie o link de primeiro acesso de ${nome}:`, url);
+          });
+        } else {
+          prompt(`Copie o link de primeiro acesso de ${nome}:`, url);
+        }
+      };
+
+      const especialistasFiltrados = useMemo(() => {
+        if (!buscaEspecialista.trim()) return especialistasCatalogo;
+        const q = buscaEspecialista.toLowerCase();
+        return especialistasCatalogo.filter(esp =>
+          (esp.nome && esp.nome.toLowerCase().includes(q)) ||
+          (esp.email && esp.email.toLowerCase().includes(q)) ||
+          (esp.cargo && esp.cargo.toLowerCase().includes(q)) ||
+          (esp.estacao_foco && esp.estacao_foco.toLowerCase().includes(q))
+        );
+      }, [especialistasCatalogo, buscaEspecialista]);
 
       // Upload de Foto de Perfil do Administrador
       const handleUploadAvatar = (e) => {
@@ -7274,12 +7878,35 @@
 
       const filteredAccessLogs = useMemo(() => {
         let list = accessLogs;
-        if (filterAccessPerfil === 'pmm') {
+        if (filterAccessPerfil === 'especialista') {
+          list = list.filter(l => l.perfil === 'especialista' || (l.tipo && l.tipo.toLowerCase().includes('especialista')));
+        } else if (filterAccessPerfil === 'pmm') {
           list = list.filter(l => l.perfil === 'pmm' || (l.tipo && l.tipo.toLowerCase().includes('pmm')));
         } else if (filterAccessPerfil === 'adm') {
-          list = list.filter(l => (l.perfil === 'adm' || (l.tipo && l.tipo.toLowerCase().includes('admin'))) && l.perfil !== 'pmm');
+          list = list.filter(l => (l.perfil === 'adm' || (l.tipo && l.tipo.toLowerCase().includes('admin'))) && l.perfil !== 'pmm' && l.perfil !== 'especialista');
         } else if (filterAccessPerfil === 'visitante') {
           list = list.filter(l => l.perfil === 'visitante' || (!l.perfil && !l.usuario && (!l.tipo || !l.tipo.toLowerCase().includes('login'))));
+        }
+
+        // Filtro por Período
+        if (filterAccessPeriodo === 'hoje') {
+          const hojeStr = new Date().toLocaleDateString('pt-BR');
+          list = list.filter(l => l.data_formatada === hojeStr || (l.timestamp && new Date(l.timestamp).toDateString() === new Date().toDateString()));
+        } else if (filterAccessPeriodo === 'semana') {
+          const seteDiasAtras = Date.now() - 7 * 24 * 60 * 60 * 1000;
+          list = list.filter(l => (l.timestamp && l.timestamp >= seteDiasAtras) || !l.timestamp);
+        } else if (filterAccessPeriodo === 'mes') {
+          const trintaDiasAtras = Date.now() - 30 * 24 * 60 * 60 * 1000;
+          list = list.filter(l => (l.timestamp && l.timestamp >= trintaDiasAtras) || !l.timestamp);
+        } else if (filterAccessPeriodo === 'custom') {
+          if (filterAccessDataInicio) {
+            const dInicio = new Date(filterAccessDataInicio + 'T00:00:00').getTime();
+            list = list.filter(l => (l.timestamp ? l.timestamp >= dInicio : true));
+          }
+          if (filterAccessDataFim) {
+            const dFim = new Date(filterAccessDataFim + 'T23:59:59').getTime();
+            list = list.filter(l => (l.timestamp ? l.timestamp <= dFim : true));
+          }
         }
 
         if (!filterVisitas.trim()) return list;
@@ -7294,7 +7921,7 @@
           (l.usuario && l.usuario.toLowerCase().includes(q)) ||
           (l.email && l.email.toLowerCase().includes(q))
         );
-      }, [accessLogs, filterVisitas, filterAccessPerfil]);
+      }, [accessLogs, filterVisitas, filterAccessPerfil, filterAccessPeriodo, filterAccessDataInicio, filterAccessDataFim]);
 
       const totalVisitasCount = metricsData?.total_visitas !== undefined 
         ? metricsData.total_visitas 
@@ -7607,7 +8234,7 @@
                 </div>
               )}
 
-              {/* ABA 2: CONVITES DE ADM E PMM */}
+              {/* ABA 2: CONVITES DE ESPECIALISTAS, PMM E ADM */}
               {activeTab === 'convites' && (
                 <div className="space-y-6">
                   {/* Card Gerador de Convite com Formulário Obrigatório */}
@@ -7615,7 +8242,7 @@
                     <div>
                       <h4 className="font-extrabold text-base text-white flex items-center gap-2">
                         <Icons.Plus />
-                        <span>Novo Convite de Acesso (PMM ou Administrador)</span>
+                        <span>Novo Convite de Acesso (Especialista, PMM ou Administrador)</span>
                       </h4>
                       <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
                         Preencha o nome completo e o e-mail corporativo do colega para gerar um link exclusivo com a senha provisória padrão <strong className="text-totvs-cyan font-mono">totvs123</strong>. O link só pode ser gerado após o preenchimento completo dos campos.
@@ -7623,12 +8250,33 @@
                     </div>
 
                     <form onSubmit={handleGerarConvite} className="mt-4 pt-4 border-t border-slate-700/80 space-y-4">
-                      {/* Seletor de Perfil: PMM vs ADM */}
+                      {/* Seletor de Perfil: Especialista vs PMM vs ADM */}
                       <div>
                         <label className="block text-[11px] font-bold text-slate-300 mb-1.5">
                           Perfil de Acesso do Convidado *
                         </label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => setPerfilConvite('especialista')}
+                            className={`p-3 rounded-xl border text-left transition flex items-start gap-2.5 cursor-pointer ${
+                              perfilConvite === 'especialista'
+                                ? 'bg-purple-950/60 border-purple-400 text-white shadow-sm ring-1 ring-purple-400/50'
+                                : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600'
+                            }`}
+                          >
+                            <span className="text-base shrink-0 mt-0.5">🌟</span>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <strong className="text-xs font-bold text-white">Especialista</strong>
+                                <span className="text-[9px] bg-purple-500/20 text-purple-300 font-extrabold px-1.5 py-0.2 rounded">Novo</span>
+                              </div>
+                              <p className="text-[10px] text-slate-300 mt-0.5 leading-snug">
+                                Registra visitantes e edita plantões no calendário. Não edita estações nem acessa o painel ADM.
+                              </p>
+                            </div>
+                          </button>
+
                           <button
                             type="button"
                             onClick={() => setPerfilConvite('pmm')}
@@ -7641,11 +8289,11 @@
                             <span className="text-base shrink-0 mt-0.5">🎯</span>
                             <div>
                               <div className="flex items-center gap-1.5">
-                                <strong className="text-xs font-bold text-white">PMM (Product Marketing)</strong>
-                                <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-extrabold px-1.5 py-0.2 rounded">Recomendado</span>
+                                <strong className="text-xs font-bold text-white">PMM (Marketing)</strong>
+                                <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-extrabold px-1.5 py-0.2 rounded">Gestão</span>
                               </div>
                               <p className="text-[10px] text-slate-300 mt-0.5 leading-snug">
-                                Edita pitch, vídeos, fotos e equipamentos de qualquer estação. Altera sua própria senha e foto de perfil. Não convida nem exclui outros usuários.
+                                Edita pitch, vídeos, fotos e equipamentos de qualquer estação. Altera senha e foto própria.
                               </p>
                             </div>
                           </button>
@@ -7662,11 +8310,11 @@
                             <span className="text-base shrink-0 mt-0.5">🛡️</span>
                             <div>
                               <div className="flex items-center gap-1.5">
-                                <strong className="text-xs font-bold text-white">Administrador Geral</strong>
-                                <span className="text-[9px] bg-totvs-cyan/20 text-totvs-cyan font-extrabold px-1.5 py-0.2 rounded">Acesso Total</span>
+                                <strong className="text-xs font-bold text-white">Administrador</strong>
+                                <span className="text-[9px] bg-totvs-cyan/20 text-totvs-cyan font-extrabold px-1.5 py-0.2 rounded">Total</span>
                               </div>
                               <p className="text-[10px] text-slate-300 mt-0.5 leading-snug">
-                                Acesso irrestrito a todas as estações, vídeos da gestão, métricas, logs de auditoria e gestão de outros administradores e convites.
+                                Acesso irrestrito a todas as estações, vídeos da gestão, métricas, auditoria e convites.
                               </p>
                             </div>
                           </button>
@@ -7719,7 +8367,7 @@
                           }`}
                         >
                           <Icons.Plus />
-                          <span>{gerandoConvite ? 'Gerando Link...' : `Gerar Link de Convite (${perfilConvite === 'pmm' ? 'PMM' : 'ADM'})`}</span>
+                          <span>{gerandoConvite ? 'Gerando Link...' : `Gerar Link de Convite (${perfilConvite === 'especialista' ? 'Especialista' : (perfilConvite === 'pmm' ? 'PMM' : 'ADM')})`}</span>
                         </button>
                       </div>
                     </form>
@@ -7730,7 +8378,7 @@
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <span className="text-xs font-bold text-totvs-cyan flex items-center gap-1.5">
                             <Icons.CheckCircle />
-                            Link Pronto para Envio a {conviteRecemCriado.nome} ({conviteRecemCriado.perfil === 'pmm' ? 'PMM' : 'ADM'}):
+                            Link Pronto para Envio a {conviteRecemCriado.nome} ({conviteRecemCriado.perfil === 'especialista' ? 'Especialista' : (conviteRecemCriado.perfil === 'pmm' ? 'PMM' : 'ADM')}):
                           </span>
                           <span className="text-[11px] text-slate-300 font-mono">
                             Senha Provisória: <strong className="text-totvs-cyan font-bold">totvs123</strong>
@@ -7758,8 +8406,8 @@
                         <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
                           <div className="flex items-center gap-2 flex-wrap">
                             <a
-                              href={`mailto:${encodeURIComponent(conviteRecemCriado.email || '')}?subject=${encodeURIComponent('Convite: Acesso ao Espaço Experiência TOTVS (' + (conviteRecemCriado.perfil === 'pmm' ? 'PMM' : 'Administrador') + ')')}&body=${encodeURIComponent(
-                                `Olá, ${conviteRecemCriado.nome}!\n\nVocê foi convidado para gerenciar e editar conteúdos no Espaço Experiência TOTVS com o perfil de ${conviteRecemCriado.perfil === 'pmm' ? 'PMM (Product Marketing Manager)' : 'Administrador'}.\n\nPara ativar o seu acesso, clique no link exclusivo abaixo:\n${getPublicInviteUrl(conviteRecemCriado.token)}\n\nSenha provisória de primeiro acesso: totvs123\n(No primeiro acesso, você definirá sua senha definitiva com no mínimo 6 caracteres, contendo letras e números).\n\nAtenciosamente,\nEquipe Espaço Experiência TOTVS`
+                              href={`mailto:${encodeURIComponent(conviteRecemCriado.email || '')}?subject=${encodeURIComponent('Convite: Acesso ao Espaço Experiência TOTVS (' + (conviteRecemCriado.perfil === 'especialista' ? 'Especialista' : (conviteRecemCriado.perfil === 'pmm' ? 'PMM' : 'Administrador')) + ')')}&body=${encodeURIComponent(
+                                `Olá, ${conviteRecemCriado.nome}!\n\nVocê foi convidado para o Espaço Experiência TOTVS com o perfil de ${conviteRecemCriado.perfil === 'especialista' ? 'Especialista (Showroom & Plantonista)' : (conviteRecemCriado.perfil === 'pmm' ? 'PMM (Product Marketing Manager)' : 'Administrador')}.\n\nPara ativar o seu acesso, clique no link exclusivo abaixo:\n${getPublicInviteUrl(conviteRecemCriado.token)}\n\nSenha provisória de primeiro acesso: totvs123\n(No primeiro acesso, você definirá sua senha definitiva com no mínimo 6 caracteres, contendo letras e números).\n\nAtenciosamente,\nEquipe Espaço Experiência TOTVS`
                               )}`}
                               className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm"
                             >
@@ -7770,8 +8418,8 @@
                               type="button"
                               onClick={() => {
                                 const linkCompleto = getPublicInviteUrl(conviteRecemCriado.token);
-                                const cargo = conviteRecemCriado.perfil === 'pmm' ? 'PMM (Product Marketing Manager)' : 'Administrador';
-                                const textoPronto = `Olá, ${conviteRecemCriado.nome}! Você foi convidado para o Espaço Experiência TOTVS (${cargo}).\nLink de ativação: ${linkCompleto}\nSenha provisória: totvs123 (no primeiro acesso, cadastre sua senha definitiva com letras e números).`;
+                                const cargo = conviteRecemCriado.perfil === 'especialista' ? 'Especialista do Espaço Experiência' : (conviteRecemCriado.perfil === 'pmm' ? 'PMM (Product Marketing Manager)' : 'Administrador');
+                                const textoPronto = `Olá, ${conviteRecemCriado.nome}! Segue seu link de acesso exclusivo ao Espaço Experiência TOTVS (${cargo}):\n${linkCompleto}\nSenha provisória: totvs123 (no primeiro acesso, cadastre sua senha definitiva e envie sua foto de perfil).`;
                                 if (navigator.clipboard && navigator.clipboard.writeText) {
                                   navigator.clipboard.writeText(textoPronto);
                                   if (showToast) showToast('Mensagem formatada copiada para Teams/WhatsApp! 📋');
@@ -7792,6 +8440,93 @@
                         </div>
                       </div>
                     )}
+                  </div>
+
+                  {/* SEÇÃO RÁPIDA: LINKS EM 1 CLIQUE PARA OS 44 ESPECIALISTAS DA PLANILHA */}
+                  {especialistasCatalogo && especialistasCatalogo.length > 0 && (
+                    <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <h4 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                            <span className="text-lg">🌟</span>
+                            <span>Links Rápidos para Especialistas ({especialistasFiltrados.length} de {especialistasCatalogo.length})</span>
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Gere e copie com 1 clique o link de primeiro acesso para qualquer especialista cadastrado da planilha oficial TOTVS.
+                          </p>
+                        </div>
+
+                        <div className="w-full sm:w-72">
+                          <input
+                            type="text"
+                            placeholder="Buscar especialista, e-mail, estação..."
+                            value={buscaEspecialista}
+                            onChange={(e) => setBuscaEspecialista(e.target.value)}
+                            className="w-full text-xs px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-totvs-blue focus:bg-white transition"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden max-h-[380px] overflow-y-auto bg-slate-50/50">
+                        {especialistasFiltrados.map((esp) => {
+                          const conviteExistente = convitesList.find(c => c.email && c.email.toLowerCase().trim() === esp.email.toLowerCase().trim());
+                          const jaCadastrado = admsList.some(u => u.email && u.email.toLowerCase().trim() === esp.email.toLowerCase().trim());
+                          const isCopiando = copiandoEspId === esp.id;
+
+                          return (
+                            <div key={esp.id} className="p-3.5 sm:p-4 bg-white hover:bg-slate-50/80 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className={`w-10 h-10 rounded-xl ${esp.avatar_cor || 'bg-totvs-blue'} text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs`}>
+                                  {esp.nome ? esp.nome.charAt(0).toUpperCase() : 'E'}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <strong className="text-xs font-bold text-slate-900 truncate">{esp.nome}</strong>
+                                    {jaCadastrado ? (
+                                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                        ✓ Conta Ativa
+                                      </span>
+                                    ) : conviteExistente ? (
+                                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                                        ⏳ Convite Gerado
+                                      </span>
+                                    ) : (
+                                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                                        Novo
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-totvs-blue font-mono truncate">{esp.email}</p>
+                                  <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                                    {esp.cargo} • {esp.estacao_foco || 'Showroom'}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                                <button
+                                  type="button"
+                                  disabled={isCopiando}
+                                  onClick={() => handleCopiarLinkEspecialista(esp)}
+                                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs ${
+                                    copiedToken && conviteExistente?.token === copiedToken
+                                      ? 'bg-emerald-600 text-white'
+                                      : 'bg-gradient-to-r from-totvs-blue to-totvs-cyan hover:from-totvs-dark hover:to-totvs-blue text-white'
+                                  }`}
+                                  title={`Copiar link de acesso corporativo para ${esp.nome}`}
+                                >
+                                  <Icons.Copy />
+                                  <span>
+                                    {isCopiando ? 'Gerando...' : (copiedToken && conviteExistente?.token === copiedToken ? 'Link Copiado!' : 'Copiar Link de Acesso')}
+                                  </span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   </div>
 
                   {/* Histórico de Convites */}
@@ -8288,22 +9023,34 @@
                   {/* SUB-ABA 2: HISTÓRICO GERAL DE ACESSOS & LOGINS */}
                   {subTabAudit === 'acessos' && (
                     <div className="space-y-4 animate-in fade-in duration-150">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                        <div>
-                          <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                            <span>Histórico Geral de Acessos & Logins</span>
-                            <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold border border-emerald-200">
-                              {filteredAccessLogs.length} acessos
-                            </span>
-                          </h4>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            Rastreamento de autenticações de PMMs, Administradores e sessões web no showroom
-                          </p>
+                      <div className="flex flex-col gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                          <div>
+                            <h4 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                              <span>Histórico de Acessos & Logins</span>
+                              <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold border border-emerald-200">
+                                {filteredAccessLogs.length} acessos
+                              </span>
+                            </h4>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              Rastreamento de autenticações de Especialistas, PMMs, Administradores e acessos web no showroom
+                            </p>
+                          </div>
+
+                          <input
+                            type="text"
+                            placeholder="Buscar nome, IP, e-mail, data..."
+                            value={filterVisitas}
+                            onChange={(e) => setFilterVisitas(e.target.value)}
+                            className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-totvs-blue w-full sm:w-60 bg-slate-50 focus:bg-white"
+                          />
                         </div>
 
-                        {/* Chips de Filtro Rápido e Busca */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        {/* Linha de Filtros: Por Perfil e Por Período */}
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 pt-2 border-t border-slate-100">
+                          {/* Filtro por Perfil */}
                           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs flex-wrap">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase px-1">Perfil:</span>
                             <button
                               type="button"
                               onClick={() => setFilterAccessPerfil('todos')}
@@ -8312,6 +9059,15 @@
                               }`}
                             >
                               Todos
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFilterAccessPerfil('especialista')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] flex items-center gap-1 cursor-pointer ${
+                                filterAccessPerfil === 'especialista' ? 'bg-purple-700 text-white shadow-xs' : 'text-purple-700 hover:text-purple-900'
+                              }`}
+                            >
+                              <span>🌟 Especialistas</span>
                             </button>
                             <button
                               type="button"
@@ -8342,27 +9098,99 @@
                             </button>
                           </div>
 
-                          <input
-                            type="text"
-                            placeholder="Buscar nome, IP, e-mail, data..."
-                            value={filterVisitas}
-                            onChange={(e) => setFilterVisitas(e.target.value)}
-                            className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-totvs-blue w-full sm:w-56 bg-slate-50 focus:bg-white"
-                          />
+                          {/* Filtro por Período */}
+                          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs flex-wrap">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase px-1">Período:</span>
+                            <button
+                              type="button"
+                              onClick={() => setFilterAccessPeriodo('todos')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] cursor-pointer ${
+                                filterAccessPeriodo === 'todos' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                              }`}
+                            >
+                              Todo Período
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFilterAccessPeriodo('hoje')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] cursor-pointer ${
+                                filterAccessPeriodo === 'hoje' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                              }`}
+                            >
+                              Hoje
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFilterAccessPeriodo('semana')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] cursor-pointer ${
+                                filterAccessPeriodo === 'semana' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                              }`}
+                            >
+                              Semana
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFilterAccessPeriodo('mes')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] cursor-pointer ${
+                                filterAccessPeriodo === 'mes' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                              }`}
+                            >
+                              Mês
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFilterAccessPeriodo('custom')}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition text-[11px] cursor-pointer ${
+                                filterAccessPeriodo === 'custom' ? 'bg-totvs-blue text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                              }`}
+                            >
+                              Personalizado 📅
+                            </button>
+                          </div>
                         </div>
+
+                        {/* Inputs de Data Personalizada */}
+                        {filterAccessPeriodo === 'custom' && (
+                          <div className="flex items-center gap-2.5 p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl text-xs flex-wrap animate-in fade-in duration-150">
+                            <span className="font-bold text-slate-700">Filtrar período de:</span>
+                            <input
+                              type="date"
+                              value={filterAccessDataInicio}
+                              onChange={(e) => setFilterAccessDataInicio(e.target.value)}
+                              className="px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-totvs-blue"
+                            />
+                            <span className="font-bold text-slate-700">até:</span>
+                            <input
+                              type="date"
+                              value={filterAccessDataFim}
+                              onChange={(e) => setFilterAccessDataFim(e.target.value)}
+                              className="px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-totvs-blue"
+                            />
+                            {(filterAccessDataInicio || filterAccessDataFim) && (
+                              <button
+                                type="button"
+                                onClick={() => { setFilterAccessDataInicio(''); setFilterAccessDataFim(''); }}
+                                className="text-[11px] text-rose-600 hover:underline font-bold px-1 cursor-pointer"
+                              >
+                                Limpar datas
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {(!filteredAccessLogs || filteredAccessLogs.length === 0) ? (
                         <div className="p-10 text-center bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs space-y-1">
                           <p className="font-bold text-slate-600">Nenhum registro de acesso encontrado.</p>
-                          <p className="text-[11px]">Tente ajustar os filtros ou limpar o campo de busca.</p>
+                          <p className="text-[11px]">Tente ajustar os filtros de perfil, período ou o termo de busca.</p>
                         </div>
                       ) : (
                         <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm max-h-[58vh] overflow-y-auto">
                           {filteredAccessLogs.slice().reverse().map((log, idx) => {
-                            const isPMM = log.perfil === 'pmm' || (log.tipo && log.tipo.toLowerCase().includes('pmm'));
-                            const isADM = (log.perfil === 'adm' || (log.tipo && log.tipo.toLowerCase().includes('admin'))) && !isPMM;
-                            const isWeb = !isPMM && !isADM;
+                            const isEspecialista = log.perfil === 'especialista' || (log.tipo && log.tipo.toLowerCase().includes('especialista'));
+                            const isPMM = !isEspecialista && (log.perfil === 'pmm' || (log.tipo && log.tipo.toLowerCase().includes('pmm')));
+                            const isADM = !isEspecialista && !isPMM && (log.perfil === 'adm' || (log.tipo && log.tipo.toLowerCase().includes('admin')));
+                            const isWeb = !isEspecialista && !isPMM && !isADM;
                             const dataFmt = log.data_formatada && log.horario_formatado
                               ? `${log.data_formatada} às ${log.horario_formatado}`
                               : (log.data ? new Date(log.data).toLocaleString('pt-BR') : 'Hoje');
@@ -8371,11 +9199,12 @@
                               <div key={idx} className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition">
                                 <div className="flex items-center gap-3">
                                   <span className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border shadow-2xs ${
+                                    isEspecialista ? 'bg-purple-50 text-purple-700 border-purple-200' :
                                     isPMM ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                     isADM ? 'bg-blue-50 text-totvs-blue border-blue-200' :
                                     'bg-slate-100 text-slate-500 border-slate-200'
                                   }`}>
-                                    {isPMM ? '🔑' : isADM ? '🛡️' : '👁️'}
+                                    {isEspecialista ? '🌟' : isPMM ? '🔑' : isADM ? '🛡️' : '👁️'}
                                   </span>
 
                                   <div>
@@ -8383,6 +9212,11 @@
                                       <span className="font-extrabold text-xs text-slate-900">
                                         {log.tipo || log.acao || 'Visita Institucional'}
                                       </span>
+                                      {isEspecialista && (
+                                        <span className="text-[10px] bg-purple-50 text-purple-700 border border-purple-200 font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                                          🌟 Especialista
+                                        </span>
+                                      )}
                                       {isPMM && (
                                         <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-300 font-extrabold px-2 py-0.5 rounded-full">
                                           🎯 PMM
