@@ -62,140 +62,2069 @@
       "ramal": "4108",
       "avatar_cor": "bg-indigo-600",
       "estacao_foco": "Estação 10 (Cross) & Estação 11 (Mesa Interativa)"
+    },
+    {
+      "id": "esp-michel-ribeiro-rocha",
+      "nome": "MICHEL RIBEIRO ROCHA",
+      "cargo": "Especialista • Educacional",
+      "email": "michel.rocha@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Educacional"
+    },
+    {
+      "id": "esp-augusto-caetano-araujo-do",
+      "nome": "AUGUSTO CAETANO ARAUJO DO NASCIMENTO",
+      "cargo": "Especialista • Logistica",
+      "email": "augusto.nascimento@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Logistica"
+    },
+    {
+      "id": "esp-beatriz-cristina-figueiro",
+      "nome": "BEATRIZ CRISTINA FIGUEIRO",
+      "cargo": "Especialista • Varejo",
+      "email": "beatriz.figueiro@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Varejo"
+    },
+    {
+      "id": "esp-eduardo-santos-thomaz",
+      "nome": "EDUARDO SANTOS THOMAZ",
+      "cargo": "Especialista • Educacional",
+      "email": "eduardo.thomaz@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Educacional"
+    },
+    {
+      "id": "esp-rafael-fonseca-santejani",
+      "nome": "RAFAEL FONSECA SANTEJANI",
+      "cargo": "Especialista • Distribuição",
+      "email": "rafael.fsantejani@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Distribuição"
+    },
+    {
+      "id": "esp-bruno-cesar-ravacci-silva",
+      "nome": "BRUNO CESAR RAVACCI SILVA",
+      "cargo": "Especialista • Manufatura",
+      "email": "bruno.cesilva@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Manufatura"
+    },
+    {
+      "id": "esp-bruno-eustaquio-nasciment",
+      "nome": "BRUNO EUSTAQUIO NASCIMENTO",
+      "cargo": "Especialista • Moda",
+      "email": "b.nascimento@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Moda"
+    },
+    {
+      "id": "esp-gilmara-silva-venancio",
+      "nome": "GILMARA SILVA VENANCIO",
+      "cargo": "Especialista • Varejo",
+      "email": "gilmara.venancio@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Varejo"
+    },
+    {
+      "id": "esp-douglas-cavalcante-filho",
+      "nome": "DOUGLAS CAVALCANTE FILHO",
+      "cargo": "Especialista • Manufatura",
+      "email": "douglas.filho@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Manufatura"
+    },
+    {
+      "id": "esp-karoline-moreira-honorio",
+      "nome": "KAROLINE MOREIRA HONORIO",
+      "cargo": "Especialista • Construção",
+      "email": "karoline.honorio@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Construção"
+    },
+    {
+      "id": "esp-fabio-fernando-da-silva",
+      "nome": "FABIO FERNANDO DA SILVA",
+      "cargo": "Especialista • Varejo",
+      "email": "fabio.fernando@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Varejo"
+    },
+    {
+      "id": "esp-manuel-igor-oliveira-dos-",
+      "nome": "MANUEL IGOR OLIVEIRA DOS SANTOS",
+      "cargo": "Especialista • Logística",
+      "email": "manuel.santos@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Logística"
+    },
+    {
+      "id": "esp-gabriel-fernandes-dias-de",
+      "nome": "GABRIEL FERNANDES DIAS DE SA",
+      "cargo": "Especialista • ESG",
+      "email": "gabriel.fsa@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "ESG"
+    },
+    {
+      "id": "esp-giovanna-florentino-ferre",
+      "nome": "GIOVANNA FLORENTINO FERREIRA DA SILVA",
+      "cargo": "Especialista • Prestadores",
+      "email": "giovanna.silva@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Prestadores"
+    },
+    {
+      "id": "esp-eduardo-ciosak",
+      "nome": "EDUARDO CIOSAK",
+      "cargo": "Especialista • Varejo",
+      "email": "e.ciosak@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Varejo"
+    },
+    {
+      "id": "esp-jorge-kalmus",
+      "nome": "JORGE KALMUS",
+      "cargo": "Especialista • Prestadores",
+      "email": "j.kalmus@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Prestadores"
+    },
+    {
+      "id": "esp-josi-dinora-de-souza",
+      "nome": "JOSI DINORA DE SOUZA",
+      "cargo": "Especialista • Educacional",
+      "email": "josi.souza@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Educacional"
+    },
+    {
+      "id": "esp-jose-wellington-alves-lim",
+      "nome": "JOSE WELLINGTON ALVES LIMA",
+      "cargo": "Especialista • Prestadores",
+      "email": "jose.wellington@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Prestadores"
+    },
+    {
+      "id": "esp-marcel-rezk-de-angelo",
+      "nome": "MARCEL REZK DE ANGELO",
+      "cargo": "Especialista • Manufatura",
+      "email": "marcel.angelo@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Manufatura"
+    },
+    {
+      "id": "esp-emerson-de-souza-meneguel",
+      "nome": "EMERSON DE SOUZA MENEGUEL",
+      "cargo": "Especialista • Educacional",
+      "email": "emerson.meneguel@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Educacional"
+    },
+    {
+      "id": "esp-giilmara-venancio",
+      "nome": "GiILMARA VENANCIO",
+      "cargo": "Especialista • Varejo",
+      "email": "silva.azfernando@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Varejo"
+    },
+    {
+      "id": "esp-juliano-marcato",
+      "nome": "JULIANO MARCATO",
+      "cargo": "Especialista • Manufatura",
+      "email": "juliano.marcato@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Manufatura"
+    },
+    {
+      "id": "esp-marilia-de-lima-maciel",
+      "nome": "MARILIA DE LIMA MACIEL",
+      "cargo": "Especialista • Moda",
+      "email": "marilia.maciel@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Moda"
+    },
+    {
+      "id": "esp-alberto-bem-de-lima",
+      "nome": "ALBERTO BEM DE LIMA",
+      "cargo": "Especialista • Educacional",
+      "email": "alberto.bem@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Educacional"
+    },
+    {
+      "id": "esp-paulo-sergio-da-silva",
+      "nome": "PAULO SERGIO DA SILVA",
+      "cargo": "Especialista • Varejo",
+      "email": "paulos.silva@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Varejo"
+    },
+    {
+      "id": "esp-raiane-da-silva-teodoro-o",
+      "nome": "RAIANE DA SILVA TEODORO ORIZIO",
+      "cargo": "Especialista do Espaço Experiência",
+      "email": "raiane.orizio@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Soluções TOTVS"
+    },
+    {
+      "id": "esp-camila-barbosa-da-silva",
+      "nome": "CAMILA BARBOSA DA SILVA",
+      "cargo": "Especialista • ESG",
+      "email": "camila.basilva@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "ESG"
+    },
+    {
+      "id": "esp-renato-engelmann",
+      "nome": "RENATO ENGELMANN",
+      "cargo": "Especialista • Manufatura",
+      "email": "renato.engelmann@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Manufatura"
+    },
+    {
+      "id": "esp-renato-lacava",
+      "nome": "RENATO LACAVA",
+      "cargo": "Especialista • Construção",
+      "email": "lacava.renato@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Construção"
+    },
+    {
+      "id": "esp-ricardo-angelo-reinaldi",
+      "nome": "RICARDO ANGELO REINALDI",
+      "cargo": "Especialista • Prestadores",
+      "email": "ricardo.angelo@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Prestadores"
+    },
+    {
+      "id": "esp-rodrigo-paul-quinonez-gon",
+      "nome": "RODRIGO PAUL QUINONEZ GONZALEZ",
+      "cargo": "Especialista • Construção",
+      "email": "rodrigo.gonzalez@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Construção"
+    },
+    {
+      "id": "esp-rodrigo-cesar-duarte",
+      "nome": "RODRIGO CESAR DUARTE",
+      "cargo": "Especialista • Logística",
+      "email": "rodrigo.cesar@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Logística"
+    },
+    {
+      "id": "esp-stefany-barros-fernandes",
+      "nome": "STEFANY BARROS FERNANDES",
+      "cargo": "Especialista • Construção",
+      "email": "stefany.fernandes@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Construção"
+    },
+    {
+      "id": "esp-taina-renata-de-oliveira",
+      "nome": "TAINA RENATA DE OLIVEIRA",
+      "cargo": "Especialista • Varejo Online",
+      "email": "taina.oliveira@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Varejo Online"
+    },
+    {
+      "id": "esp-ulisses-jose-covre-beltra",
+      "nome": "ULISSES JOSE COVRE BELTRAME DA SILVA",
+      "cargo": "Especialista • Construção",
+      "email": "ulisses.jose@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Construção"
+    },
+    {
+      "id": "esp-fernando-azevedo",
+      "nome": "FERNANDO AZEVEDO",
+      "cargo": "Especialista • Varejo",
+      "email": "william.terentjvas@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "Varejo"
+    },
+    {
+      "id": "esp-tati-macedo",
+      "nome": "Tati Macedo",
+      "cargo": "Especialista • ESG",
+      "email": "tatiane.macedo@totvs.com.br",
+      "ramal": "",
+      "estacao_foco": "ESG"
     }
   ],
   "escalas": {
-    "2026-10-01": {
-      "especialista_id": "esp-1",
-      "nome": "André Gianotti",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Abertura do Mês & Plantão Geral"
+    "2026-01-05": {
+      "especialista_id": "esp-michel-ribeiro-rocha",
+      "nome": "MICHEL RIBEIRO ROCHA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
-    "2026-10-02": {
-      "especialista_id": "esp-2",
-      "nome": "Camila Santana",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Demonstração MES & Linha de Produção"
+    "2026-01-06": {
+      "especialista_id": "esp-augusto-caetano-araujo-do",
+      "nome": "AUGUSTO CAETANO ARAUJO DO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
-    "2026-10-05": {
-      "especialista_id": "esp-3",
-      "nome": "Lucas Ferreira",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Bancada Agro e Cadeia Logística"
+    "2026-01-07": {
+      "especialista_id": "esp-andre-sousa-lopes-gianott",
+      "nome": "ANDRE SOUSA LOPES GIANOTTI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
-    "2026-10-06": {
-      "especialista_id": "esp-4",
-      "nome": "Mariana Lima",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Omnichannel e Totem de Moda"
+    "2026-01-08": {
+      "especialista_id": "esp-beatriz-cristina-figueiro",
+      "nome": "BEATRIZ CRISTINA FIGUEIRO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
-    "2026-10-07": {
-      "especialista_id": "esp-1",
-      "nome": "André Gianotti",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Plantão Geral do Espaço Experiência & Curadoria"
+    "2026-01-09": {
+      "especialista_id": "esp-eduardo-santos-thomaz",
+      "nome": "EDUARDO SANTOS THOMAZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
-    "2026-10-08": {
-      "especialista_id": "esp-2",
-      "nome": "Camila Santana",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Foco Manufatura & MES PPI"
+    "2026-01-12": {
+      "especialista_id": "esp-rafael-fonseca-santejani",
+      "nome": "RAFAEL FONSECA SANTEJANI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
-    "2026-10-09": {
-      "especialista_id": "esp-3",
-      "nome": "Lucas Ferreira",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Foco Agro, Balança & Distribuição"
+    "2026-01-13": {
+      "especialista_id": "esp-bruno-cesar-ravacci-silva",
+      "nome": "BRUNO CESAR RAVACCI SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
-    "2026-10-12": {
+    "2026-01-14": {
+      "especialista_id": "esp-bruno-eustaquio-nasciment",
+      "nome": "BRUNO EUSTAQUIO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-01-15": {
+      "especialista_id": "esp-gilmara-silva-venancio",
+      "nome": "GILMARA SILVA VENANCIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-01-16": {
+      "especialista_id": "esp-douglas-cavalcante-filho",
+      "nome": "DOUGLAS CAVALCANTE FILHO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-01-19": {
+      "especialista_id": "esp-karoline-moreira-honorio",
+      "nome": "KAROLINE MOREIRA HONORIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-01-20": {
+      "especialista_id": "esp-fabio-fernando-da-silva",
+      "nome": "FABIO FERNANDO DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-01-21": {
+      "especialista_id": "esp-manuel-igor-oliveira-dos-",
+      "nome": "MANUEL IGOR OLIVEIRA DOS SANTOS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-01-22": {
+      "especialista_id": "esp-gabriel-fernandes-dias-de",
+      "nome": "GABRIEL FERNANDES DIAS DE SA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-01-23": {
+      "especialista_id": "esp-giovanna-florentino-ferre",
+      "nome": "GIOVANNA FLORENTINO FERREIRA DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-01-26": {
+      "especialista_id": "esp-eduardo-ciosak",
+      "nome": "EDUARDO CIOSAK",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-01-27": {
+      "especialista_id": "esp-jorge-kalmus",
+      "nome": "JORGE KALMUS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-01-28": {
+      "especialista_id": "esp-josi-dinora-de-souza",
+      "nome": "JOSI DINORA DE SOUZA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-01-29": {
+      "especialista_id": "esp-jose-wellington-alves-lim",
+      "nome": "JOSE WELLINGTON ALVES LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-01-30": {
+      "especialista_id": "esp-marcel-rezk-de-angelo",
+      "nome": "MARCEL REZK DE ANGELO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-02": {
+      "especialista_id": "esp-emerson-de-souza-meneguel",
+      "nome": "EMERSON DE SOUZA MENEGUEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-03": {
+      "especialista_id": "esp-giilmara-venancio",
+      "nome": "GiILMARA VENANCIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-04": {
+      "especialista_id": "esp-juliano-marcato",
+      "nome": "JULIANO MARCATO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-05": {
+      "especialista_id": "esp-marilia-de-lima-maciel",
+      "nome": "MARILIA DE LIMA MACIEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-06": {
+      "especialista_id": "esp-alberto-bem-de-lima",
+      "nome": "ALBERTO BEM DE LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-09": {
+      "especialista_id": "esp-paulo-sergio-da-silva",
+      "nome": "PAULO SERGIO DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-10": {
+      "especialista_id": "esp-raiane-da-silva-teodoro-o",
+      "nome": "RAIANE DA SILVA TEODORO ORIZIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-11": {
+      "especialista_id": "esp-camila-barbosa-da-silva",
+      "nome": "CAMILA BARBOSA DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-12": {
+      "especialista_id": "esp-renato-engelmann",
+      "nome": "RENATO ENGELMANN",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-13": {
+      "especialista_id": "esp-renato-lacava",
+      "nome": "RENATO LACAVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-16": {
       "especialista_id": null,
       "nome": "Espaço Fechado",
       "turno": "Feriado",
-      "observacoes": "Feriado Nacional (Nossa Senhora Aparecida)"
+      "status_rotulo": "Espaço Fechado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-02-17": {
+      "especialista_id": null,
+      "nome": "Espaço Fechado",
+      "turno": "Feriado",
+      "status_rotulo": "Espaço Fechado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-02-18": {
+      "especialista_id": null,
+      "nome": "Espaço Fechado",
+      "turno": "Feriado",
+      "status_rotulo": "Espaço Fechado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-02-19": {
+      "especialista_id": "esp-ricardo-angelo-reinaldi",
+      "nome": "RICARDO ANGELO REINALDI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-20": {
+      "especialista_id": "esp-rodrigo-paul-quinonez-gon",
+      "nome": "RODRIGO PAUL QUINONEZ GONZALEZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-23": {
+      "especialista_id": "esp-rodrigo-cesar-duarte",
+      "nome": "RODRIGO CESAR DUARTE",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-24": {
+      "especialista_id": "esp-stefany-barros-fernandes",
+      "nome": "STEFANY BARROS FERNANDES",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-25": {
+      "especialista_id": "esp-taina-renata-de-oliveira",
+      "nome": "TAINA RENATA DE OLIVEIRA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-26": {
+      "especialista_id": "esp-ulisses-jose-covre-beltra",
+      "nome": "ULISSES JOSE COVRE BELTRAME DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-02-27": {
+      "especialista_id": "esp-fernando-azevedo",
+      "nome": "FERNANDO AZEVEDO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-02": {
+      "especialista_id": "esp-michel-ribeiro-rocha",
+      "nome": "MICHEL RIBEIRO ROCHA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-03": {
+      "especialista_id": "esp-augusto-caetano-araujo-do",
+      "nome": "AUGUSTO CAETANO ARAUJO DO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-04": {
+      "especialista_id": "esp-andre-sousa-lopes-gianott",
+      "nome": "ANDRE SOUSA LOPES GIANOTTI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-05": {
+      "especialista_id": "esp-beatriz-cristina-figueiro",
+      "nome": "BEATRIZ CRISTINA FIGUEIRO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-06": {
+      "especialista_id": "esp-douglas-cavalcante-filho",
+      "nome": "DOUGLAS CAVALCANTE FILHO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-09": {
+      "especialista_id": "esp-camila-barbosa-da-silva",
+      "nome": "CAMILA BARBOSA DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-10": {
+      "especialista_id": "esp-bruno-cesar-ravacci-silva",
+      "nome": "BRUNO CESAR RAVACCI SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-11": {
+      "especialista_id": "esp-gilmara-silva-venancio",
+      "nome": "GILMARA SILVA VENANCIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-12": {
+      "especialista_id": "esp-eduardo-ciosak",
+      "nome": "EDUARDO CIOSAK",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-13": {
+      "especialista_id": "esp-eduardo-santos-thomaz",
+      "nome": "EDUARDO SANTOS THOMAZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-16": {
+      "especialista_id": "esp-emerson-de-souza-meneguel",
+      "nome": "EMERSON DE SOUZA MENEGUEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-17": {
+      "especialista_id": "esp-fabio-fernando-da-silva",
+      "nome": "FABIO FERNANDO DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-18": {
+      "especialista_id": "esp-fernando-azevedo-soares-d",
+      "nome": "FERNANDO AZEVEDO SOARES DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-19": {
+      "especialista_id": "esp-gabriel-fernandes-dias-de",
+      "nome": "GABRIEL FERNANDES DIAS DE SA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-20": {
+      "especialista_id": "esp-andre-sousa-lopes-gianott",
+      "nome": "ANDRE SOUSA LOPES GIANOTTI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-23": {
+      "especialista_id": "esp-giovanna-florentino-ferre",
+      "nome": "GIOVANNA FLORENTINO FERREIRA DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-24": {
+      "especialista_id": "esp-marcel-rezk-de-angelo",
+      "nome": "MARCEL REZK DE ANGELO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-25": {
+      "especialista_id": "esp-rodrigo-cesar",
+      "nome": "RODRIGO CESAR",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-26": {
+      "especialista_id": "esp-jose-wellington-alves-lim",
+      "nome": "JOSE WELLINGTON ALVES LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-27": {
+      "especialista_id": "esp-camila-barbosa",
+      "nome": "CAMILA BARBOSA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-30": {
+      "especialista_id": "esp-bruno-nascimento",
+      "nome": "BRUNO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-03-31": {
+      "especialista_id": "esp-josi-dinora-de-souza",
+      "nome": "JOSI DINORA DE SOUZA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-01": {
+      "especialista_id": "esp-igor-costa",
+      "nome": "IGOR COSTA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-02": {
+      "especialista_id": "esp-marilia-de-lima-maciel",
+      "nome": "MARILIA DE LIMA MACIEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-03": {
+      "especialista_id": null,
+      "nome": "Feriado",
+      "turno": "Feriado",
+      "status_rotulo": "Feriado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-04-06": {
+      "especialista_id": "esp-alberto-bem-de-lima",
+      "nome": "ALBERTO BEM DE LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-07": {
+      "especialista_id": "esp-paulo-sergio-da-silva",
+      "nome": "PAULO SERGIO DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-08": {
+      "especialista_id": "esp-igor-costa",
+      "nome": "IGOR COSTA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-09": {
+      "especialista_id": "esp-taina-renata-de-oliveira",
+      "nome": "TAINA RENATA DE OLIVEIRA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-10": {
+      "especialista_id": "esp-renato-engelmann",
+      "nome": "RENATO ENGELMANN",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-13": {
+      "especialista_id": "esp-renato-lacava",
+      "nome": "RENATO LACAVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-14": {
+      "especialista_id": "esp-ricardo-angelo-reinaldi",
+      "nome": "RICARDO ANGELO REINALDI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-15": {
+      "especialista_id": "esp-rodrigo-paul-quinonez-gon",
+      "nome": "RODRIGO PAUL QUINONEZ GONZALEZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-16": {
+      "especialista_id": "esp-emerson-de-souza-meneguel",
+      "nome": "EMERSON DE SOUZA MENEGUEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-17": {
+      "especialista_id": "esp-andre-sousa-lopes-gianott",
+      "nome": "ANDRE SOUSA LOPES GIANOTTI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-20": {
+      "especialista_id": null,
+      "nome": "Ponte Feriado",
+      "turno": "Feriado",
+      "status_rotulo": "Ponte Feriado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-04-21": {
+      "especialista_id": null,
+      "nome": "Feriado",
+      "turno": "Feriado",
+      "status_rotulo": "Feriado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-04-22": {
+      "especialista_id": "esp-raiane-da-silva-teodoro-o",
+      "nome": "RAIANE DA SILVA TEODORO ORIZIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-23": {
+      "especialista_id": "esp-ulisses-jose-covre-beltra",
+      "nome": "ULISSES JOSE COVRE BELTRAME DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-24": {
+      "especialista_id": "esp-william-terentjvas",
+      "nome": "WILLIAM TERENTJVAS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-27": {
+      "especialista_id": "esp-stefany-barros-fernandes",
+      "nome": "STEFANY BARROS FERNANDES",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-28": {
+      "especialista_id": "esp-augusto-caetano-araujo-do",
+      "nome": "AUGUSTO CAETANO ARAUJO DO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-29": {
+      "especialista_id": "esp-alberto-bem-de-lima",
+      "nome": "ALBERTO BEM DE LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-04-30": {
+      "especialista_id": "esp-beatriz-cristina-figueiro",
+      "nome": "BEATRIZ CRISTINA FIGUEIRO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-01": {
+      "especialista_id": null,
+      "nome": "Feriado",
+      "turno": "Feriado",
+      "status_rotulo": "Feriado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-05-04": {
+      "especialista_id": "esp-douglas-cavalcante-filho",
+      "nome": "DOUGLAS CAVALCANTE FILHO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-05": {
+      "especialista_id": "esp-camila-barbosa-da-silva",
+      "nome": "CAMILA BARBOSA DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-06": {
+      "especialista_id": "esp-rodrigo-cesar-duarte",
+      "nome": "RODRIGO CESAR DUARTE",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-07": {
+      "especialista_id": "esp-eduardo-ciosak",
+      "nome": "EDUARDO CIOSAK",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-08": {
+      "especialista_id": "esp-karoline-moreira-honorio",
+      "nome": "KAROLINE MOREIRA HONORIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-11": {
+      "especialista_id": "esp-eduardo-santos-thomaz",
+      "nome": "EDUARDO SANTOS THOMAZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-12": {
+      "especialista_id": "esp-bruno-cesar-ravacci-silva",
+      "nome": "BRUNO CESAR RAVACCI SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-13": {
+      "especialista_id": "esp-emerson-meneguel",
+      "nome": "EMERSON MENEGUEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-14": {
+      "especialista_id": "esp-fernando-azevedo-soares-d",
+      "nome": "FERNANDO AZEVEDO SOARES DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-15": {
+      "especialista_id": "esp-gabriel-fernandes",
+      "nome": "Gabriel Fernandes",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-18": {
+      "especialista_id": "esp-gilmara-silva-venancio",
+      "nome": "GILMARA SILVA VENANCIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-19": {
+      "especialista_id": "esp-igor-pinheiro-costa",
+      "nome": "Igor Pinheiro Costa",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-20": {
+      "especialista_id": "esp-jorge-kalmus",
+      "nome": "JORGE KALMUS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-21": {
+      "especialista_id": "esp-jose-wellington-alves-lim",
+      "nome": "JOSE WELLINGTON ALVES LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-22": {
+      "especialista_id": "esp-juliano-marcato",
+      "nome": "JULIANO MARCATO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-25": {
+      "especialista_id": "esp-karoline-moreira-honorio",
+      "nome": "KAROLINE MOREIRA HONORIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-26": {
+      "especialista_id": "esp-josi-dinora-de-souza",
+      "nome": "JOSI DINORA DE SOUZA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-27": {
+      "especialista_id": "esp-manuel-igor-oliveira-dos-",
+      "nome": "MANUEL IGOR OLIVEIRA DOS SANTOS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-28": {
+      "especialista_id": "esp-marcel-rezk-de-angelo",
+      "nome": "MARCEL REZK DE ANGELO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-05-29": {
+      "especialista_id": "esp-marilia-de-lima-maciel",
+      "nome": "MARILIA DE LIMA MACIEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-01": {
+      "especialista_id": "esp-ulisses-jose-covre-beltra",
+      "nome": "ULISSES JOSE COVRE BELTRAME DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-02": {
+      "especialista_id": "esp-rafael-fonseca-santejani",
+      "nome": "RAFAEL FONSECA SANTEJANI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-03": {
+      "especialista_id": "esp-michel-ribeiro-rocha",
+      "nome": "MICHEL RIBEIRO ROCHA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-04": {
+      "especialista_id": null,
+      "nome": "Feriado",
+      "turno": "Feriado",
+      "status_rotulo": "Feriado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-06-05": {
+      "especialista_id": null,
+      "nome": "Ponte Feriado",
+      "turno": "Feriado",
+      "status_rotulo": "Ponte Feriado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-06-08": {
+      "especialista_id": "esp-raiane-da-silva-teodoro-o",
+      "nome": "RAIANE DA SILVA TEODORO ORIZIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-09": {
+      "especialista_id": "esp-renato-lacava",
+      "nome": "RENATO LACAVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-10": {
+      "especialista_id": "esp-renato-engelmann",
+      "nome": "RENATO ENGELMANN",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-11": {
+      "especialista_id": "esp-emerson-de-souza-meneguel",
+      "nome": "EMERSON DE SOUZA MENEGUEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-12": {
+      "especialista_id": "esp-william-terentjvas",
+      "nome": "WILLIAM TERENTJVAS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-15": {
+      "especialista_id": "esp-rodrigo-cesar-duarte",
+      "nome": "RODRIGO CESAR DUARTE",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-16": {
+      "especialista_id": "esp-rodrigo-cesar-duarte",
+      "nome": "RODRIGO CESAR DUARTE",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-17": {
+      "especialista_id": "esp-taina-renata-de-oliveira",
+      "nome": "TAINA RENATA DE OLIVEIRA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-18": {
+      "especialista_id": "esp-gabriel-fernandes-dias-de",
+      "nome": "GABRIEL FERNANDES DIAS DE SA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-19": {
+      "especialista_id": "esp-rodrigo-paul-quinonez-gon",
+      "nome": "RODRIGO PAUL QUINONEZ GONZALEZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-22": {
+      "especialista_id": "esp-alberto-bem-de-lima",
+      "nome": "ALBERTO BEM DE LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-23": {
+      "especialista_id": "esp-augusto-caetano-araujo-do",
+      "nome": "AUGUSTO CAETANO ARAUJO DO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-24": {
+      "especialista_id": "esp-andre-sousa-lopes-gianott",
+      "nome": "ANDRE SOUSA LOPES GIANOTTI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-25": {
+      "especialista_id": "esp-douglas-cavalcante-filho",
+      "nome": "DOUGLAS CAVALCANTE FILHO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-26": {
+      "especialista_id": "esp-igor-costa",
+      "nome": "Igor Costa",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-29": {
+      "especialista_id": "esp-camila-barbosa-da-silva",
+      "nome": "CAMILA BARBOSA DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-06-30": {
+      "especialista_id": "esp-bruno-cesar-ravacci-silva",
+      "nome": "BRUNO CESAR RAVACCI SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-01": {
+      "especialista_id": "esp-bruno-eustaquio-nasciment",
+      "nome": "BRUNO EUSTAQUIO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-02": {
+      "especialista_id": "esp-eduardo-ciosak",
+      "nome": "EDUARDO CIOSAK",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-03": {
+      "especialista_id": "esp-eduardo-santos-thomaz",
+      "nome": "EDUARDO SANTOS THOMAZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-06": {
+      "especialista_id": "esp-emerson-de-souza-meneguel",
+      "nome": "EMERSON DE SOUZA MENEGUEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-07": {
+      "especialista_id": "esp-fernando-azevedo-soares-d",
+      "nome": "FERNANDO AZEVEDO SOARES DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-08": {
+      "especialista_id": "esp-fabio-fernando-da-silva",
+      "nome": "FABIO FERNANDO DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-09": {
+      "especialista_id": null,
+      "nome": "Feriado",
+      "turno": "Feriado",
+      "status_rotulo": "Feriado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-07-10": {
+      "especialista_id": null,
+      "nome": "Ponte Feriado",
+      "turno": "Feriado",
+      "status_rotulo": "Ponte Feriado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-07-13": {
+      "especialista_id": "esp-gabriel-fernandes-dias-de",
+      "nome": "GABRIEL FERNANDES DIAS DE SA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-14": {
+      "especialista_id": "esp-gilmara-silva-venancio",
+      "nome": "GILMARA SILVA VENANCIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-15": {
+      "especialista_id": "esp-there",
+      "nome": "There",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-16": {
+      "especialista_id": "esp-jorge-kalmus",
+      "nome": "JORGE KALMUS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-17": {
+      "especialista_id": "esp-josi-dinora-de-souza",
+      "nome": "JOSI DINORA DE SOUZA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-20": {
+      "especialista_id": "esp-juliano-marcato",
+      "nome": "JULIANO MARCATO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-21": {
+      "especialista_id": "esp-jose-wellington-alves-lim",
+      "nome": "JOSE WELLINGTON ALVES LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-22": {
+      "especialista_id": "esp-karoline-moreira-honorio",
+      "nome": "KAROLINE MOREIRA HONORIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-23": {
+      "especialista_id": "esp-marilia-de-lima-maciel",
+      "nome": "MARILIA DE LIMA MACIEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-24": {
+      "especialista_id": "esp-marcel-rezk-de-angelo",
+      "nome": "MARCEL REZK DE ANGELO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-27": {
+      "especialista_id": "esp-manuel-igor-oliveira-dos-",
+      "nome": "MANUEL IGOR OLIVEIRA DOS SANTOS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-28": {
+      "especialista_id": "esp-michel-ribeiro-rocha",
+      "nome": "MICHEL RIBEIRO ROCHA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-29": {
+      "especialista_id": "esp-paulo-sergio-da-silva",
+      "nome": "PAULO SERGIO DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-30": {
+      "especialista_id": "esp-rafael-fonseca-santejani",
+      "nome": "RAFAEL FONSECA SANTEJANI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-07-31": {
+      "especialista_id": "esp-eduardo-ciosak",
+      "nome": "EDUARDO CIOSAK",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-03": {
+      "especialista_id": "esp-douglas-cavalcante-filho",
+      "nome": "DOUGLAS CAVALCANTE FILHO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-04": {
+      "especialista_id": "esp-renato-lacava",
+      "nome": "RENATO LACAVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-05": {
+      "especialista_id": "esp-igor",
+      "nome": "IGOR",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-06": {
+      "especialista_id": "esp-rodrigo-cesar-duarte",
+      "nome": "RODRIGO CESAR DUARTE",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-07": {
+      "especialista_id": "esp-bruno-eustaquio-nasciment",
+      "nome": "BRUNO EUSTAQUIO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-10": {
+      "especialista_id": "esp-stefany-barros-fernandes",
+      "nome": "STEFANY BARROS FERNANDES",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-11": {
+      "especialista_id": "esp-taina-renata-de-oliveira",
+      "nome": "TAINA RENATA DE OLIVEIRA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-12": {
+      "especialista_id": "esp-josi",
+      "nome": "JOSI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-13": {
+      "especialista_id": "esp-william-terentjvas",
+      "nome": "WILLIAM TERENTJVAS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-14": {
+      "especialista_id": "esp-alberto-bem-de-lima",
+      "nome": "ALBERTO BEM DE LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-17": {
+      "especialista_id": "esp-andre-sousa-lopes-gianott",
+      "nome": "ANDRE SOUSA LOPES GIANOTTI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-18": {
+      "especialista_id": "esp-manuel-igor-oliveira-dos-",
+      "nome": "MANUEL IGOR OLIVEIRA DOS SANTOS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-19": {
+      "especialista_id": "esp-kalmus",
+      "nome": "KALMUS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-20": {
+      "especialista_id": "esp-vit-ria",
+      "nome": "Vitória",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-21": {
+      "especialista_id": "esp-bruno-eustaquio-nasciment",
+      "nome": "BRUNO EUSTAQUIO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-24": {
+      "especialista_id": "esp-bruno-cesar-ravacci-silva",
+      "nome": "BRUNO CESAR RAVACCI SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-25": {
+      "especialista_id": "esp-camila-barbosa-da-silva",
+      "nome": "CAMILA BARBOSA DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-26": {
+      "especialista_id": "esp-andre-sousa-lopes-gianott",
+      "nome": "ANDRE SOUSA LOPES GIANOTTI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-27": {
+      "especialista_id": "esp-eduardo-santos-thomaz",
+      "nome": "EDUARDO SANTOS THOMAZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-28": {
+      "especialista_id": "esp-gilmara-silva-venancio",
+      "nome": "GILMARA SILVA VENANCIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-08-31": {
+      "especialista_id": "esp-fernando-azevedo-soares-d",
+      "nome": "FERNANDO AZEVEDO SOARES DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-01": {
+      "especialista_id": "esp-fabio-fernando-da-silva",
+      "nome": "FABIO FERNANDO DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-02": {
+      "especialista_id": "esp-gabriel-fernandes-dias-de",
+      "nome": "GABRIEL FERNANDES DIAS DE SA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-03": {
+      "especialista_id": "esp-emerson-de-souza-meneguel",
+      "nome": "EMERSON DE SOUZA MENEGUEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-04": {
+      "especialista_id": "esp-giovanna-florentino-ferre",
+      "nome": "GIOVANNA FLORENTINO FERREIRA DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-07": {
+      "especialista_id": null,
+      "nome": "Feriado",
+      "turno": "Feriado",
+      "status_rotulo": "Feriado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-09-08": {
+      "especialista_id": "esp-rafael-fonseca-santejani",
+      "nome": "RAFAEL FONSECA SANTEJANI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-09": {
+      "especialista_id": "esp-renato-engelmann",
+      "nome": "RENATO ENGELMANN",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-10": {
+      "especialista_id": "esp-juliano-marcato",
+      "nome": "JULIANO MARCATO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-11": {
+      "especialista_id": "esp-jose-wellington-alves-lim",
+      "nome": "JOSE WELLINGTON ALVES LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-14": {
+      "especialista_id": "esp-karoline-moreira-honorio",
+      "nome": "KAROLINE MOREIRA HONORIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-15": {
+      "especialista_id": "esp-marilia-de-lima-maciel",
+      "nome": "MARILIA DE LIMA MACIEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-16": {
+      "especialista_id": "esp-marcel-rezk-de-angelo",
+      "nome": "MARCEL REZK DE ANGELO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-17": {
+      "especialista_id": "esp-augusto-caetano-araujo-do",
+      "nome": "AUGUSTO CAETANO ARAUJO DO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-18": {
+      "especialista_id": "esp-michel-ribeiro-rocha",
+      "nome": "MICHEL RIBEIRO ROCHA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-21": {
+      "especialista_id": "esp-paulo-sergio-da-silva",
+      "nome": "PAULO SERGIO DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-22": {
+      "especialista_id": "esp-igor-costa",
+      "nome": "IGOR COSTA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-23": {
+      "especialista_id": "esp-raiane-da-silva-teodoro-o",
+      "nome": "RAIANE DA SILVA TEODORO ORIZIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-24": {
+      "especialista_id": "esp-jorge-kalmus",
+      "nome": "JORGE KALMUS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-25": {
+      "especialista_id": "esp-renato-lacava",
+      "nome": "RENATO LACAVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-28": {
+      "especialista_id": "esp-giovanna-florentino-ferre",
+      "nome": "GIOVANNA FLORENTINO FERREIRA DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-29": {
+      "especialista_id": "esp-augusto-caetano-araujo-do",
+      "nome": "AUGUSTO CAETANO ARAUJO DO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-09-30": {
+      "especialista_id": "esp-rodrigo-paul-quinonez-gon",
+      "nome": "RODRIGO PAUL QUINONEZ GONZALEZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-10-01": {
+      "especialista_id": "esp-stefany-barros-fernandes-",
+      "nome": "STEFANY BARROS FERNANDES + ANA CLAUDIA ALMEIDA VALERIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-10-02": {
+      "especialista_id": "esp-taina-renata-de-oliveira-",
+      "nome": "TAINA RENATA DE OLIVEIRA + Camila",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-10-05": {
+      "especialista_id": "esp-gianotti",
+      "nome": "Gianotti",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-10-06": {
+      "especialista_id": "esp-v-t-ria-tereza",
+      "nome": "VÍTÓRIA TEREZA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-10-07": {
+      "especialista_id": "esp-alberto-bem-de-lima",
+      "nome": "ALBERTO BEM DE LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-10-08": {
+      "especialista_id": "esp-augusto-caetano-araujo-do",
+      "nome": "AUGUSTO CAETANO ARAUJO DO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-10-09": {
+      "especialista_id": "esp-eduardo-thomaz",
+      "nome": "EDUARDO THOMAZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-10-12": {
+      "especialista_id": null,
+      "nome": "Feriado",
+      "turno": "Feriado",
+      "status_rotulo": "Feriado",
+      "observacoes": "",
+      "tipo": "feriado"
     },
     "2026-10-13": {
-      "especialista_id": "esp-4",
-      "nome": "Mariana Lima",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Varejo, Moda & RFID"
+      "especialista_id": "esp-stefany-barros-fernandes",
+      "nome": "STEFANY BARROS FERNANDES",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-14": {
-      "especialista_id": "esp-5",
-      "nome": "Rafael Duarte",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Saúde, Clínicas & Prontuário Eletrônico"
+      "especialista_id": "esp-douglas-cavalcante-filho",
+      "nome": "DOUGLAS CAVALCANTE FILHO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-15": {
-      "especialista_id": "esp-1",
-      "nome": "André Gianotti",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Visitas Executivas VIP"
+      "especialista_id": "esp-tati",
+      "nome": "TATI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-16": {
-      "especialista_id": "esp-6",
-      "nome": "Fernanda Torres",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Supermercados Consinco & Checkout"
+      "especialista_id": "esp-eduardo-ciosak",
+      "nome": "EDUARDO CIOSAK",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-19": {
-      "especialista_id": "esp-7",
-      "nome": "Bruno Carvalho",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Mesa Interativa & Soluções Cross"
+      "especialista_id": "esp-bruno-eustaquio-nasciment",
+      "nome": "BRUNO EUSTAQUIO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-20": {
-      "especialista_id": "esp-2",
-      "nome": "Camila Santana",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Manufatura & Gestão de Fábrica"
+      "especialista_id": "esp-marcel-rezk-de-angelo",
+      "nome": "MARCEL REZK DE ANGELO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-21": {
-      "especialista_id": "esp-3",
-      "nome": "Lucas Ferreira",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Rastreabilidade Agro & Logística"
+      "especialista_id": "esp-eduardo-santos-thomaz",
+      "nome": "EDUARDO SANTOS THOMAZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-22": {
-      "especialista_id": "esp-4",
-      "nome": "Mariana Lima",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Live Commerce & E-commerce"
+      "especialista_id": "esp-emerson-de-souza-meneguel",
+      "nome": "EMERSON DE SOUZA MENEGUEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-23": {
-      "especialista_id": "esp-5",
-      "nome": "Rafael Duarte",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Backoffice, ERP & Inteligência Fiscal"
+      "especialista_id": "esp-fabio-fernando-da-silva",
+      "nome": "FABIO FERNANDO DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-26": {
-      "especialista_id": "esp-1",
-      "nome": "André Gianotti",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Plantão e Coordenação Semanal"
+      "especialista_id": "esp-marcos-wallace",
+      "nome": "Marcos Wallace",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-27": {
-      "especialista_id": "esp-6",
-      "nome": "Fernanda Torres",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Distribuição e Varejo Supermercadista"
+      "especialista_id": "esp-gabriel-fernandes-dias-de",
+      "nome": "GABRIEL FERNANDES DIAS DE SA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-28": {
-      "especialista_id": "esp-7",
-      "nome": "Bruno Carvalho",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Demonstração na Mesa Interativa"
+      "especialista_id": "esp-gilmara-silva-venancio",
+      "nome": "GILMARA SILVA VENANCIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-29": {
-      "especialista_id": "esp-2",
-      "nome": "Camila Santana",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Manufatura e Eficiência Operacional"
+      "especialista_id": "esp-giovanna-florentino-ferre",
+      "nome": "GIOVANNA FLORENTINO FERREIRA DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     },
     "2026-10-30": {
-      "especialista_id": "esp-3",
-      "nome": "Lucas Ferreira",
-      "turno": "09:00 - 18:00",
-      "observacoes": "Fechamento Mensal Agro & Operações"
+      "especialista_id": "esp-jorge-kalmus",
+      "nome": "JORGE KALMUS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-02": {
+      "especialista_id": null,
+      "nome": "Feriado",
+      "turno": "Feriado",
+      "status_rotulo": "Feriado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-11-03": {
+      "especialista_id": "esp-josi-dinora-de-souza",
+      "nome": "JOSI DINORA DE SOUZA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-04": {
+      "especialista_id": "esp-jose-wellington-alves-lim",
+      "nome": "JOSE WELLINGTON ALVES LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-05": {
+      "especialista_id": "esp-juliano-marcato",
+      "nome": "JULIANO MARCATO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-06": {
+      "especialista_id": "esp-karoline-moreira-honorio",
+      "nome": "KAROLINE MOREIRA HONORIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-09": {
+      "especialista_id": "esp-emerson-de-souza-meneguel",
+      "nome": "EMERSON DE SOUZA MENEGUEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-10": {
+      "especialista_id": "esp-marcos-wallace",
+      "nome": "MARCOS WALLACE",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-11": {
+      "especialista_id": "esp-douglas",
+      "nome": "DOUGLAS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-12": {
+      "especialista_id": "esp-michel-ribeiro-rocha",
+      "nome": "MICHEL RIBEIRO ROCHA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-13": {
+      "especialista_id": "esp-paulo-sergio-da-silva",
+      "nome": "PAULO SERGIO DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-16": {
+      "especialista_id": "esp-rafael-fonseca-santejani",
+      "nome": "RAFAEL FONSECA SANTEJANI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-17": {
+      "especialista_id": "esp-raiane-da-silva-teodoro-o",
+      "nome": "RAIANE DA SILVA TEODORO ORIZIO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-18": {
+      "especialista_id": "esp-renato-engelmann",
+      "nome": "RENATO ENGELMANN",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-19": {
+      "especialista_id": "esp-renato-lacava",
+      "nome": "RENATO LACAVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-20": {
+      "especialista_id": null,
+      "nome": "Feriado",
+      "turno": "Feriado",
+      "status_rotulo": "Feriado",
+      "observacoes": "",
+      "tipo": "feriado"
+    },
+    "2026-11-23": {
+      "especialista_id": "esp-giovanna-florentino-ferre",
+      "nome": "GIOVANNA FLORENTINO FERREIRA DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-24": {
+      "especialista_id": "esp-rodrigo-paul-quinonez-gon",
+      "nome": "RODRIGO PAUL QUINONEZ GONZALEZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-25": {
+      "especialista_id": "esp-rodrigo-cesar-duarte",
+      "nome": "RODRIGO CESAR DUARTE",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-26": {
+      "especialista_id": "esp-stefany-barros-fernandes",
+      "nome": "STEFANY BARROS FERNANDES",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-27": {
+      "especialista_id": "esp-marcos-wallace",
+      "nome": "MARCOS WALLACE",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-11-30": {
+      "especialista_id": "esp-emerson",
+      "nome": "EMERSON",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-01": {
+      "especialista_id": "esp-william-terentjvas",
+      "nome": "WILLIAM TERENTJVAS",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-02": {
+      "especialista_id": "esp-alberto-bem-de-lima",
+      "nome": "ALBERTO BEM DE LIMA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-03": {
+      "especialista_id": "esp-augusto-caetano-araujo-do",
+      "nome": "AUGUSTO CAETANO ARAUJO DO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-04": {
+      "especialista_id": "esp-andre-sousa-lopes-gianott",
+      "nome": "ANDRE SOUSA LOPES GIANOTTI",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-07": {
+      "especialista_id": "esp-vit-ria-tereza",
+      "nome": "Vitória Tereza",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-08": {
+      "especialista_id": "esp-douglas-cavalcante-filho",
+      "nome": "DOUGLAS CAVALCANTE FILHO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-09": {
+      "especialista_id": "esp-tati-macedo",
+      "nome": "Tati Macedo",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-10": {
+      "especialista_id": "esp-bruno-cesar-ravacci-silva",
+      "nome": "BRUNO CESAR RAVACCI SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-11": {
+      "especialista_id": "esp-bruno-eustaquio-nasciment",
+      "nome": "BRUNO EUSTAQUIO NASCIMENTO",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-14": {
+      "especialista_id": "esp-eduardo-ciosak",
+      "nome": "EDUARDO CIOSAK",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-15": {
+      "especialista_id": "esp-eduardo-santos-thomaz",
+      "nome": "EDUARDO SANTOS THOMAZ",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-16": {
+      "especialista_id": "esp-emerson-de-souza-meneguel",
+      "nome": "EMERSON DE SOUZA MENEGUEL",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-17": {
+      "especialista_id": "esp-fabio-fernando-da-silva",
+      "nome": "FABIO FERNANDO DA SILVA",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
+    },
+    "2026-12-18": {
+      "especialista_id": "esp-marcos-wallace",
+      "nome": "MARCOS WALLACE",
+      "turno": "08:00 as 17:30",
+      "observacoes": "",
+      "tipo": "normal"
     }
   }
 }

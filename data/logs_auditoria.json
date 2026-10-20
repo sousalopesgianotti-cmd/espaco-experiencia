@@ -1,5 +1,17 @@
 [
   {
+    "id": "aud-1792523535074",
+    "analista_nome": "André Gianotti",
+    "analista_email": "andre.gianotti@totvs.com.br",
+    "segmento_id": "plantonistas",
+    "segmento_nome": "Escala de Plantonistas",
+    "acao": "Importação anual de escala via planilha Excel",
+    "data_formatada": "20/10/2026",
+    "horario_formatado": "16:12:15",
+    "timestamp": 1792523535103,
+    "detalhes": "Importação da escala do ano 2026: 250 datas processadas por André Gianotti."
+  },
+  {
     "id": "aud-1792064095719",
     "analista_nome": "Juliana PMM Auditoria",
     "analista_email": "auditoria.pmm.1792064095524@totvs.com.br",

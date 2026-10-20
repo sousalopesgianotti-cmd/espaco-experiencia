@@ -1252,6 +1252,75 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, { success: true, message: 'Escala atualizada com sucesso!', escalas: current.escalas });
     }
 
+    // 25. POST /api/plantonistas/importar-lote (Importação em lote de escala anual via planilha)
+    if (pathname === '/api/plantonistas/importar-lote' && method === 'POST') {
+      const body = await readBodyJson(req);
+      const { ano, escalasNovas, novosEspecialistas, autor } = body;
+      if (!ano || !escalasNovas) {
+        return sendJson(res, { success: false, message: 'Parâmetros "ano" e "escalasNovas" são obrigatórios.' }, 400);
+      }
+
+      const plantonistasFile = path.join(DATA_DIR, 'plantonistas.json');
+      let current = readJsonFile(plantonistasFile, { especialistas: [], escalas: {} });
+      if (!Array.isArray(current.especialistas)) current.especialistas = [];
+      if (!current.escalas || typeof current.escalas !== 'object') current.escalas = {};
+
+      // 1. Cadastrar novos especialistas sem duplicar existentes
+      if (Array.isArray(novosEspecialistas) && novosEspecialistas.length > 0) {
+        novosEspecialistas.forEach(nEsp => {
+          const exists = current.especialistas.some(e => 
+            (nEsp.email && e.email && e.email.trim().toLowerCase() === nEsp.email.trim().toLowerCase()) ||
+            (nEsp.nome && e.nome && e.nome.trim().toLowerCase() === nEsp.nome.trim().toLowerCase()) ||
+            e.id === nEsp.id
+          );
+          if (!exists) {
+            current.especialistas.push(nEsp);
+          }
+        });
+      }
+
+      // 2. Limpar as escalas do ano importado para substituição limpa e atômica
+      const anoPrefix = `${ano}-`;
+      Object.keys(current.escalas).forEach(d => {
+        if (d.startsWith(anoPrefix)) {
+          delete current.escalas[d];
+        }
+      });
+
+      // 3. Mesclar as novas escalas do ano
+      Object.assign(current.escalas, escalasNovas);
+
+      // 4. Salvar arquivo
+      writeJsonFile(plantonistasFile, current);
+
+      // 5. Registrar log de auditoria
+      const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+      let logs = readJsonFile(auditFile, []);
+      if (Array.isArray(logs)) {
+        const totalImportados = Object.keys(escalasNovas).length;
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: autor?.nome || 'Administrador',
+          analista_email: autor?.email || 'admin@totvs.com.br',
+          segmento_id: 'plantonistas',
+          segmento_nome: 'Escala de Plantonistas',
+          acao: 'Importação anual de escala via planilha Excel',
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `Importação da escala do ano ${ano}: ${totalImportados} datas processadas por ${autor?.nome || 'Administrador'}.`
+        });
+        writeJsonFile(auditFile, logs);
+      }
+
+      return sendJson(res, {
+        success: true,
+        message: `Escala de ${ano} importada com sucesso! (${Object.keys(escalasNovas).length} datas)`,
+        especialistas: current.especialistas,
+        escalas: current.escalas
+      });
+    }
+
     // 10. Static files
     let relPath = pathname.replace(/^\/+/, '');
     if (!relPath) relPath = 'index.html';
