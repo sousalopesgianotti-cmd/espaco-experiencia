@@ -1,3 +1,13 @@
+/**
+ * Adiciona menu de administração diretamente na barra do Google Planilhas
+ */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Espaço Experiência')
+    .addItem('🔄 Recarregar Escala 2026 na Planilha', 'recarregarAbaPlantonistasDaBase')
+    .addToUi();
+}
+
 
 /**
  * ============================================================================
@@ -627,6 +637,30 @@ function carregarSegmentos(ss) {
   }
 }
 
+function formatarDataIso(val) {
+  if (!val) return "";
+  if (val instanceof Date) {
+    var y = val.getFullYear();
+    var m = String(val.getMonth() + 1);
+    if (m.length === 1) m = "0" + m;
+    var d = String(val.getDate());
+    if (d.length === 1) d = "0" + d;
+    return y + "-" + m + "-" + d;
+  }
+  var s = String(val).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var dt = new Date(s);
+  if (!isNaN(dt.getTime())) {
+    var y = dt.getFullYear();
+    var m = String(dt.getMonth() + 1);
+    if (m.length === 1) m = "0" + m;
+    var d = String(dt.getDate());
+    if (d.length === 1) d = "0" + d;
+    return y + "-" + m + "-" + d;
+  }
+  return s;
+}
+
 function carregarPlantonistas(ss) {
   try {
     var aba = ss.getSheetByName("Plantonistas");
@@ -638,42 +672,50 @@ function carregarPlantonistas(ss) {
     var dados = aba.getDataRange().getValues();
     if (dados.length <= 1) return getPlantonistasPadrao();
 
-  var especialistas = [];
-  var escalas = {};
+    var especialistas = [];
+    var escalas = {};
 
-  for (var i = 1; i < dados.length; i++) {
-    var row = dados[i];
-    var tipo = String(row[0]);
-    if (tipo === "ESPECIALISTA") {
-      especialistas.push({
-        id: String(row[1]),
-        nome: String(row[2]),
-        cargo: String(row[3]),
-        email: String(row[4]),
-        ramal: String(row[5]),
-        avatar_cor: String(row[6]) || "bg-totvs-blue",
-        estacao_foco: String(row[7]) || ""
-      });
-    } else if (tipo === "ESCALA") {
-      var dataStr = String(row[1]);
-      if (dataStr) {
-        var turnoStr = String(row[4]) || "08:00 as 17:30";
-        var nomeStr = String(row[3]);
-        var tipoStr = String(row[6]);
-        var isFeriado = tipoStr === "feriado" || turnoStr === "Feriado" || /feriado|fechado|ponte|recesso/i.test(nomeStr);
-        escalas[dataStr] = {
-          especialista_id: String(row[2]) || null,
-          nome: nomeStr,
-          turno: isFeriado ? "Feriado" : turnoStr,
-          observacoes: String(row[5]) || "",
-          tipo: isFeriado ? "feriado" : "normal",
-          status_rotulo: isFeriado ? (String(row[7]) || nomeStr) : ""
-        };
+    for (var i = 1; i < dados.length; i++) {
+      var row = dados[i];
+      var tipo = String(row[0]);
+      if (tipo === "ESPECIALISTA") {
+        especialistas.push({
+          id: String(row[1]),
+          nome: String(row[2]),
+          cargo: String(row[3]),
+          email: String(row[4]),
+          ramal: String(row[5]),
+          avatar_cor: String(row[6]) || "bg-totvs-blue",
+          estacao_foco: String(row[7]) || ""
+        });
+      } else if (tipo === "ESCALA") {
+        var dataStr = formatarDataIso(row[1]);
+        if (dataStr) {
+          var turnoStr = String(row[4]) || "08:00 as 17:30";
+          var nomeStr = String(row[3]);
+          var tipoStr = String(row[6]);
+          var isFeriado = tipoStr === "feriado" || turnoStr === "Feriado" || /feriado|fechado|ponte|recesso/i.test(nomeStr);
+          escalas[dataStr] = {
+            especialista_id: String(row[2]) || null,
+            nome: nomeStr,
+            turno: isFeriado ? "Feriado" : turnoStr,
+            observacoes: String(row[5]) || "",
+            tipo: isFeriado ? "feriado" : "normal",
+            status_rotulo: isFeriado ? (String(row[7]) || nomeStr) : ""
+          };
+        }
       }
     }
-  }
 
-  return { especialistas: especialistas, escalas: escalas };
+    // Se a aba da planilha possuir menos de 50 escalas, recarrega automaticamente da base oficial
+    if (Object.keys(escalas).length < 50) {
+      try {
+        recarregarAbaPlantonistasDaBase();
+      } catch(e) {}
+      return getPlantonistasPadrao();
+    }
+
+    return { especialistas: especialistas, escalas: escalas };
   } catch (err) {
     return getPlantonistasPadrao();
   }
@@ -976,7 +1018,7 @@ function recarregarAbaPlantonistasDaBase() {
   for (var k = 0; k < datas.length; k++) {
     var dStr = datas[k];
     var item = esc[dStr];
-    rowsEsc.push(["ESCALA", dStr, item.especialista_id || "", item.nome || "", item.turno || "08:00 as 17:30", item.observacoes || "", item.tipo || "normal", item.status_rotulo || ""]);
+    rowsEsc.push(["ESCALA", "'" + dStr, item.especialista_id || "", item.nome || "", item.turno || "08:00 as 17:30", item.observacoes || "", item.tipo || "normal", item.status_rotulo || ""]);
   }
   if (rowsEsc.length > 0) {
     var lastRow = abaPlan.getLastRow();
