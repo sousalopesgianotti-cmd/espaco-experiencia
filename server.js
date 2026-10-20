@@ -254,6 +254,7 @@ function getVisitorHistory(visitors, targetYear, targetMonth) {
   let totalAno = 0;
   let visitasAno = 0;
   const visitantesMesEspecifico = [];
+  const visitantesDoAno = [];
   const selectedMonthNum = targetMonth ? parseInt(targetMonth, 10) : null;
 
   for (const v of visitors) {
@@ -267,6 +268,7 @@ function getVisitorHistory(visitors, targetYear, targetMonth) {
     if (y === yearToUse) {
       totalAno += qtd;
       visitasAno += 1;
+      visitantesDoAno.push(v);
       if (m >= 1 && m <= 12) {
         mesesResumo[m - 1].total_pessoas += qtd;
         mesesResumo[m - 1].total_visitas += 1;
@@ -286,7 +288,8 @@ function getVisitorHistory(visitors, targetYear, targetMonth) {
     anos_disponiveis: anosDisponiveis,
     meses: mesesResumo,
     mes_selecionado: selectedMonthNum,
-    visitantes_mes: visitantesMesEspecifico
+    visitantes_mes: visitantesMesEspecifico,
+    visitantes_ano: visitantesDoAno
   };
 }
 
