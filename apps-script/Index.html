@@ -38,6 +38,8 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- SheetJS para importação e leitura de planilhas Excel (.xlsx) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -153,6 +155,7 @@
       Menu: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>,
       Home: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
       CalendarDays: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+      FileSpreadsheet: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
       BarChart: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
       ChevronLeft: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>,
       Phone: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>,
@@ -1172,9 +1175,14 @@
       // Estado para edição de plantão pelo ADM
       const [editingDate, setEditingDate] = useState(null);
       const [selectedEspId, setSelectedEspId] = useState('');
-      const [customTurno, setCustomTurno] = useState('09:00 - 18:00');
+      const [customTurno, setCustomTurno] = useState('08:00 as 17:30');
       const [customObs, setCustomObs] = useState('');
       const [savingEscala, setSavingEscala] = useState(false);
+
+      // Estados para importação de planilha anual Excel (.xlsx)
+      const fileInputRef = useRef(null);
+      const [importPreview, setImportPreview] = useState(null);
+      const [importandoLote, setImportandoLote] = useState(false);
 
       const nomesMeses = [
         'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -1184,6 +1192,20 @@
 
       const carregarDados = () => {
         setLoading(true);
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              if (res && res.plantonistas) {
+                setEspecialistas(res.plantonistas.especialistas || []);
+                setEscalas(res.plantonistas.escalas || {});
+              }
+              setLoading(false);
+            })
+            .withFailureHandler(() => setLoading(false))
+            .obterDadosIniciais();
+          return;
+        }
+
         fetch('/api/plantonistas')
           .then(res => res.json())
           .then(data => {
@@ -1256,7 +1278,7 @@
         setEditingDate(iso);
         const currentEscala = escalas[iso];
         setSelectedEspId(currentEscala?.especialista_id || '');
-        setCustomTurno(currentEscala?.turno || '09:00 - 18:00');
+        setCustomTurno(currentEscala?.turno || '08:00 as 17:30');
         setCustomObs(currentEscala?.observacoes || '');
       };
 
@@ -1269,7 +1291,27 @@
         const nomeFinal = espSelected ? espSelected.nome : '';
 
         try {
-          const res = await fetch('/api/plantonistas/escala', {
+          if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((result) => {
+              setSavingEscala(false);
+              if (result && result.success && result.plantonistas) {
+                setEscalas(result.plantonistas.escalas || {});
+                setEditingDate(null);
+                if (showToast) showToast('Escala de plantão atualizada na planilha TOTVS! ✅');
+              } else {
+                if (showToast) showToast(result?.error || 'Erro ao atualizar escala.');
+              }
+            })
+            .withFailureHandler((err) => {
+              setSavingEscala(false);
+              if (showToast) showToast('Erro no Apps Script: ' + (err.message || err));
+            })
+            .salvarEscalaPlantonista(editingDate, selectedEspId);
+          return;
+        }
+
+        const res = await fetch('/api/plantonistas/escala', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1294,6 +1336,223 @@
           if (showToast) showToast('Erro ao atualizar escala de plantão.');
         } finally {
           setSavingEscala(false);
+        }
+      };
+
+      // Leitura e Processamento da Planilha Excel (.xlsx) Oficial TOTVS
+      const handleFileSelected = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (typeof XLSX === 'undefined') {
+          if (showToast) showToast('Biblioteca de leitura Excel ainda carregando. Tente novamente em alguns segundos.');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          try {
+            const data = evt.target.result;
+            const workbook = XLSX.read(data, { type: 'binary' });
+            if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+              if (showToast) showToast('Planilha vazia ou em formato não reconhecido.');
+              return;
+            }
+
+            // Procurar aba do ano ativo (ex: "Espaço Experiência 2026")
+            const targetYear = viewYear;
+            let sheetName = workbook.SheetNames.find(s => s.toLowerCase().includes(String(targetYear)));
+            if (!sheetName) {
+              sheetName = workbook.SheetNames.find(s => s.toLowerCase().includes('experiência') || s.toLowerCase().includes('experiencia')) || workbook.SheetNames[0];
+            }
+
+            const sheet = workbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+            if (!rows || rows.length === 0) {
+              if (showToast) showToast(`A aba "${sheetName}" não possui dados para importação.`);
+              return;
+            }
+
+            const mesesMap = {
+              'janeiro': '01', 'fevereiro': '02', 'março': '03', 'marco': '03',
+              'abril': '04', 'maio': '05', 'junho': '06', 'julho': '07',
+              'agosto': '08', 'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
+            };
+
+            const escalasMapeadas = {};
+            const novosEsps = [];
+            let currentMonth = '';
+            let feriadosCount = 0;
+            let normaisCount = 0;
+            const amostra = [];
+
+            for (let i = 0; i < rows.length; i++) {
+              const row = rows[i];
+              if (!row || row.length === 0) continue;
+
+              const mRaw = (row[0] || row[1] || '').toString().trim().toLowerCase();
+              if (mesesMap[mRaw]) {
+                currentMonth = mesesMap[mRaw];
+              }
+
+              const dRaw = row[2];
+              const dayNum = parseInt(dRaw, 10);
+              if (!dayNum || isNaN(dayNum) || dayNum < 1 || dayNum > 31) continue;
+              if (!currentMonth) continue;
+
+              const dd = String(dayNum).padStart(2, '0');
+              const isoDate = `${targetYear}-${currentMonth}-${dd}`;
+
+              const rawNome = (row[4] || '').toString().trim();
+              if (!rawNome) continue;
+
+              const isFeriado = /feriado|ponte|fechado|recesso/i.test(rawNome);
+
+              if (isFeriado) {
+                escalasMapeadas[isoDate] = {
+                  especialista_id: null,
+                  nome: rawNome,
+                  turno: 'Feriado',
+                  status_rotulo: rawNome,
+                  observacoes: '',
+                  tipo: 'feriado'
+                };
+                feriadosCount++;
+                if (amostra.length < 10) {
+                  amostra.push({ data: isoDate, diaSemana: row[3] || '', nome: rawNome, tipo: 'feriado', turno: 'Feriado' });
+                }
+              } else {
+                const email = (row[5] || '').toString().trim();
+                const segmento = (row[6] || '').toString().trim();
+
+                const espExistente = especialistas.find(esp => 
+                  (email && esp.email && esp.email.trim().toLowerCase() === email.toLowerCase()) ||
+                  (esp.nome && esp.nome.trim().toLowerCase() === rawNome.toLowerCase()) ||
+                  (esp.nome && rawNome.toLowerCase().includes(esp.nome.trim().toLowerCase()))
+                );
+
+                let espId = espExistente ? espExistente.id : null;
+
+                if (!espExistente) {
+                  espId = 'esp-' + rawNome.toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 25);
+                  if (!novosEsps.some(n => n.id === espId || (email && n.email && n.email.toLowerCase() === email.toLowerCase()))) {
+                    const avatarCores = ['bg-totvs-blue', 'bg-cyan-600', 'bg-emerald-600', 'bg-pink-600', 'bg-sky-600', 'bg-rose-600', 'bg-indigo-600', 'bg-teal-600', 'bg-amber-600', 'bg-purple-600'];
+                    const cor = avatarCores[novosEsps.length % avatarCores.length];
+                    novosEsps.push({
+                      id: espId,
+                      nome: rawNome,
+                      cargo: segmento ? `Especialista • ${segmento}` : 'Especialista do Espaço Experiência',
+                      email: email || '',
+                      ramal: '',
+                      avatar_cor: cor,
+                      estacao_foco: segmento || 'Soluções TOTVS'
+                    });
+                  }
+                }
+
+                escalasMapeadas[isoDate] = {
+                  especialista_id: espId,
+                  nome: rawNome,
+                  turno: '08:00 as 17:30',
+                  observacoes: '',
+                  tipo: 'normal'
+                };
+                normaisCount++;
+                if (amostra.length < 10) {
+                  amostra.push({ data: isoDate, diaSemana: row[3] || '', nome: rawNome, tipo: 'normal', turno: '08:00 as 17:30', segmento });
+                }
+              }
+            }
+
+            if (Object.keys(escalasMapeadas).length === 0) {
+              if (showToast) showToast('Nenhuma data válida encontrada na aba selecionada da planilha.');
+              return;
+            }
+
+            setImportPreview({
+              ano: targetYear,
+              sheetName,
+              nomeArquivo: file.name,
+              totalDias: Object.keys(escalasMapeadas).length,
+              totalNormais: normaisCount,
+              totalFeriados: feriadosCount,
+              novosEspecialistas: novosEsps,
+              escalasNovas: escalasMapeadas,
+              amostra
+            });
+
+          } catch (err) {
+            console.error('Erro ao processar planilha Excel:', err);
+            if (showToast) showToast('Erro ao ler arquivo Excel: ' + (err.message || 'Formato incompatível'));
+          } finally {
+            if (e.target) e.target.value = '';
+          }
+        };
+        reader.readAsBinaryString(file);
+      };
+
+      // Confirmação e Gravação em Lote no Backend
+      const handleConfirmarImportacao = async () => {
+        if (!importPreview) return;
+        setImportandoLote(true);
+        try {
+          if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((result) => {
+              setImportandoLote(false);
+              if (result && result.success) {
+                if (result.plantonistas) {
+                  if (result.plantonistas.especialistas) setEspecialistas(result.plantonistas.especialistas);
+                  if (result.plantonistas.escalas) setEscalas(result.plantonistas.escalas);
+                }
+                const totalGravado = importPreview.totalDias;
+                const anoGravado = importPreview.ano;
+                setImportPreview(null);
+                if (showToast) showToast(`Escala de ${anoGravado} importada com sucesso na planilha TOTVS! (${totalGravado} datas atualizadas) ✅`);
+              } else {
+                if (showToast) showToast(result?.error || 'Erro ao gravar escala no Google Apps Script.');
+              }
+            })
+            .withFailureHandler((err) => {
+              setImportandoLote(false);
+              if (showToast) showToast('Erro no Google Apps Script: ' + (err.message || err));
+            })
+            .salvarEscalaLote({
+              ano: importPreview.ano,
+              escalasNovas: importPreview.escalasNovas,
+              novosEspecialistas: importPreview.novosEspecialistas
+            });
+          return;
+        }
+
+        const res = await fetch('/api/plantonistas/importar-lote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ano: importPreview.ano,
+              escalasNovas: importPreview.escalasNovas,
+              novosEspecialistas: importPreview.novosEspecialistas,
+              autor: {
+                nome: admLogado?.nome || 'Administrador',
+                email: admLogado?.email || 'admin@totvs.com.br'
+              }
+            })
+          });
+          const result = await res.json();
+          if (result && result.success) {
+            if (result.especialistas) setEspecialistas(result.especialistas);
+            if (result.escalas) setEscalas(result.escalas);
+            const totalGravado = importPreview.totalDias;
+            const anoGravado = importPreview.ano;
+            setImportPreview(null);
+            if (showToast) showToast(`Escala de ${anoGravado} importada com sucesso! (${totalGravado} datas atualizadas) ✅`);
+          } else {
+            if (showToast) showToast(result?.message || 'Erro ao gravar escala.');
+          }
+        } catch (err) {
+          if (showToast) showToast('Falha na comunicação com o servidor ao importar escala.');
+        } finally {
+          setImportandoLote(false);
         }
       };
 
@@ -1339,20 +1598,35 @@
                 <div className="bg-slate-900 rounded-[15px] p-4 sm:p-5 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-4 text-center sm:text-left">
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-totvs-blue via-blue-600 to-totvs-cyan text-white font-black text-xl flex items-center justify-center shadow-lg shrink-0">
-                      {especialistaHoje ? especialistaHoje.nome.charAt(0) : 'P'}
+                      {plantonistaHoje?.tipo === 'feriado' || plantonistaHoje?.turno === 'Feriado'
+                        ? '⏸️'
+                        : especialistaHoje ? especialistaHoje.nome.charAt(0) : 'P'}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 justify-center sm:justify-start">
-                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                          Plantonista de Hoje ({today.toLocaleDateString('pt-BR')})
-                        </span>
+                        {plantonistaHoje?.tipo === 'feriado' || plantonistaHoje?.turno === 'Feriado' ? (
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                            Recesso / Fechado Hoje ({today.toLocaleDateString('pt-BR')})
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Plantonista de Hoje ({today.toLocaleDateString('pt-BR')})
+                          </span>
+                        )}
                       </div>
-                      <h3 className="text-base sm:text-lg font-black text-white mt-1">
+                      <h3 className={`text-base sm:text-lg font-black mt-1 ${
+                        plantonistaHoje?.tipo === 'feriado' || plantonistaHoje?.turno === 'Feriado'
+                          ? 'text-amber-300 line-through decoration-amber-400/80'
+                          : 'text-white'
+                      }`}>
                         {plantonistaHoje ? plantonistaHoje.nome : 'Sem especialista escalado para hoje'}
                       </h3>
                       <p className="text-xs text-slate-300">
-                        {especialistaHoje ? especialistaHoje.cargo : 'Consulte a programação do mês abaixo'}
+                        {plantonistaHoje?.tipo === 'feriado' || plantonistaHoje?.turno === 'Feriado'
+                          ? 'Espaço Fechado / Sem plantão presencial'
+                          : especialistaHoje ? especialistaHoje.cargo : 'Consulte a programação do mês abaixo'}
                       </p>
                     </div>
                   </div>
@@ -1360,10 +1634,16 @@
                   {plantonistaHoje && (
                     <div className="bg-white/10 rounded-xl p-3 border border-white/15 flex flex-wrap items-center gap-3 sm:gap-4 text-xs shrink-0 justify-center">
                       <div className="text-left">
-                        <span className="text-[10px] uppercase text-totvs-cyan font-extrabold block">Horário</span>
-                        <span className="font-bold text-white">{plantonistaHoje.turno || '09:00 - 18:00'}</span>
+                        <span className="text-[10px] uppercase text-totvs-cyan font-extrabold block">
+                          {plantonistaHoje.tipo === 'feriado' || plantonistaHoje.turno === 'Feriado' ? 'Status' : 'Horário'}
+                        </span>
+                        <span className="font-bold text-white">
+                          {plantonistaHoje.tipo === 'feriado' || plantonistaHoje.turno === 'Feriado'
+                            ? (plantonistaHoje.status_rotulo || 'Recesso')
+                            : (plantonistaHoje.turno || '08:00 as 17:30')}
+                        </span>
                       </div>
-                      {especialistaHoje?.ramal && (
+                      {!(plantonistaHoje.tipo === 'feriado' || plantonistaHoje.turno === 'Feriado') && especialistaHoje?.ramal && (
                         <div className="text-left border-l border-white/20 pl-3">
                           <span className="text-[10px] uppercase text-totvs-cyan font-extrabold block">Ramal</span>
                           <span className="font-bold text-white flex items-center gap-1">
@@ -1372,7 +1652,7 @@
                           </span>
                         </div>
                       )}
-                      {especialistaHoje?.estacao_foco && (
+                      {!(plantonistaHoje.tipo === 'feriado' || plantonistaHoje.turno === 'Feriado') && especialistaHoje?.estacao_foco && (
                         <div className="text-left border-l border-white/20 pl-3 hidden md:block">
                           <span className="text-[10px] uppercase text-totvs-cyan font-extrabold block">Foco</span>
                           <span className="font-bold text-slate-200 text-[11px] truncate max-w-[140px] block">{especialistaHoje.estacao_foco}</span>
@@ -1407,7 +1687,7 @@
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={handleGoToday}
@@ -1416,10 +1696,28 @@
                     Ir para Hoje
                   </button>
                   {admLogado && (
-                    <span className="text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
-                      <Icons.Shield />
-                      <span>Modo Edição Ativo (Clique no dia para alterar)</span>
-                    </span>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-totvs-blue to-totvs-vibrant hover:from-totvs-dark hover:to-totvs-blue text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                        title={`Importar escala anual a partir da planilha oficial TOTVS para o ano de ${viewYear}`}
+                      >
+                        <Icons.FileSpreadsheet />
+                        <span>Importar Escala {viewYear} (.xlsx)</span>
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".xlsx, .xls, .csv"
+                        className="hidden"
+                        onChange={handleFileSelected}
+                      />
+                      <span className="text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
+                        <Icons.Shield />
+                        <span>Modo Edição Ativo</span>
+                      </span>
+                    </>
                   )}
                 </div>
               </div>
@@ -1478,21 +1776,34 @@
                         {/* Conteúdo do Plantão */}
                         <div className="mt-1">
                           {escalaDoDia ? (
-                            <div
-                              className={`p-1 rounded-md text-[10px] leading-tight font-bold border ${
-                                escalaDoDia.turno === 'Feriado'
-                                  ? 'bg-amber-50 text-amber-900 border-amber-200'
-                                  : isToday
-                                  ? 'bg-totvs-blue text-white border-totvs-blue shadow-xs'
-                                  : 'bg-blue-50 text-totvs-blue border-blue-200'
-                              }`}
-                              title={`${escalaDoDia.nome} • ${escalaDoDia.turno || '09:00 - 18:00'}${escalaDoDia.observacoes ? ` (${escalaDoDia.observacoes})` : ''}`}
-                            >
-                              <p className="truncate">{escalaDoDia.nome}</p>
-                              <span className="text-[8.5px] opacity-80 block truncate">
-                                {escalaDoDia.turno}
-                              </span>
-                            </div>
+                            escalaDoDia.tipo === 'feriado' || escalaDoDia.turno === 'Feriado' ? (
+                              <div
+                                className="p-1 rounded-md text-[9.5px] leading-tight font-bold bg-amber-50/90 text-amber-950 border border-amber-300 ring-1 ring-amber-300/40 shadow-2xs"
+                                title={`${escalaDoDia.status_rotulo || escalaDoDia.nome} • Espaço Fechado / Recesso`}
+                              >
+                                <p className="truncate line-through decoration-amber-600/80 decoration-1 font-black">
+                                  {escalaDoDia.status_rotulo || escalaDoDia.nome}
+                                </p>
+                                <span className="text-[8px] uppercase tracking-wider text-amber-700/90 font-extrabold flex items-center gap-1 mt-0.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                                  Recesso
+                                </span>
+                              </div>
+                            ) : (
+                              <div
+                                className={`p-1 rounded-md text-[10px] leading-tight font-bold border transition ${
+                                  isToday
+                                    ? 'bg-totvs-blue text-white border-totvs-blue shadow-xs'
+                                    : 'bg-blue-50 text-totvs-blue border-blue-200 hover:bg-blue-100/60'
+                                }`}
+                                title={`${escalaDoDia.nome} • ${escalaDoDia.turno || '08:00 as 17:30'}${escalaDoDia.observacoes ? ` (${escalaDoDia.observacoes})` : ''}`}
+                              >
+                                <p className="truncate">{escalaDoDia.nome}</p>
+                                <span className="text-[8.5px] opacity-80 block truncate font-medium">
+                                  {escalaDoDia.turno || '08:00 as 17:30'}
+                                </span>
+                              </div>
+                            )
                           ) : isWeekend ? (
                             <span className="text-[9px] text-slate-300 italic block">
                               Final de semana
@@ -1541,7 +1852,7 @@
                       type="text"
                       value={customTurno}
                       onChange={(e) => setCustomTurno(e.target.value)}
-                      placeholder="09:00 - 18:00"
+                      placeholder="08:00 as 17:30"
                       className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-2 focus:ring-2 focus:ring-totvs-cyan"
                     />
                   </div>
@@ -1593,6 +1904,139 @@
                 Fechar
               </button>
             </div>
+
+            {/* MODAL DE PRÉ-VISUALIZAÇÃO DA IMPORTAÇÃO EXCEL */}
+            {importPreview && (
+              <div className="fixed inset-0 z-60 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-150">
+                <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+                  {/* Cabeçalho */}
+                  <div className="bg-gradient-to-r from-totvs-dark via-totvs-cardDark to-totvs-blue text-white p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-totvs-cyan border border-white/20">
+                        <Icons.FileSpreadsheet />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-black text-white">Prévia da Importação da Escala {importPreview.ano}</h3>
+                        <p className="text-xs text-slate-300">Aba detectada: <span className="font-mono text-totvs-cyan font-bold">{importPreview.sheetName}</span> • Arquivo: <span className="text-white font-medium">{importPreview.nomeArquivo}</span></p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setImportPreview(null)}
+                      className="p-1.5 text-slate-300 hover:text-white rounded-xl hover:bg-white/10 transition cursor-pointer"
+                      title="Fechar prévia"
+                    >
+                      <Icons.X />
+                    </button>
+                  </div>
+
+                  {/* Conteúdo */}
+                  <div className="p-5 space-y-4 overflow-y-auto flex-1 bg-slate-50 text-slate-800">
+                    {/* Cards de Métricas */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Total de Datas</span>
+                        <span className="text-xl font-black text-totvs-blue">{importPreview.totalDias}</span>
+                      </div>
+                      <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Plantões Normais</span>
+                        <span className="text-xl font-black text-emerald-600">{importPreview.totalNormais}</span>
+                      </div>
+                      <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Feriados / Recessos</span>
+                        <span className="text-xl font-black text-amber-600">{importPreview.totalFeriados}</span>
+                      </div>
+                      <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Novos Especialistas</span>
+                        <span className="text-xl font-black text-totvs-cyan">{importPreview.novosEspecialistas.length}</span>
+                      </div>
+                    </div>
+
+                    {/* Resumo de Regras */}
+                    <div className="p-3 bg-blue-50/80 rounded-2xl border border-blue-200/80 text-xs text-slate-700 space-y-1">
+                      <div className="flex items-center gap-1.5 font-bold text-totvs-blue">
+                        <Icons.CheckCircle />
+                        <span>Padrão de Importação Validado</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600">
+                        • Horário padronizado: <strong className="text-slate-900">08:00 as 17:30</strong> para todos os plantões normais.<br />
+                        • Feriados/Pontes receberão tarja âmbar com tachado discreto sobre o status.<br />
+                        • Observações/Foco mantidos vazios para preenchimento manual conforme necessário.
+                      </p>
+                    </div>
+
+                    {/* Tabela de Amostra */}
+                    <div className="space-y-1.5">
+                      <span className="text-xs font-bold text-slate-700 block">Amostra dos Primeiros Registros Identificados:</span>
+                      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+                        <table className="w-full text-[11px] text-left">
+                          <thead className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                            <tr>
+                              <th className="py-2 px-3">Data</th>
+                              <th className="py-2 px-3">Dia</th>
+                              <th className="py-2 px-3">Especialista / Status</th>
+                              <th className="py-2 px-3">Tipo / Horário</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {importPreview.amostra.map((item, idx) => (
+                              <tr key={idx} className={item.tipo === 'feriado' ? 'bg-amber-50/40' : ''}>
+                                <td className="py-2 px-3 font-mono font-bold text-slate-700">{item.data}</td>
+                                <td className="py-2 px-3 text-slate-500">{item.diaSemana}</td>
+                                <td className="py-2 px-3 font-bold text-slate-900">
+                                  {item.tipo === 'feriado' ? (
+                                    <span className="line-through decoration-amber-600 text-amber-900 font-bold">{item.nome}</span>
+                                  ) : (
+                                    <span>{item.nome} {item.segmento ? <span className="text-[9.5px] font-normal text-slate-500">({item.segmento})</span> : null}</span>
+                                  )}
+                                </td>
+                                <td className="py-2 px-3">
+                                  {item.tipo === 'feriado' ? (
+                                    <span className="px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Feriado</span>
+                                  ) : (
+                                    <span className="text-slate-600 font-medium">{item.turno}</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rodapé / Ações */}
+                  <div className="p-4 bg-white border-t border-slate-200 flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setImportPreview(null)}
+                      disabled={importandoLote}
+                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleConfirmarImportacao}
+                      disabled={importandoLote}
+                      className="px-5 py-2 rounded-xl bg-gradient-to-r from-totvs-blue to-totvs-vibrant hover:opacity-90 text-white font-black text-xs transition cursor-pointer flex items-center gap-2 shadow-md"
+                    >
+                      {importandoLote ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Gravando Escala...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icons.Check />
+                          <span>Confirmar e Gravar Escala {importPreview.ano}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
           </div>
         </div>
