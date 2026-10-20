@@ -961,9 +961,9 @@ const server = http.createServer(async (req, res) => {
       if (!empresa) {
         return sendJson(res, { success: false, message: 'O nome da empresa ou instituição visitante é obrigatório.' }, 400);
       }
-      const tiposValidos = ['cliente', 'prospect', 'visitante_externo'];
+      const tiposValidos = ['cliente', 'prospect', 'visitante_externo', 'visitante_interno'];
       if (!tipoVisitante || !tiposValidos.includes(tipoVisitante)) {
-        return sendJson(res, { success: false, message: 'A classificação do visitante (Cliente, Prospect ou Visitante externo) é obrigatória.' }, 400);
+        return sendJson(res, { success: false, message: 'A classificação do visitante (Cliente, Prospect ou Visitante Interno) é obrigatória.' }, 400);
       }
       if (isNaN(numPessoasRaw) || numPessoasRaw < 1) {
         return sendJson(res, { success: false, message: 'O número de pessoas é obrigatório e deve ser no mínimo 1.' }, 400);

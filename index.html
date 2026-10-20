@@ -5068,7 +5068,7 @@
           return;
         }
         if (!tipoVisitante) {
-          alert('Por favor, selecione a Classificação do Visitante (Cliente, Prospect ou Visitante externo).');
+          alert('Por favor, selecione a Classificação do Visitante (Cliente, Prospect ou Visitante Interno).');
           return;
         }
         const qtd = parseInt(numeroPessoas, 10);
@@ -5205,7 +5205,7 @@
                   />
                 </div>
 
-                {/* Campo Classificação do Visitante (Cliente, Prospect, Visitante externo) */}
+                {/* Campo Classificação do Visitante (Cliente, Prospect, Visitante Interno) */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
@@ -5245,15 +5245,15 @@
 
                     <button
                       type="button"
-                      onClick={() => setTipoVisitante('visitante_externo')}
+                      onClick={() => setTipoVisitante('visitante_interno')}
                       className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
-                        tipoVisitante === 'visitante_externo'
+                        (tipoVisitante === 'visitante_interno' || tipoVisitante === 'visitante_externo')
                           ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm ring-2 ring-indigo-500/30 scale-101'
                           : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-800'
                       }`}
                     >
                       <span className="text-sm">🌐</span>
-                      <span className="text-[11px] sm:text-xs truncate">Visitante ext.</span>
+                      <span className="text-[11px] sm:text-xs truncate">Visitante Interno</span>
                     </button>
                   </div>
                 </div>
@@ -7146,9 +7146,9 @@
                                         <span>🎯 Prospect</span>
                                       </span>
                                     )}
-                                    {vis.tipo_visitante === 'visitante_externo' && (
+                                    {(vis.tipo_visitante === 'visitante_externo' || vis.tipo_visitante === 'visitante_interno') && (
                                       <span className="text-[10px] font-extrabold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200 flex items-center gap-1">
-                                        <span>🌐 Visitante ext.</span>
+                                        <span>🌐 Visitante Interno</span>
                                       </span>
                                     )}
                                     <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">
