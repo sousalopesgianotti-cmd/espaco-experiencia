@@ -8184,7 +8184,12 @@
                                       🎯 PMM (Gestão)
                                     </span>
                                   )}
-                                  {!isDono && adm.perfil !== 'pmm' && (
+                                  {!isDono && adm.perfil === 'especialista' && (
+                                    <span className="text-[10px] bg-purple-50 text-purple-700 font-bold px-2 py-0.5 rounded-full border border-purple-200 flex items-center gap-1">
+                                      🌟 Especialista
+                                    </span>
+                                  )}
+                                  {!isDono && adm.perfil !== 'pmm' && adm.perfil !== 'especialista' && (
                                     <span className="text-[10px] bg-blue-50 text-totvs-blue font-bold px-2 py-0.5 rounded-full border border-blue-200 flex items-center gap-1">
                                       🛡️ ADM Ativo
                                     </span>
@@ -8214,7 +8219,7 @@
                                   title="Remover este administrador"
                                 >
                                   <Icons.Trash />
-                                  <span>{deletingId === adm.id ? 'Removendo...' : 'Excluir ADM'}</span>
+                                  <span>{deletingId === adm.id ? 'Removendo...' : (adm.perfil === 'especialista' ? 'Excluir Especialista' : (adm.perfil === 'pmm' ? 'Excluir PMM' : 'Excluir ADM'))}</span>
                                 </button>
                               ) : !admLogado?.dono_produto ? (
                                 <span className="text-[11px] text-slate-400 bg-slate-50 px-2.5 py-1 rounded-xl">
