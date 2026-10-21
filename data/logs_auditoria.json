@@ -1,5 +1,57 @@
 [
   {
+    "id": "aud-1792552568284",
+    "analista_nome": "Renato Engelmann",
+    "analista_email": "renato.engelmann@totvs.com.br",
+    "perfil": "adm",
+    "segmento_id": "seguranca",
+    "segmento_nome": "Autenticação",
+    "acao": "Atualização de Senha",
+    "data_formatada": "21/10/2026",
+    "horario_formatado": "00:16:08",
+    "timestamp": 1792552568284,
+    "detalhes": "O usuário \"Renato Engelmann\" (renato.engelmann@totvs.com.br) atualizou sua senha com sucesso."
+  },
+  {
+    "id": "aud-1792552568265",
+    "analista_nome": "André Gianotti",
+    "analista_email": "andre.gianotti@totvs.com.br",
+    "perfil": "adm",
+    "segmento_id": "usuarios",
+    "segmento_nome": "Gestão de Perfis",
+    "acao": "Reset de Senha de Perfil",
+    "data_formatada": "21/10/2026",
+    "horario_formatado": "00:16:08",
+    "timestamp": 1792552568265,
+    "detalhes": "A senha de \"Renato Engelmann\" (renato.engelmann@totvs.com.br) foi resetada para a senha padrão inicial (totvs123) por André Gianotti. Troca obrigatória no próximo login."
+  },
+  {
+    "id": "aud-1792552568256",
+    "analista_nome": "André Gianotti",
+    "analista_email": "andre.gianotti@totvs.com.br",
+    "perfil": "adm",
+    "segmento_id": "usuarios",
+    "segmento_nome": "Gestão de Perfis",
+    "acao": "Reativação de Perfil",
+    "data_formatada": "21/10/2026",
+    "horario_formatado": "00:16:08",
+    "timestamp": 1792552568256,
+    "detalhes": "O perfil de \"Renato Engelmann\" (renato.engelmann@totvs.com.br - adm) foi REATIVADO por André Gianotti."
+  },
+  {
+    "id": "aud-1792552568217",
+    "analista_nome": "André Gianotti",
+    "analista_email": "andre.gianotti@totvs.com.br",
+    "perfil": "adm",
+    "segmento_id": "usuarios",
+    "segmento_nome": "Gestão de Perfis",
+    "acao": "Desativação Temporária de Perfil",
+    "data_formatada": "21/10/2026",
+    "horario_formatado": "00:16:08",
+    "timestamp": 1792552568239,
+    "detalhes": "O perfil de \"Renato Engelmann\" (renato.engelmann@totvs.com.br - adm) foi DESATIVADO por André Gianotti."
+  },
+  {
     "id": "aud-1792523535074",
     "analista_nome": "André Gianotti",
     "analista_email": "andre.gianotti@totvs.com.br",
@@ -10,54 +62,5 @@
     "horario_formatado": "16:12:15",
     "timestamp": 1792523535103,
     "detalhes": "Importação da escala do ano 2026: 250 datas processadas por André Gianotti."
-  },
-  {
-    "id": "aud-1792064095719",
-    "analista_nome": "Juliana PMM Auditoria",
-    "analista_email": "auditoria.pmm.1792064095524@totvs.com.br",
-    "perfil": "pmm",
-    "segmento_id": "totvs_agro",
-    "segmento_nome": "",
-    "acao": "Edição de estação por PMM",
-    "data_formatada": "15/10/2026",
-    "horario_formatado": "08:34:55",
-    "timestamp": 1792064095719,
-    "detalhes": "Edição de discurso realizada por PMM para validação de auditoria."
-  },
-  {
-    "id": "aud-1791317340544",
-    "analista_nome": "Administrador TOTVS",
-    "analista_email": "adm@totvs.com.br",
-    "segmento_id": "video-gestao",
-    "segmento_nome": "Vídeo da Gestão",
-    "acao": "Exclusão do vídeo institucional",
-    "data_formatada": "06/10/2026",
-    "horario_formatado": "17:09:00",
-    "timestamp": 1791317340545,
-    "detalhes": "Vídeo \"Totvs Espaço Experiência.mov\" excluído do servidor pelo administrador."
-  },
-  {
-    "id": "aud-1791227270750",
-    "analista_nome": "André Gianotti",
-    "analista_email": "andre.gianotti@totvs.com.br",
-    "segmento_id": "totvs_rm_clinicas",
-    "segmento_nome": "TOTVS RM Clínicas",
-    "acao": "Edição do card com validação manual",
-    "data_formatada": "05/10/2026",
-    "horario_formatado": "16:07:50",
-    "timestamp": 1791227270750,
-    "detalhes": "Atualização de conteúdo realizada por André Gianotti."
-  },
-  {
-    "id": "aud-1791227244771",
-    "analista_nome": "André Gianotti",
-    "analista_email": "andre.gianotti@totvs.com.br",
-    "segmento_id": "totvs_consinco",
-    "segmento_nome": "Loja TOTVS Consinco",
-    "acao": "Edição do card com validação manual",
-    "data_formatada": "05/10/2026",
-    "horario_formatado": "16:07:24",
-    "timestamp": 1791227244771,
-    "detalhes": "Atualização de conteúdo realizada por André Gianotti."
   }
 ]

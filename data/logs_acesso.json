@@ -1,5 +1,17 @@
 [
   {
+    "id": "acc-1792552568273",
+    "tipo": "Login de Administrador",
+    "usuario": "Renato Engelmann",
+    "email": "renato.engelmann@totvs.com.br",
+    "perfil": "adm",
+    "ip_dispositivo": "node",
+    "data_formatada": "21/10/2026",
+    "horario_formatado": "00:16:08",
+    "timestamp": 1792552568273,
+    "acao": "Autenticação de Administrador no Painel"
+  },
+  {
     "id": "acc-1792064095732",
     "tipo": "Login de Administrador",
     "usuario": "André Gianotti",

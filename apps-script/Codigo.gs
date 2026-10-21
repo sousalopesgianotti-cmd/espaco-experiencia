@@ -47,6 +47,10 @@ function autenticarUsuario(email, senha) {
           var cargoStr = String(row[3] || "Administrador");
           var isDono = String(row[5]) === "true";
           var perfilVal = String(row[9] || (isDono ? "adm" : (cargoStr.toLowerCase().indexOf("especialista") >= 0 ? "especialista" : (cargoStr.toLowerCase().indexOf("pmm") >= 0 ? "pmm" : "adm"))));
+          var isAtivo = row[10] === undefined || row[10] === "" || String(row[10]).toLowerCase() === "true";
+          if (!isAtivo) {
+            return { success: false, message: "Acesso temporariamente desativado. Entre em contato com um Administrador do Espaço Experiência TOTVS." };
+          }
           var u = {
             id: String(row[0]),
             email: String(row[1]),
@@ -55,6 +59,7 @@ function autenticarUsuario(email, senha) {
             perfil: perfilVal,
             tipo: "administrador",
             dono_produto: isDono,
+            ativo: isAtivo,
             precisa_trocar_senha: String(row[6]) === "true",
             foto: String(row[7] || "")
           };
@@ -130,6 +135,7 @@ function carregarUsuarios(ss) {
       var r = dados[i];
       if (!r[0]) continue;
       if (String(r[1]).toLowerCase().trim() === "andre.gianotti@totvs.com.br") continue;
+      var isAtivo = r[10] === undefined || r[10] === "" || String(r[10]).toLowerCase() === "true";
       usuarios.push({
         id: String(r[0]),
         email: String(r[1]),
@@ -137,9 +143,11 @@ function carregarUsuarios(ss) {
         cargo: String(r[3] || "Administrador"),
         dono_produto: String(r[5]) === "true",
         tipo: "administrador",
-        ativo: true,
+        ativo: isAtivo,
+        precisa_trocar_senha: String(r[6]) === "true",
         foto: String(r[7] || ""),
-        criado_em: String(r[8] || "")
+        criado_em: String(r[8] || ""),
+        perfil: String(r[9] || "adm")
       });
     }
   } catch(e) {}
@@ -4188,5 +4196,128 @@ function salvarAvatarAdmin(email, base64Data) {
     return { success: true, usuario: usuarioAtualizado };
   } catch(e) {
     return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Alterna o status (Ativo / Desativado) de um perfil na planilha Google
+ */
+function alternarStatusUsuario(id, email, autorEmail, autorNome) {
+  try {
+    var emailLimpo = String(email || "").toLowerCase().trim();
+    if (emailLimpo === "andre.gianotti@totvs.com.br") {
+      return { success: false, message: "Ação bloqueada: O Dono do Produto possui imunidade e não pode ser desativado." };
+    }
+    if (emailLimpo === String(autorEmail || "").toLowerCase().trim()) {
+      return { success: false, message: "Operação não permitida: Você não pode desativar a sua própria conta em uso." };
+    }
+
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Usuarios");
+    if (!aba) return { success: false, message: "Aba de usuários não encontrada." };
+
+    var dados = aba.getDataRange().getValues();
+    for (var i = 1; i < dados.length; i++) {
+      if (String(dados[i][0]) === String(id) || String(dados[i][1]).toLowerCase().trim() === emailLimpo) {
+        var statusAtual = dados[i][10] === undefined || dados[i][10] === "" || String(dados[i][10]).toLowerCase() === "true";
+        var novoStatus = !statusAtual;
+        aba.getRange(i + 1, 11).setValue(novoStatus);
+        
+        var nomeAlvo = String(dados[i][2]);
+        registrarLogAcesso(autorNome || "Administrador", "Status do perfil (" + nomeAlvo + ") alterado para: " + (novoStatus ? "Ativo" : "Desativado"), autorEmail || "", "adm");
+        return {
+          success: true,
+          message: "Perfil de \"" + nomeAlvo + "\" foi " + (novoStatus ? "reativado" : "desativado") + " com sucesso!",
+          ativo: novoStatus
+        };
+      }
+    }
+    return { success: false, message: "Perfil não encontrado na planilha." };
+  } catch(e) {
+    return { success: false, message: e.message };
+  }
+}
+
+/**
+ * Reseta a senha de um perfil para 'totvs123' na planilha Google com troca obrigatória
+ */
+function resetarSenhaUsuario(id, email, autorEmail, autorNome) {
+  try {
+    var emailLimpo = String(email || "").toLowerCase().trim();
+    if (emailLimpo === "andre.gianotti@totvs.com.br") {
+      return { success: false, message: "Ação bloqueada: A senha do Dono do Produto possui imunidade e não pode ser redefinida por terceiros." };
+    }
+
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Usuarios");
+    if (!aba) return { success: false, message: "Aba de usuários não encontrada." };
+
+    var dados = aba.getDataRange().getValues();
+    for (var i = 1; i < dados.length; i++) {
+      if (String(dados[i][0]) === String(id) || String(dados[i][1]).toLowerCase().trim() === emailLimpo) {
+        aba.getRange(i + 1, 5).setValue("totvs123");
+        aba.getRange(i + 1, 7).setValue(true); // PrecisaTrocarSenha = true
+        
+        var nomeAlvo = String(dados[i][2]);
+        registrarLogAcesso(autorNome || "Administrador", "Reset de senha do perfil (" + nomeAlvo + ") para totvs123 com troca obrigatória.", autorEmail || "", "adm");
+        return {
+          success: true,
+          message: "Senha de \"" + nomeAlvo + "\" redefinida para a inicial padrão (totvs123) com sucesso!",
+          senhaPadrao: "totvs123"
+        };
+      }
+    }
+    return { success: false, message: "Perfil não encontrado na planilha." };
+  } catch(e) {
+    return { success: false, message: e.message };
+  }
+}
+
+/**
+ * Cadastra uma nova senha definitiva e remove a flag PrecisaTrocarSenha
+ */
+function definirNovaSenhaObrigatoria(email, novaSenha) {
+  try {
+    var emailLimpo = String(email || "").toLowerCase().trim();
+    var senhaLimpa = String(novaSenha || "").trim();
+
+    if (!emailLimpo || !senhaLimpa) {
+      return { success: false, message: "E-mail e nova senha são obrigatórios." };
+    }
+    if (senhaLimpa.length < 6 || !/[a-zA-Z]/.test(senhaLimpa) || !/[0-9]/.test(senhaLimpa)) {
+      return { success: false, message: "A nova senha deve possuir no mínimo 6 caracteres e conter letras e números." };
+    }
+
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Usuarios");
+    if (!aba) return { success: false, message: "Aba de usuários não encontrada." };
+
+    var dados = aba.getDataRange().getValues();
+    for (var i = 1; i < dados.length; i++) {
+      if (String(dados[i][1]).toLowerCase().trim() === emailLimpo) {
+        aba.getRange(i + 1, 5).setValue(senhaLimpa);
+        aba.getRange(i + 1, 7).setValue(false); // PrecisaTrocarSenha = false
+        var nomeAlvo = String(dados[i][2]);
+        registrarLogAcesso(nomeAlvo, "Nova senha pessoal cadastrada com sucesso após reset.", emailLimpo, String(dados[i][9] || "adm"));
+        return {
+          success: true,
+          message: "Nova senha cadastrada com sucesso!",
+          usuario: {
+            id: String(dados[i][0]),
+            email: emailLimpo,
+            nome: nomeAlvo,
+            cargo: String(dados[i][3] || "Administrador"),
+            tipo: "administrador",
+            dono_produto: String(dados[i][5]) === "true",
+            precisa_trocar_senha: false,
+            foto: String(dados[i][7] || ""),
+            perfil: String(dados[i][9] || "adm")
+          }
+        };
+      }
+    }
+    return { success: false, message: "Usuário não encontrado na base corporativa." };
+  } catch(e) {
+    return { success: false, message: e.message };
   }
 }

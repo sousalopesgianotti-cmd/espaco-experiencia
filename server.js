@@ -485,6 +485,14 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, { success: false, message: 'E-mail ou senha incorretos.' }, 401);
       }
 
+      // 5.1 Validação de bloqueio de perfil desativado
+      if (adm.ativo === false) {
+        return sendJson(res, {
+          success: false,
+          message: 'Acesso temporariamente desativado. Entre em contato com um Administrador do Espaço Experiência TOTVS.'
+        }, 403);
+      }
+
       const isDono = adm.dono_produto === true || adm.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br';
       const perfil = adm.perfil || (isDono ? 'adm' : (adm.cargo && adm.cargo.toLowerCase().includes('pmm') ? 'pmm' : (adm.cargo && adm.cargo.toLowerCase().includes('especialista') ? 'especialista' : 'adm')));
 
@@ -519,7 +527,9 @@ const server = http.createServer(async (req, res) => {
           perfil: perfil,
           cargo: adm.cargo || (isDono ? 'Dono do Produto' : (perfil === 'pmm' ? 'PMM (Gestor de Segmento)' : (perfil === 'especialista' ? 'Especialista do Espaço Experiência' : 'Administrador'))),
           dono_produto: isDono,
-          foto: adm.foto || ''
+          foto: adm.foto || '',
+          ativo: adm.ativo !== false,
+          precisa_trocar_senha: adm.precisa_trocar_senha === true
         }
       });
     }
@@ -706,7 +716,7 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    // 10. GET /api/admin/users & /api/usuarios (Lista de ADMs)
+    // 10. GET /api/admin/users & /api/usuarios (Lista de Perfis Cadastrados)
     if ((pathname === '/api/admin/users' || pathname === '/api/usuarios') && method === 'GET') {
       const usuarios = readJsonFile(path.join(DATA_DIR, 'usuarios.json'), []);
       const lista = Array.isArray(usuarios) ? usuarios : [usuarios];
@@ -718,12 +728,14 @@ const server = http.createServer(async (req, res) => {
         cargo: u.cargo || (u.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br' ? 'Dono do Produto' : (u.perfil === 'pmm' ? 'PMM' : 'Administrador')),
         dono_produto: u.dono_produto === true || u.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br',
         foto: u.foto || '',
+        ativo: u.ativo !== false,
+        precisa_trocar_senha: u.precisa_trocar_senha === true,
         criado_em: u.criado_em
       }));
       return sendJson(res, listaSegura);
     }
 
-    // 11. DELETE /api/admin/users/:id & /api/usuarios/:id (Remover ADM com proteção do Dono do Produto)
+    // 11. DELETE /api/admin/users/:id & /api/usuarios/:id (Remover perfil com proteção do Dono do Produto)
     const delMatch = pathname.match(/^\/api\/(?:admin\/users|usuarios)\/([^/]+)$/);
     if (delMatch && method === 'DELETE') {
       const usrId = delMatch[1];
@@ -733,7 +745,7 @@ const server = http.createServer(async (req, res) => {
 
       const alvo = usuarios.find(u => u.id === usrId);
       if (!alvo) {
-        return sendJson(res, { success: false, message: 'Administrador não encontrado.' }, 404);
+        return sendJson(res, { success: false, message: 'Perfil não encontrado.' }, 404);
       }
 
       // Proteção absoluta do Dono do Produto (andre.gianotti@totvs.com.br)
@@ -747,7 +759,151 @@ const server = http.createServer(async (req, res) => {
 
       usuarios = usuarios.filter(u => u.id !== usrId);
       writeJsonFile(usrFile, usuarios);
-      return sendJson(res, { success: true, message: 'Administrador removido com sucesso.' });
+
+      // Registrar auditoria da exclusão
+      try {
+        const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+        let logs = readJsonFile(auditFile, []);
+        if (!Array.isArray(logs)) logs = [];
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: 'Administrador TOTVS',
+          analista_email: 'adm@totvs.com.br',
+          perfil: 'adm',
+          segmento_id: 'usuarios',
+          segmento_nome: 'Gestão de Perfis',
+          acao: 'Exclusão de Perfil',
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `O perfil de "${alvo.nome}" (${alvo.email} - ${alvo.perfil || 'adm'}) foi excluído do sistema.`
+        });
+        writeJsonFile(auditFile, logs);
+      } catch (eAudit) {}
+
+      return sendJson(res, { success: true, message: 'Perfil removido com sucesso.' });
+    }
+
+    // 11.2 POST /api/admin/users/:id/toggle-status (Ativar / Desativar Perfil)
+    const toggleStatusMatch = pathname.match(/^\/api\/admin\/users\/([^/]+)\/toggle-status$/);
+    if (toggleStatusMatch && method === 'POST') {
+      const usrId = toggleStatusMatch[1];
+      const body = await readBodyJson(req);
+      const autorEmail = (body.autorEmail || '').toLowerCase().trim();
+      const autorNome = body.autorNome || 'Administrador';
+
+      const usrFile = path.join(DATA_DIR, 'usuarios.json');
+      let usuarios = readJsonFile(usrFile, []);
+      if (!Array.isArray(usuarios)) usuarios = [usuarios];
+
+      const userIdx = usuarios.findIndex(u => u.id === usrId);
+      if (userIdx === -1) {
+        return sendJson(res, { success: false, message: 'Perfil não encontrado.' }, 404);
+      }
+
+      const alvo = usuarios[userIdx];
+      const isDono = alvo.dono_produto === true || alvo.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br';
+
+      if (isDono) {
+        return sendJson(res, { success: false, message: 'Ação bloqueada: O Dono do Produto possui imunidade e não pode ser desativado.' }, 403);
+      }
+
+      if (alvo.email.toLowerCase().trim() === autorEmail) {
+        return sendJson(res, { success: false, message: 'Operação não permitida: Você não pode desativar a sua própria conta em uso.' }, 400);
+      }
+
+      const novoStatus = !(alvo.ativo !== false);
+      usuarios[userIdx].ativo = novoStatus;
+      writeJsonFile(usrFile, usuarios);
+
+      // Registrar auditoria
+      try {
+        const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+        let logs = readJsonFile(auditFile, []);
+        if (!Array.isArray(logs)) logs = [];
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: autorNome,
+          analista_email: autorEmail || 'adm@totvs.com.br',
+          perfil: 'adm',
+          segmento_id: 'usuarios',
+          segmento_nome: 'Gestão de Perfis',
+          acao: novoStatus ? 'Reativação de Perfil' : 'Desativação Temporária de Perfil',
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `O perfil de "${alvo.nome}" (${alvo.email} - ${alvo.perfil || 'adm'}) foi ${novoStatus ? 'REATIVADO' : 'DESATIVADO'} por ${autorNome}.`
+        });
+        writeJsonFile(auditFile, logs);
+      } catch (eAudit) {
+        console.warn('Erro ao registrar log de auditoria no toggle-status:', eAudit);
+      }
+
+      return sendJson(res, {
+        success: true,
+        message: `Perfil de "${alvo.nome}" foi ${novoStatus ? 'reativado' : 'desativado'} com sucesso!`,
+        ativo: novoStatus,
+        usuarioId: alvo.id
+      });
+    }
+
+    // 11.3 POST /api/admin/users/:id/reset-password (Resetar Senha para padrão 'totvs123' com troca obrigatória)
+    const resetPassMatch = pathname.match(/^\/api\/admin\/users\/([^/]+)\/reset-password$/);
+    if (resetPassMatch && method === 'POST') {
+      const usrId = resetPassMatch[1];
+      const body = await readBodyJson(req);
+      const autorEmail = (body.autorEmail || '').toLowerCase().trim();
+      const autorNome = body.autorNome || 'Administrador';
+
+      const usrFile = path.join(DATA_DIR, 'usuarios.json');
+      let usuarios = readJsonFile(usrFile, []);
+      if (!Array.isArray(usuarios)) usuarios = [usuarios];
+
+      const userIdx = usuarios.findIndex(u => u.id === usrId);
+      if (userIdx === -1) {
+        return sendJson(res, { success: false, message: 'Perfil não encontrado.' }, 404);
+      }
+
+      const alvo = usuarios[userIdx];
+      const isDono = alvo.dono_produto === true || alvo.email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br';
+
+      if (isDono) {
+        return sendJson(res, { success: false, message: 'Ação bloqueada: A senha do Dono do Produto possui imunidade e não pode ser redefinida por terceiros.' }, 403);
+      }
+
+      usuarios[userIdx].senha = 'totvs123';
+      usuarios[userIdx].precisa_trocar_senha = true;
+      writeJsonFile(usrFile, usuarios);
+
+      // Registrar auditoria
+      try {
+        const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+        let logs = readJsonFile(auditFile, []);
+        if (!Array.isArray(logs)) logs = [];
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: autorNome,
+          analista_email: autorEmail || 'adm@totvs.com.br',
+          perfil: 'adm',
+          segmento_id: 'usuarios',
+          segmento_nome: 'Gestão de Perfis',
+          acao: 'Reset de Senha de Perfil',
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `A senha de "${alvo.nome}" (${alvo.email}) foi resetada para a senha padrão inicial (totvs123) por ${autorNome}. Troca obrigatória no próximo login.`
+        });
+        writeJsonFile(auditFile, logs);
+      } catch (eAudit) {
+        console.warn('Erro ao registrar log de auditoria no reset-password:', eAudit);
+      }
+
+      return sendJson(res, {
+        success: true,
+        message: `Senha de "${alvo.nome}" redefinida para a inicial padrão (totvs123) com sucesso!`,
+        senhaPadrao: 'totvs123',
+        usuarioId: alvo.id
+      });
     }
 
     // 11.1 POST /api/admin/avatar (Atualizar Foto de Perfil do Administrador)
@@ -787,8 +943,8 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    // 11.2 POST /api/admin/password (Alterar Própria Senha)
-    if (pathname === '/api/admin/password' && method === 'POST') {
+    // 11.4 POST /api/admin/password & /api/auth/definir-nova-senha (Alterar Própria Senha / Definir Nova Senha Pós-Reset)
+    if ((pathname === '/api/admin/password' || pathname === '/api/auth/definir-nova-senha') && method === 'POST') {
       const body = await readBodyJson(req);
       const email = (body.email || '').trim().toLowerCase();
       const novaSenha = (body.novaSenha || '').trim();
@@ -811,11 +967,44 @@ const server = http.createServer(async (req, res) => {
       }
 
       usuarios[idx].senha = novaSenha;
+      usuarios[idx].precisa_trocar_senha = false;
       writeJsonFile(usrFile, usuarios);
+
+      // Registrar auditoria
+      try {
+        const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+        let logs = readJsonFile(auditFile, []);
+        if (!Array.isArray(logs)) logs = [];
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: usuarios[idx].nome,
+          analista_email: email,
+          perfil: usuarios[idx].perfil || 'adm',
+          segmento_id: 'seguranca',
+          segmento_nome: 'Autenticação',
+          acao: 'Atualização de Senha',
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `O usuário "${usuarios[idx].nome}" (${email}) atualizou sua senha com sucesso.`
+        });
+        writeJsonFile(auditFile, logs);
+      } catch (eAudit) {}
 
       return sendJson(res, {
         success: true,
-        message: 'Senha atualizada com sucesso!'
+        message: 'Senha atualizada com sucesso!',
+        usuario: {
+          id: usuarios[idx].id,
+          nome: usuarios[idx].nome,
+          email: usuarios[idx].email,
+          perfil: usuarios[idx].perfil || 'adm',
+          cargo: usuarios[idx].cargo,
+          dono_produto: usuarios[idx].dono_produto === true || usuarios[idx].email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br',
+          foto: usuarios[idx].foto || '',
+          ativo: usuarios[idx].ativo !== false,
+          precisa_trocar_senha: false
+        }
       });
     }
 
