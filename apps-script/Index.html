@@ -8176,12 +8176,16 @@
         };
       }, [onClose]);
 
-      // Usuário PMM não pode visualizar abas de administradores, convites ou auditoria
+      // Governança: Restrições de navegação no Painel Administrativo
+      // 1. Usuário PMM só tem acesso à aba de vídeo
+      // 2. A aba de Auditoria é restrita exclusivamente ao Dono do Produto
       useEffect(() => {
         if (admLogado?.perfil === 'pmm' && (activeTab === 'adms' || activeTab === 'convites' || activeTab === 'audit')) {
           if (onTabChange) onTabChange('video');
+        } else if (activeTab === 'audit' && !admLogado?.dono_produto) {
+          if (onTabChange) onTabChange('adms');
         }
-      }, [admLogado?.perfil, activeTab, onTabChange]);
+      }, [admLogado, activeTab, onTabChange]);
 
       const [copiedToken, setCopiedToken] = useState(null);
       const [gerandoConvite, setGerandoConvite] = useState(false);
@@ -9125,17 +9129,20 @@
                     <span>Convites ({convitesList.length})</span>
                   </button>
 
-                  <button
-                    onClick={() => onTabChange('audit')}
-                    className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
-                      activeTab === 'audit'
-                        ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
-                        : 'border-transparent text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    <Icons.Edit />
-                    <span>Auditoria ({auditLogs.length})</span>
-                  </button>
+                  {Boolean(admLogado?.dono_produto) && (
+                    <button
+                      onClick={() => onTabChange('audit')}
+                      className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
+                        activeTab === 'audit'
+                          ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                          : 'border-transparent text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      <Icons.Edit />
+                      <span>Auditoria ({auditLogs.length})</span>
+                      <span className="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded">Dono</span>
+                    </button>
+                  )}
                 </>
               )}
 
@@ -9490,7 +9497,7 @@
                                 <span className="text-[9px] bg-totvs-cyan/20 text-totvs-cyan font-extrabold px-1.5 py-0.2 rounded">Total</span>
                               </div>
                               <p className="text-[10px] text-slate-300 mt-0.5 leading-snug">
-                                Acesso irrestrito a todas as estações, vídeos da gestão, métricas, auditoria e convites.
+                                Acesso a todas as estações, vídeos da gestão, métricas e convites (Auditoria exclusiva do Dono do Produto).
                               </p>
                             </div>
                           </button>
@@ -9813,8 +9820,8 @@
                 </div>
               )}
 
-              {/* ABA 4: AUDITORIA EXCLUSIVA DO ADM (SUB-ABAS: CONTEÚDO & ACESSOS GERAIS) */}
-              {activeTab === 'audit' && (
+              {/* ABA 4: AUDITORIA EXCLUSIVA DO DONO DO PRODUTO (SUB-ABAS: CONTEÚDO & ACESSOS GERAIS) */}
+              {activeTab === 'audit' && Boolean(admLogado?.dono_produto) && (
                 <div className="space-y-5">
                   {/* Seletor de Sub-Abas Internas da Auditoria */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2 bg-slate-100 rounded-2xl border border-slate-200">
