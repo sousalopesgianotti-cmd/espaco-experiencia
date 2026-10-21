@@ -3054,6 +3054,8 @@
       const [desejaAlterarSenha, setDesejaAlterarSenha] = useState(false);
       const [novaSenha, setNovaSenha] = useState('');
       const [confirmaSenha, setConfirmaSenha] = useState('');
+      const [showNovaSenha, setShowNovaSenha] = useState(false);
+      const [showConfirmaSenha, setShowConfirmaSenha] = useState(false);
       const [salvandoPerfil, setSalvandoPerfil] = useState(false);
       const [erroPerfil, setErroPerfil] = useState('');
       const [fotoCarregando, setFotoCarregando] = useState(false);
@@ -3343,6 +3345,8 @@
                           setNovaSenha('');
                           setConfirmaSenha('');
                           setErroPerfil('');
+                          setShowNovaSenha(false);
+                          setShowConfirmaSenha(false);
                         }
                       }}
                       className="w-4 h-4 text-purple-700 rounded focus:ring-purple-400 border-slate-300 cursor-pointer"
@@ -3358,29 +3362,49 @@
                         <label className="block text-[11px] font-bold text-slate-700 mb-1">
                           Nova Senha *
                         </label>
-                        <input
-                          type="password"
-                          autoComplete="new-password"
-                          placeholder="Mínimo 6 chars"
-                          value={novaSenha}
-                          onChange={(e) => setNovaSenha(e.target.value)}
-                          className="w-full text-xs px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 font-mono"
-                          required={desejaAlterarSenha}
-                        />
+                        <div className="relative">
+                          <input
+                            type={showNovaSenha ? "text" : "password"}
+                            autoComplete="new-password"
+                            placeholder="Mínimo 6 chars"
+                            value={novaSenha}
+                            onChange={(e) => setNovaSenha(e.target.value)}
+                            className="w-full text-xs px-3 pr-9 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 font-mono"
+                            required={desejaAlterarSenha}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNovaSenha(!showNovaSenha)}
+                            title={showNovaSenha ? "Ocultar senha" : "Visualizar senha"}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-700 transition p-1 rounded cursor-pointer"
+                          >
+                            {showNovaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                          </button>
+                        </div>
                       </div>
                       <div>
                         <label className="block text-[11px] font-bold text-slate-700 mb-1">
                           Confirmar Nova Senha *
                         </label>
-                        <input
-                          type="password"
-                          autoComplete="new-password"
-                          placeholder="Repita a nova senha"
-                          value={confirmaSenha}
-                          onChange={(e) => setConfirmaSenha(e.target.value)}
-                          className="w-full text-xs px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 font-mono"
-                          required={desejaAlterarSenha}
-                        />
+                        <div className="relative">
+                          <input
+                            type={showConfirmaSenha ? "text" : "password"}
+                            autoComplete="new-password"
+                            placeholder="Repita a nova senha"
+                            value={confirmaSenha}
+                            onChange={(e) => setConfirmaSenha(e.target.value)}
+                            className="w-full text-xs px-3 pr-9 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 font-mono"
+                            required={desejaAlterarSenha}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmaSenha(!showConfirmaSenha)}
+                            title={showConfirmaSenha ? "Ocultar senha" : "Visualizar senha"}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-700 transition p-1 rounded cursor-pointer"
+                          >
+                            {showConfirmaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                          </button>
+                        </div>
                       </div>
                       <div className="col-span-full">
                         <span className="text-[10px] text-purple-900 font-medium">
@@ -7768,6 +7792,8 @@
       const [desejaAlterarMinhaSenha, setDesejaAlterarMinhaSenha] = useState(false);
       const [minhaNovaSenhaInput, setMinhaNovaSenhaInput] = useState('');
       const [confirmaMinhaNovaSenhaInput, setConfirmaMinhaNovaSenhaInput] = useState('');
+      const [showMinhaNovaSenha, setShowMinhaNovaSenha] = useState(false);
+      const [showMinhaConfirmaSenha, setShowMinhaConfirmaSenha] = useState(false);
       const [salvandoMeuPerfil, setSalvandoMeuPerfil] = useState(false);
       const [erroMeuPerfil, setErroMeuPerfil] = useState('');
 
@@ -7778,6 +7804,8 @@
       const [desejaAlterarSenhaEdit, setDesejaAlterarSenhaEdit] = useState(false);
       const [editNovaSenhaInput, setEditNovaSenhaInput] = useState('');
       const [editConfirmaSenhaInput, setEditConfirmaSenhaInput] = useState('');
+      const [showEditNovaSenha, setShowEditNovaSenha] = useState(false);
+      const [showEditConfirmaSenha, setShowEditConfirmaSenha] = useState(false);
       const [salvandoEditPerfil, setSalvandoEditPerfil] = useState(false);
       const [erroEditPerfil, setErroEditPerfil] = useState('');
 
@@ -7822,6 +7850,8 @@
         setDesejaAlterarMinhaSenha(false);
         setMinhaNovaSenhaInput('');
         setConfirmaMinhaNovaSenhaInput('');
+        setShowMinhaNovaSenha(false);
+        setShowMinhaConfirmaSenha(false);
         setErroMeuPerfil('');
         setModalMeuPerfil(true);
       };
@@ -7917,6 +7947,8 @@
         setDesejaAlterarSenhaEdit(false);
         setEditNovaSenhaInput('');
         setEditConfirmaSenhaInput('');
+        setShowEditNovaSenha(false);
+        setShowEditConfirmaSenha(false);
         setErroEditPerfil('');
         setModalEditarPerfil(true);
       };
@@ -10250,6 +10282,8 @@
                           if (!e.target.checked) {
                             setMinhaNovaSenhaInput('');
                             setConfirmaMinhaNovaSenhaInput('');
+                            setShowMinhaNovaSenha(false);
+                            setShowMinhaConfirmaSenha(false);
                             setErroMeuPerfil('');
                           }
                         }}
@@ -10266,29 +10300,49 @@
                           <label className="block text-xs font-bold text-slate-700 mb-1">
                             Nova Senha *
                           </label>
-                          <input
-                            type="password"
-                            autoComplete="new-password"
-                            placeholder="Mínimo 6 chars"
-                            value={minhaNovaSenhaInput}
-                            onChange={(e) => setMinhaNovaSenhaInput(e.target.value)}
-                            className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
-                            required={desejaAlterarMinhaSenha}
-                          />
+                          <div className="relative">
+                            <input
+                              type={showMinhaNovaSenha ? "text" : "password"}
+                              autoComplete="new-password"
+                              placeholder="Mínimo 6 chars"
+                              value={minhaNovaSenhaInput}
+                              onChange={(e) => setMinhaNovaSenhaInput(e.target.value)}
+                              className="w-full text-xs px-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
+                              required={desejaAlterarMinhaSenha}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowMinhaNovaSenha(!showMinhaNovaSenha)}
+                              title={showMinhaNovaSenha ? "Ocultar senha" : "Visualizar senha"}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-1 rounded cursor-pointer"
+                            >
+                              {showMinhaNovaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                            </button>
+                          </div>
                         </div>
                         <div>
                           <label className="block text-xs font-bold text-slate-700 mb-1">
                             Confirmar Nova Senha *
                           </label>
-                          <input
-                            type="password"
-                            autoComplete="new-password"
-                            placeholder="Repita a nova senha"
-                            value={confirmaMinhaNovaSenhaInput}
-                            onChange={(e) => setConfirmaMinhaNovaSenhaInput(e.target.value)}
-                            className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
-                            required={desejaAlterarMinhaSenha}
-                          />
+                          <div className="relative">
+                            <input
+                              type={showMinhaConfirmaSenha ? "text" : "password"}
+                              autoComplete="new-password"
+                              placeholder="Repita a nova senha"
+                              value={confirmaMinhaNovaSenhaInput}
+                              onChange={(e) => setConfirmaMinhaNovaSenhaInput(e.target.value)}
+                              className="w-full text-xs px-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
+                              required={desejaAlterarMinhaSenha}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowMinhaConfirmaSenha(!showMinhaConfirmaSenha)}
+                              title={showMinhaConfirmaSenha ? "Ocultar senha" : "Visualizar senha"}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-1 rounded cursor-pointer"
+                            >
+                              {showMinhaConfirmaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                            </button>
+                          </div>
                         </div>
                         <div className="col-span-full">
                           <span className="text-[10px] text-slate-500">
@@ -10314,6 +10368,8 @@
                         setMeuNomeInput('');
                         setMinhaNovaSenhaInput('');
                         setConfirmaMinhaNovaSenhaInput('');
+                        setShowMinhaNovaSenha(false);
+                        setShowMinhaConfirmaSenha(false);
                       }}
                       className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs transition cursor-pointer"
                     >
@@ -10473,6 +10529,8 @@
                           if (!e.target.checked) {
                             setEditNovaSenhaInput('');
                             setEditConfirmaSenhaInput('');
+                            setShowEditNovaSenha(false);
+                            setShowEditConfirmaSenha(false);
                             setErroEditPerfil('');
                           }
                         }}
@@ -10489,29 +10547,49 @@
                           <label className="block text-xs font-bold text-slate-700 mb-1">
                             Nova Senha *
                           </label>
-                          <input
-                            type="password"
-                            autoComplete="new-password"
-                            placeholder="Mínimo 6 chars"
-                            value={editNovaSenhaInput}
-                            onChange={(e) => setEditNovaSenhaInput(e.target.value)}
-                            className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
-                            required={desejaAlterarSenhaEdit}
-                          />
+                          <div className="relative">
+                            <input
+                              type={showEditNovaSenha ? "text" : "password"}
+                              autoComplete="new-password"
+                              placeholder="Mínimo 6 chars"
+                              value={editNovaSenhaInput}
+                              onChange={(e) => setEditNovaSenhaInput(e.target.value)}
+                              className="w-full text-xs px-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
+                              required={desejaAlterarSenhaEdit}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowEditNovaSenha(!showEditNovaSenha)}
+                              title={showEditNovaSenha ? "Ocultar senha" : "Visualizar senha"}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-1 rounded cursor-pointer"
+                            >
+                              {showEditNovaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                            </button>
+                          </div>
                         </div>
                         <div>
                           <label className="block text-xs font-bold text-slate-700 mb-1">
                             Confirmar Nova Senha *
                           </label>
-                          <input
-                            type="password"
-                            autoComplete="new-password"
-                            placeholder="Repita a nova senha"
-                            value={editConfirmaSenhaInput}
-                            onChange={(e) => setEditConfirmaSenhaInput(e.target.value)}
-                            className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
-                            required={desejaAlterarSenhaEdit}
-                          />
+                          <div className="relative">
+                            <input
+                              type={showEditConfirmaSenha ? "text" : "password"}
+                              autoComplete="new-password"
+                              placeholder="Repita a nova senha"
+                              value={editConfirmaSenhaInput}
+                              onChange={(e) => setEditConfirmaSenhaInput(e.target.value)}
+                              className="w-full text-xs px-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
+                              required={desejaAlterarSenhaEdit}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowEditConfirmaSenha(!showEditConfirmaSenha)}
+                              title={showEditConfirmaSenha ? "Ocultar senha" : "Visualizar senha"}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-1 rounded cursor-pointer"
+                            >
+                              {showEditConfirmaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                            </button>
+                          </div>
                         </div>
                         <div className="col-span-full">
                           <span className="text-[10px] text-slate-500">
@@ -10538,6 +10616,8 @@
                         setEditNomeInput('');
                         setEditNovaSenhaInput('');
                         setEditConfirmaSenhaInput('');
+                        setShowEditNovaSenha(false);
+                        setShowEditConfirmaSenha(false);
                       }}
                       className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs transition cursor-pointer"
                     >
