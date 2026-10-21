@@ -2161,7 +2161,7 @@
       
       // Painel ADM
       const [adminModal, setAdminModal] = useState(false);
-      const [adminTab, setAdminTab] = useState('adms'); // 'adms', 'convites', 'visitas', 'audit'
+      const [adminTab, setAdminTab] = useState('adms'); // 'adms', 'convites', 'audit', 'video'
       const [admsList, setAdmsList] = useState([]);
       const [convitesList, setConvitesList] = useState([]);
       const [metricsData, setMetricsData] = useState(null);
@@ -8080,7 +8080,7 @@
       // Usuário PMM não pode visualizar abas de administradores, convites ou auditoria
       useEffect(() => {
         if (admLogado?.perfil === 'pmm' && (activeTab === 'adms' || activeTab === 'convites' || activeTab === 'audit')) {
-          if (onTabChange) onTabChange('visitas');
+          if (onTabChange) onTabChange('video');
         }
       }, [admLogado?.perfil, activeTab, onTabChange]);
 
@@ -8094,8 +8094,6 @@
       const [filterAuditPerfil, setFilterAuditPerfil] = useState('todos'); // 'todos', 'pmm', 'adm'
       const [filterAccessPerfil, setFilterAccessPerfil] = useState('todos'); // 'todos', 'pmm', 'adm', 'visitante'
       const [filterVisitas, setFilterVisitas] = useState('');
-      const [filterVisitors, setFilterVisitors] = useState('');
-      const [deletingVisitorId, setDeletingVisitorId] = useState(null);
 
       // Estados para Novo Convite com Nome e E-mail obrigatórios
       const [novoAdmNome, setNovoAdmNome] = useState('');
@@ -8417,37 +8415,6 @@
         const emailValido = emailRegex.test(novoAdmEmail.trim());
         return nomeValido && emailValido;
       }, [novoAdmNome, novoAdmEmail]);
-
-      const handleDeleteVisitor = async (vis) => {
-        const nomeEmpresa = vis.empresa || vis.nome;
-        if (!confirm(`Deseja realmente remover o registro de visita de "${nomeEmpresa}"?`)) return;
-        setDeletingVisitorId(vis.id);
-        try {
-          const res = await fetch(`/api/visitors/${vis.id}`, { method: 'DELETE' });
-          const data = await res.json();
-          if (res.ok && data.success) {
-            if (onVisitorsChange) onVisitorsChange();
-            if (showToast) showToast(`Registro de "${nomeEmpresa}" removido com sucesso.`);
-          } else {
-            alert(data.error || 'Erro ao excluir registro de visitante.');
-          }
-        } catch (err) {
-          alert('Falha na comunicação com o servidor ao excluir visitante.');
-        } finally {
-          setDeletingVisitorId(null);
-        }
-      };
-
-      const filteredVisitors = useMemo(() => {
-        if (!filterVisitors.trim()) return visitorsList;
-        const q = filterVisitors.toLowerCase();
-        return visitorsList.filter(v =>
-          (v.empresa && v.empresa.toLowerCase().includes(q)) ||
-          (v.nome && v.nome.toLowerCase().includes(q)) ||
-          (v.responsavel && v.responsavel.toLowerCase().includes(q)) ||
-          (v.data && v.data.toLowerCase().includes(q))
-        );
-      }, [visitorsList, filterVisitors]);
 
       // Gerar convite somente quando nome e email forem válidos
       const handleGerarConvite = async (e) => {
@@ -9203,18 +9170,6 @@
               )}
 
               <button
-                onClick={() => onTabChange('visitas')}
-                className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
-                  activeTab === 'visitas'
-                    ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <Icons.Users />
-                <span>Visitantes & Acessos ({visitorsList.length})</span>
-              </button>
-
-              <button
                 onClick={() => onTabChange('video')}
                 className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
                   activeTab === 'video'
@@ -9882,229 +9837,6 @@
                             </div>
                           );
                         })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* ABA 3: GESTÃO DE VISITANTES & ACESSOS */}
-              {activeTab === 'visitas' && (
-                <div className="space-y-6">
-                  {/* SEÇÃO 1: VISITANTES PRESENCIAIS DO ESPAÇO EXPERIÊNCIA */}
-                  <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200 space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-totvs-blue text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                          <Icons.UserCheck />
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-slate-900 text-sm">
-                            Visitantes Presenciais Registrados
-                          </h4>
-                          <p className="text-xs text-slate-500">
-                            Espaço Experiência TOTVS (contabilizados no painel aberto do topo)
-                          </p>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={onOpenVisitorModal}
-                        className="px-4 py-2 bg-gradient-to-r from-totvs-blue to-[#003B8E] hover:from-[#003B8E] hover:to-totvs-dark text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
-                      >
-                        <Icons.UserPlus />
-                        <span>+ Registrar Visitante</span>
-                      </button>
-                    </div>
-
-                    {/* 5 Cards de Métricas de Visitantes Presenciais */}
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                      <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Hoje</span>
-                        <div className="text-2xl font-black text-slate-800 flex items-baseline gap-1">
-                          <span>{visitorMetrics?.hoje || 0}</span>
-                          <span className="text-[10px] text-slate-400 font-medium">pessoas</span>
-                        </div>
-                      </div>
-
-                      <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Esta Semana</span>
-                        <div className="text-2xl font-black text-slate-800 flex items-baseline gap-1">
-                          <span>{visitorMetrics?.semana || 0}</span>
-                          <span className="text-[10px] text-slate-400 font-medium">pessoas</span>
-                        </div>
-                      </div>
-
-                      <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Este Mês</span>
-                        <div className="text-2xl font-black text-slate-800 flex items-baseline gap-1">
-                          <span>{visitorMetrics?.mes || 0}</span>
-                          <span className="text-[10px] text-slate-400 font-medium">pessoas</span>
-                        </div>
-                      </div>
-
-                      <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Ano</span>
-                          <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-totvs-blue/10 text-totvs-blue">
-                            {visitorMetrics?.ano_atual || new Date().getFullYear()}
-                          </span>
-                        </div>
-                        <div className="text-2xl font-black text-slate-800 flex items-baseline gap-1">
-                          <span>{visitorMetrics?.ano !== undefined ? visitorMetrics.ano : (visitorMetrics?.total || 0)}</span>
-                          <span className="text-[10px] text-slate-400 font-medium">pessoas</span>
-                        </div>
-                      </div>
-
-                      <div className="p-3.5 rounded-xl bg-gradient-to-br from-totvs-blue to-[#003B8E] text-white shadow-sm">
-                        <span className="text-[10px] uppercase font-bold text-blue-200 tracking-wider block">Total Geral</span>
-                        <div className="text-2xl font-black text-white flex items-baseline gap-1">
-                          <span>{visitorMetrics?.total !== undefined ? visitorMetrics.total : visitorsList.reduce((acc, v) => acc + (v.numero_pessoas || 1), 0)}</span>
-                          <span className="text-[10px] text-totvs-cyan font-medium">pessoas</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Barra de Filtro e Tabela de Visitantes */}
-                    <div className="space-y-3 pt-2">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <h5 className="font-bold text-xs uppercase tracking-wider text-slate-500">
-                          Lista de Cadastros ({filteredVisitors.length})
-                        </h5>
-                        <input
-                          type="text"
-                          placeholder="Buscar por empresa, data, responsável..."
-                          value={filterVisitors}
-                          onChange={(e) => setFilterVisitors(e.target.value)}
-                          className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-totvs-blue w-full sm:w-64 bg-white"
-                        />
-                      </div>
-
-                      {(!filteredVisitors || filteredVisitors.length === 0) ? (
-                        <div className="p-8 text-center bg-white border border-slate-200 rounded-2xl text-slate-400 text-xs">
-                          {filterVisitors ? 'Nenhum visitante encontrado para o filtro digitado.' : 'Nenhum visitante presencial cadastrado até o momento.'}
-                        </div>
-                      ) : (
-                        <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm max-h-72 overflow-y-auto">
-                          {filteredVisitors.slice().reverse().map((vis) => (
-                            <div key={vis.id} className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition">
-                              <div className="flex items-center gap-3">
-                                <span className="w-9 h-9 rounded-xl bg-blue-50 text-totvs-blue flex items-center justify-center font-bold text-xs shrink-0 border border-blue-100">
-                                  <Icons.Building />
-                                </span>
-                                <div>
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="font-extrabold text-xs text-slate-900">
-                                      {vis.empresa || vis.nome}
-                                    </span>
-                                    <span className="text-[10px] font-extrabold bg-cyan-50 text-totvs-blue px-2 py-0.5 rounded-full border border-totvs-cyan/30 flex items-center gap-1">
-                                      <Icons.Users />
-                                      <span>{vis.numero_pessoas || 1} { (vis.numero_pessoas || 1) === 1 ? 'pessoa' : 'pessoas' }</span>
-                                    </span>
-                                    {vis.tipo_visitante === 'cliente' && (
-                                      <span className="text-[10px] font-extrabold bg-blue-50 text-totvs-blue px-2 py-0.5 rounded-full border border-blue-200 flex items-center gap-1">
-                                        <span>🏢 Cliente</span>
-                                      </span>
-                                    )}
-                                    {vis.tipo_visitante === 'prospect' && (
-                                      <span className="text-[10px] font-extrabold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-200 flex items-center gap-1">
-                                        <span>🎯 Prospect</span>
-                                      </span>
-                                    )}
-                                    {(vis.tipo_visitante === 'visitante_externo' || vis.tipo_visitante === 'visitante_interno') && (
-                                      <span className="text-[10px] font-extrabold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200 flex items-center gap-1">
-                                        <span>🌐 Visitante Interno</span>
-                                      </span>
-                                    )}
-                                    <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">
-                                      {vis.data ? vis.data.split('-').reverse().join('/') : '—'}
-                                    </span>
-                                  </div>
-                                  <p className="text-[11px] text-slate-500 mt-0.5">
-                                    Anfitrião TOTVS: <strong className="text-slate-700">{vis.responsavel || 'Equipe TOTVS'}</strong>
-                                    {vis.criado_em ? ` • Registrado em: ${new Date(vis.criado_em).toLocaleDateString('pt-BR')}` : ''}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-2 self-end sm:self-center">
-                                {vis.link_formulario && (
-                                  <a
-                                    href={vis.link_formulario}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-[11px] flex items-center gap-1 transition"
-                                    title="Abrir Formulário Google"
-                                  >
-                                    <Icons.ExternalLink />
-                                    <span className="hidden sm:inline">Formulário</span>
-                                  </a>
-                                )}
-                                <button
-                                  type="button"
-                                  disabled={deletingVisitorId === vis.id}
-                                  onClick={() => handleDeleteVisitor(vis)}
-                                  className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition disabled:opacity-50 cursor-pointer"
-                                  title="Excluir este registro"
-                                >
-                                  <Icons.Trash />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* SEÇÃO 2: HISTÓRICO DE SESSÕES WEB (ACESSOS SILENCIOSOS) */}
-                  <div className="space-y-4 pt-2">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <h4 className="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                          <Icons.Monitor />
-                          <span>Sessões Web Silenciosas ({filteredAccessLogs.length})</span>
-                        </h4>
-                        <p className="text-[11px] text-slate-400">
-                          Total de acessos únicos por sessão de navegador ({totalVisitasCount})
-                        </p>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Filtrar por data, tipo, IP..."
-                        value={filterVisitas}
-                        onChange={(e) => setFilterVisitas(e.target.value)}
-                        className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-totvs-blue w-full sm:w-64"
-                      />
-                    </div>
-
-                    {(!filteredAccessLogs || filteredAccessLogs.length === 0) ? (
-                      <div className="p-6 text-center bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs">
-                        Nenhum registro de acesso web encontrado.
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm max-h-64 overflow-y-auto">
-                        {filteredAccessLogs.slice().reverse().map((log, idx) => (
-                          <div key={idx} className="p-3 flex items-center justify-between text-xs hover:bg-slate-50 transition">
-                            <div className="flex items-center gap-3">
-                              <span className="w-7 h-7 rounded-lg bg-blue-50 text-totvs-blue flex items-center justify-center font-bold text-xs shrink-0">
-                                <Icons.Eye />
-                              </span>
-                              <div>
-                                <span className="font-semibold text-slate-800 block">
-                                  {log.tipo || log.acao || 'Visita Institucional de Visitante'}
-                                </span>
-                                <span className="text-[10px] text-slate-400 font-mono">
-                                  {log.ip || log.ip_dispositivo || log.origem || 'Navegador Web'} {log.usuario ? `• ${log.usuario}` : ''}
-                                </span>
-                              </div>
-                            </div>
-                            <span className="text-[11px] text-slate-500 font-mono shrink-0">
-                              {log.data_formatada && log.horario_formatado ? `${log.data_formatada} às ${log.horario_formatado}` : (log.data ? new Date(log.data).toLocaleString('pt-BR') : 'Hoje')}
-                            </span>
-                          </div>
-                        ))}
                       </div>
                     )}
                   </div>
