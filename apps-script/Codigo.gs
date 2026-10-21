@@ -4391,3 +4391,96 @@ function salvarModoAuthEspecialista(obrigatoria, autorEmail, autorNome) {
     return { success: false, message: "Erro ao salvar modo de autenticação: " + err.message };
   }
 }
+
+/**
+ * Atualiza Nome e/ou Senha de qualquer perfil (autoedição ou edição por ADM)
+ */
+function atualizarPerfilUsuario(dados) {
+  try {
+    var emailLimpo = String(dados.email || "").toLowerCase().trim();
+    var nomeLimpo = String(dados.nome || "").trim();
+    var senhaLimpa = String(dados.novaSenha || "").trim();
+    var autorEmail = String(dados.autorEmail || "").toLowerCase().trim();
+    var autorNome = String(dados.autorNome || "Administrador").trim();
+
+    if (!emailLimpo) {
+      return { success: false, message: "E-mail do perfil é obrigatório." };
+    }
+
+    // Validação de Imunidade do Dono do Produto
+    var isAlvoDono = emailLimpo === "andre.gianotti@totvs.com.br";
+    if (isAlvoDono && autorEmail !== "andre.gianotti@totvs.com.br") {
+      var ativo = obterUsuarioAtivo();
+      if (!ativo || (ativo.email !== "andre.gianotti@totvs.com.br" && !ativo.dono_produto)) {
+        return {
+          success: false,
+          message: "Ação restrita: Os dados do Dono do Produto possuem imunidade total e só podem ser alterados por ele mesmo."
+        };
+      }
+    }
+
+    if (senhaLimpa) {
+      if (senhaLimpa.length < 6 || !/[a-zA-Z]/.test(senhaLimpa) || !/[0-9]/.test(senhaLimpa)) {
+        return { success: false, message: "A nova senha deve possuir no mínimo 6 caracteres e conter letras e números." };
+      }
+    }
+
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Usuarios");
+    if (!aba) return { success: false, message: "Aba de usuários não encontrada." };
+
+    var rows = aba.getDataRange().getValues();
+    for (var i = 1; i < rows.length; i++) {
+      if (String(rows[i][1]).toLowerCase().trim() === emailLimpo) {
+        var nomeAntigo = String(rows[i][2]);
+        var detalhesArr = [];
+
+        if (nomeLimpo && nomeLimpo !== nomeAntigo) {
+          aba.getRange(i + 1, 3).setValue(nomeLimpo);
+          detalhesArr.push("Nome alterado de \"" + nomeAntigo + "\" para \"" + nomeLimpo + "\"");
+        }
+        if (senhaLimpa) {
+          aba.getRange(i + 1, 5).setValue(senhaLimpa);
+          aba.getRange(i + 1, 7).setValue(false); // remove precisa_trocar_senha
+          detalhesArr.push("Nova senha cadastrada com sucesso");
+        }
+
+        // Auditoria
+        try {
+          var sheetAudit = ss.getSheetByName("Logs_Auditoria");
+          if (sheetAudit) {
+            var id = "aud-" + new Date().getTime();
+            var agora = new Date();
+            var dataStr = Utilities.formatDate(agora, "America/Sao_Paulo", "dd/MM/yyyy");
+            var horaStr = Utilities.formatDate(agora, "America/Sao_Paulo", "HH:mm:ss");
+            var acao = autorEmail === emailLimpo ? "Atualização de Perfil Próprio" : "Edição de Perfil de " + (nomeLimpo || nomeAntigo);
+            var perfilAlvo = String(rows[i][9] || "adm");
+            sheetAudit.appendRow([id, autorNome, autorEmail, perfilAlvo, "usuarios", "Gestão de Perfis", acao, dataStr, horaStr, agora.getTime(), detalhesArr.join(" • ") || "Dados cadastrais atualizados."]);
+          }
+        } catch(errAudit) {}
+
+        var isAtivo = rows[i][10] === undefined || rows[i][10] === "" || String(rows[i][10]).toLowerCase() === "true";
+        return {
+          success: true,
+          message: "Perfil atualizado com sucesso!",
+          usuario: {
+            id: String(rows[i][0]),
+            email: emailLimpo,
+            nome: nomeLimpo || nomeAntigo,
+            cargo: String(rows[i][3] || "Administrador"),
+            tipo: "administrador",
+            dono_produto: String(rows[i][5]) === "true" || emailLimpo === "andre.gianotti@totvs.com.br",
+            ativo: isAtivo,
+            precisa_trocar_senha: false,
+            foto: String(rows[i][7] || ""),
+            perfil: String(rows[i][9] || "adm")
+          }
+        };
+      }
+    }
+
+    return { success: false, message: "Perfil não encontrado na planilha de usuários." };
+  } catch(e) {
+    return { success: false, message: e.message };
+  }
+}

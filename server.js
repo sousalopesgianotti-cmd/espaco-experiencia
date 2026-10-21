@@ -1067,6 +1067,98 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    // 11.5 POST /api/admin/update-profile (Atualizar Nome e/ou Senha de qualquer usuário ou autoedição)
+    if (pathname === '/api/admin/update-profile' && method === 'POST') {
+      const body = await readBodyJson(req);
+      const email = (body.email || '').trim().toLowerCase();
+      const novoNome = (body.nome || '').trim();
+      const novaSenha = (body.novaSenha || '').trim();
+      const autorEmail = (body.autorEmail || '').trim().toLowerCase();
+      const autorNome = (body.autorNome || 'Administrador').trim();
+
+      if (!email) {
+        return sendJson(res, { success: false, message: 'O e-mail do usuário é obrigatório.' }, 400);
+      }
+
+      // Validação de Imunidade: se o usuário alvo for o Dono do Produto, apenas o próprio Dono pode editar
+      const isAlvoDono = email === 'andre.gianotti@totvs.com.br';
+      if (isAlvoDono && autorEmail !== 'andre.gianotti@totvs.com.br') {
+        return sendJson(res, {
+          success: false,
+          message: 'Ação restrita: Os dados do Dono do Produto (andre.gianotti@totvs.com.br) possuem imunidade total e só podem ser alterados por ele mesmo.'
+        }, 403);
+      }
+
+      // Se informou nova senha, validar requisitos
+      if (novaSenha) {
+        const senhaValida = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(novaSenha);
+        if (!senhaValida) {
+          return sendJson(res, { success: false, message: 'A nova senha deve possuir no mínimo 6 caracteres e conter letras e números.' }, 400);
+        }
+      }
+
+      const usrFile = path.join(DATA_DIR, 'usuarios.json');
+      let usuarios = readJsonFile(usrFile, []);
+      if (!Array.isArray(usuarios)) usuarios = [usuarios];
+
+      const idx = usuarios.findIndex(u => u.email.toLowerCase().trim() === email || (body.id && u.id === body.id));
+      if (idx === -1) {
+        return sendJson(res, { success: false, message: 'Usuário não encontrado na base de dados.' }, 404);
+      }
+
+      const nomeAntigo = usuarios[idx].nome;
+      if (novoNome) {
+        usuarios[idx].nome = novoNome;
+      }
+      if (novaSenha) {
+        usuarios[idx].senha = novaSenha;
+        usuarios[idx].precisa_trocar_senha = false;
+      }
+      writeJsonFile(usrFile, usuarios);
+
+      // Registrar em Auditoria
+      try {
+        const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+        let logs = readJsonFile(auditFile, []);
+        if (!Array.isArray(logs)) logs = [];
+        
+        let detalhesAcao = [];
+        if (novoNome && novoNome !== nomeAntigo) detalhesAcao.push(`Nome alterado de "${nomeAntigo}" para "${novoNome}"`);
+        if (novaSenha) detalhesAcao.push('Nova senha cadastrada com sucesso');
+
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: autorNome || usuarios[idx].nome,
+          analista_email: autorEmail || email,
+          perfil: usuarios[idx].perfil || 'adm',
+          segmento_id: 'usuarios',
+          segmento_nome: 'Gestão de Perfis',
+          acao: autorEmail === email ? 'Atualização de Perfil Próprio' : `Edição de Perfil de ${usuarios[idx].nome}`,
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: detalhesAcao.join(' • ') || 'Dados cadastrais atualizados.'
+        });
+        writeJsonFile(auditFile, logs);
+      } catch (eAudit) {}
+
+      return sendJson(res, {
+        success: true,
+        message: 'Perfil atualizado com sucesso!',
+        usuario: {
+          id: usuarios[idx].id,
+          nome: usuarios[idx].nome,
+          email: usuarios[idx].email,
+          perfil: usuarios[idx].perfil || 'adm',
+          cargo: usuarios[idx].cargo,
+          dono_produto: usuarios[idx].dono_produto === true || usuarios[idx].email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br',
+          foto: usuarios[idx].foto || '',
+          ativo: usuarios[idx].ativo !== false,
+          precisa_trocar_senha: false
+        }
+      });
+    }
+
     // 12. GET /api/logs/access
     if (pathname === '/api/logs/access' && method === 'GET') {
       const logs = readJsonFile(path.join(DATA_DIR, 'logs_acesso.json'), []);
