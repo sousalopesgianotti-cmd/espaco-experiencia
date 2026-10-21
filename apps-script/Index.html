@@ -2336,6 +2336,38 @@
         setShowVisitorModal(true);
       };
 
+      // Marcação dinâmica de dia e horário em tempo real no topo
+      const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+      useEffect(() => {
+        const timer = setInterval(() => {
+          setCurrentDateTime(new Date());
+        }, 10000);
+        return () => clearInterval(timer);
+      }, []);
+
+      const headerDateTimeFormatted = useMemo(() => {
+        try {
+          const weekday = currentDateTime.toLocaleDateString('pt-BR', { weekday: 'long' });
+          const capitalizedWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+          const day = String(currentDateTime.getDate()).padStart(2, '0');
+          const month = String(currentDateTime.getMonth() + 1).padStart(2, '0');
+          const hours = String(currentDateTime.getHours()).padStart(2, '0');
+          const minutes = String(currentDateTime.getMinutes()).padStart(2, '0');
+          return {
+            completo: `${capitalizedWeekday}, ${day}/${month} • ${hours}:${minutes}`,
+            compacto: `${day}/${month} • ${hours}:${minutes}`
+          };
+        } catch (e) {
+          const hours = String(currentDateTime.getHours()).padStart(2, '0');
+          const minutes = String(currentDateTime.getMinutes()).padStart(2, '0');
+          return {
+            completo: `${hours}:${minutes}`,
+            compacto: `${hours}:${minutes}`
+          };
+        }
+      }, [currentDateTime]);
+
       // Busca, Barra Lateral e Calendário dos Plantonistas
       const [searchTerm, setSearchTerm] = useState('');
       const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
@@ -2811,6 +2843,11 @@
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/30 shadow-2xs">
                         Espaço Experiência
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5 border-l border-slate-700/80 pl-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-totvs-cyan animate-pulse"></span>
+                        <span className="hidden sm:inline">{headerDateTimeFormatted.completo}</span>
+                        <span className="sm:hidden">{headerDateTimeFormatted.compacto}</span>
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-300 font-medium flex items-center gap-1.5 mt-0.5">
