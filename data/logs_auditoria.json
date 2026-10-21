@@ -1,5 +1,31 @@
 [
   {
+    "id": "aud-1792597104986",
+    "analista_nome": "André Gianotti",
+    "analista_email": "andre.gianotti@totvs.com.br",
+    "perfil": "adm",
+    "segmento_id": "governanca",
+    "segmento_nome": "Governança do Showroom",
+    "acao": "Ativação do Modo Aberto (Acesso Especialista Sem Login)",
+    "data_formatada": "21/10/2026",
+    "horario_formatado": "12:38:24",
+    "timestamp": 1792597104986,
+    "detalhes": "A chave mestra do Perfil Especialista foi alterada para MODO ABERTO (usuários deslogados herdam privilégios de especialista) pelo Dono do Produto."
+  },
+  {
+    "id": "aud-1792597104963",
+    "analista_nome": "André Gianotti",
+    "analista_email": "andre.gianotti@totvs.com.br",
+    "perfil": "adm",
+    "segmento_id": "governanca",
+    "segmento_nome": "Governança do Showroom",
+    "acao": "Ativação do Modo Estrito (Login Obrigatório para Especialistas)",
+    "data_formatada": "21/10/2026",
+    "horario_formatado": "12:38:24",
+    "timestamp": 1792597104981,
+    "detalhes": "A chave mestra do Perfil Especialista foi alterada para MODO ESTRITO (exige login individual) pelo Dono do Produto."
+  },
+  {
     "id": "aud-1792585463136",
     "analista_nome": "André Gianotti",
     "analista_email": "andre.gianotti@totvs.com.br",
