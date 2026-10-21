@@ -985,11 +985,12 @@
       onOpenHistorico,
       onOpenAdmin,
       onLogoutAdm,
-      admLogado
+      admLogado,
+      activeNav = 'showroom'
     }) {
       return (
         <aside
-          className={`fixed left-0 top-0 bottom-0 z-40 bg-totvs-dark text-white border-r border-slate-800 transition-all duration-300 ease-in-out flex flex-col justify-between select-none shadow-2xl ${
+          className={`fixed left-0 top-0 bottom-0 z-[60] bg-totvs-dark text-white border-r border-slate-800 transition-all duration-300 ease-in-out flex flex-col justify-between select-none shadow-2xl ${
             isExpanded ? 'w-60 sm:w-64' : 'w-16'
           }`}
         >
@@ -1022,14 +1023,27 @@
               <button
                 type="button"
                 onClick={onOpenShowroom}
-                className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer text-slate-300 hover:text-white hover:bg-white/10 group"
-                title="Showroom (11 Estações)"
+                className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
+                  activeNav === 'showroom'
+                    ? 'bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/40 shadow-xs'
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                }`}
+                title="Showroom (Início • Retornar à Vitrine)"
               >
-                <span className="shrink-0 text-slate-300 group-hover:text-totvs-cyan transition-colors">
+                <span className={`shrink-0 transition-colors ${
+                  activeNav === 'showroom' ? 'text-totvs-cyan' : 'text-slate-300 group-hover:text-totvs-cyan'
+                }`}>
                   <Icons.Home />
                 </span>
                 {isExpanded && (
-                  <span className="text-xs font-bold truncate">Showroom (Início)</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs font-bold block truncate">Showroom</span>
+                    <span className={`text-[9.5px] block truncate ${
+                      activeNav === 'showroom' ? 'text-totvs-cyan/80' : 'text-slate-400'
+                    }`}>
+                      {activeNav === 'showroom' ? 'Vitrine Ativa' : 'Voltar ao Início'}
+                    </span>
+                  </div>
                 )}
               </button>
 
@@ -1037,16 +1051,26 @@
               <button
                 type="button"
                 onClick={onOpenPlantonistas}
-                className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer text-slate-300 hover:text-white hover:bg-white/10 group"
+                className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
+                  activeNav === 'plantonistas'
+                    ? 'bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/40 shadow-xs'
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                }`}
                 title="Calendário dos Plantonistas do Espaço"
               >
-                <span className="shrink-0 text-slate-300 group-hover:text-totvs-cyan transition-colors">
+                <span className={`shrink-0 transition-colors ${
+                  activeNav === 'plantonistas' ? 'text-totvs-cyan' : 'text-slate-300 group-hover:text-totvs-cyan'
+                }`}>
                   <Icons.CalendarDays />
                 </span>
                 {isExpanded && (
                   <div className="min-w-0 flex-1">
                     <span className="text-xs font-bold block truncate">Plantonistas</span>
-                    <span className="text-[9.5px] text-slate-400 block truncate">Gestão de Escalas 2026</span>
+                    <span className={`text-[9.5px] block truncate ${
+                      activeNav === 'plantonistas' ? 'text-totvs-cyan/80' : 'text-slate-400'
+                    }`}>
+                      {activeNav === 'plantonistas' ? 'Pop-up Aberto' : 'Gestão de Escalas 2026'}
+                    </span>
                   </div>
                 )}
               </button>
@@ -1056,16 +1080,26 @@
                 <button
                   type="button"
                   onClick={onOpenHistorico}
-                  className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer text-slate-300 hover:text-white hover:bg-white/10 group"
+                  className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
+                    activeNav === 'historico'
+                      ? 'bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/40 shadow-xs'
+                      : 'text-slate-300 hover:text-white hover:bg-white/10'
+                  }`}
                   title="Histórico de Visitas Detalhado"
                 >
-                  <span className="shrink-0 text-slate-300 group-hover:text-totvs-cyan transition-colors">
+                  <span className={`shrink-0 transition-colors ${
+                    activeNav === 'historico' ? 'text-totvs-cyan' : 'text-slate-300 group-hover:text-totvs-cyan'
+                  }`}>
                     <Icons.BarChart />
                   </span>
                   {isExpanded && (
                     <div className="min-w-0 flex-1">
                       <span className="text-xs font-bold block truncate">Histórico de Visitas</span>
-                      <span className="text-[9.5px] text-slate-400 block truncate">Métricas Consolidadas</span>
+                      <span className={`text-[9.5px] block truncate ${
+                        activeNav === 'historico' ? 'text-totvs-cyan/80' : 'text-slate-400'
+                      }`}>
+                        {activeNav === 'historico' ? 'Pop-up Aberto' : 'Métricas Consolidadas'}
+                      </span>
                     </div>
                   )}
                 </button>
@@ -1076,11 +1110,13 @@
                 type="button"
                 onClick={onOpenAdmin}
                 className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
-                  admLogado?.perfil === 'especialista'
-                    ? 'bg-purple-900/30 text-purple-200 border border-purple-400/40 hover:bg-purple-900/50'
-                    : admLogado 
-                      ? 'bg-totvs-blue/20 text-totvs-cyan border border-totvs-cyan/30 hover:bg-totvs-blue/30' 
-                      : 'text-slate-300 hover:text-white hover:bg-white/10'
+                  activeNav === 'admin'
+                    ? 'ring-2 ring-totvs-cyan bg-totvs-blue/30 text-white shadow-xs'
+                    : admLogado?.perfil === 'especialista'
+                      ? 'bg-purple-900/30 text-purple-200 border border-purple-400/40 hover:bg-purple-900/50'
+                      : admLogado 
+                        ? 'bg-totvs-blue/20 text-totvs-cyan border border-totvs-cyan/30 hover:bg-totvs-blue/30' 
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
                 title={
                   admLogado?.perfil === 'especialista'
@@ -2644,6 +2680,40 @@
         );
       }, [segmentos, searchTerm]);
 
+      // Contexto de Navegação Ativo na Barra Lateral
+      const activeNav = useMemo(() => {
+        if (showPlantonistasModal) return 'plantonistas';
+        if (showVisitorHistoryModal) return 'historico';
+        if (adminModal || showMeuPerfilModal) return 'admin';
+        return 'showroom';
+      }, [showPlantonistasModal, showVisitorHistoryModal, adminModal, showMeuPerfilModal]);
+
+      // Ação Universal: Retornar ao Showroom (Reset Geral / Fechar Modais / Limpar Filtros)
+      const handleReturnToShowroom = () => {
+        const algumModalAberto = showPlantonistasModal || adminModal || showVisitorHistoryModal || showVisitorModal || showMeuPerfilModal || lightboxSegment || showVideoModal || editSegment || quickBancadaSegment || validationModal || showLoginModal || showAcceptInviteModal || showForcarTrocaSenhaModal;
+        
+        setShowPlantonistasModal(false);
+        setAdminModal(false);
+        setShowVisitorHistoryModal(false);
+        setShowVisitorModal(false);
+        setShowMeuPerfilModal(false);
+        setLightboxSegment(null);
+        setShowVideoModal(false);
+        setEditSegment(null);
+        setQuickBancadaSegment(null);
+        setValidationModal(null);
+        setShowLoginModal(false);
+        setShowAcceptInviteModal(false);
+        setShowForcarTrocaSenhaModal(false);
+
+        if (searchTerm) setSearchTerm('');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        if (algumModalAberto) {
+          showToast('Retornou ao Showroom principal! 🏠');
+        }
+      };
+
       return (
         <div className="min-h-screen flex bg-slate-50">
           
@@ -2651,7 +2721,8 @@
           <SidebarNav
             isExpanded={isSidebarExpanded}
             onToggle={() => setIsSidebarExpanded(prev => !prev)}
-            onOpenShowroom={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            activeNav={activeNav}
+            onOpenShowroom={handleReturnToShowroom}
             onOpenPlantonistas={() => setShowPlantonistasModal(true)}
             onOpenHistorico={() => {
               if (!admLogado || (admLogado.perfil !== 'adm' && !admLogado.dono_produto) || admLogado.perfil === 'especialista') {
