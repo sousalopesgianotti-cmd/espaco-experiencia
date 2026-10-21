@@ -1051,23 +1051,25 @@
                 )}
               </button>
 
-              {/* 3. Histórico de Visitas */}
-              <button
-                type="button"
-                onClick={onOpenHistorico}
-                className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer text-slate-300 hover:text-white hover:bg-white/10 group"
-                title="Histórico de Visitas Detalhado"
-              >
-                <span className="shrink-0 text-slate-300 group-hover:text-totvs-cyan transition-colors">
-                  <Icons.BarChart />
-                </span>
-                {isExpanded && (
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs font-bold block truncate">Histórico de Visitas</span>
-                    <span className="text-[9.5px] text-slate-400 block truncate">Métricas Consolidadas</span>
-                  </div>
-                )}
-              </button>
+              {/* 3. Histórico de Visitas (Competência exclusiva do ADM) */}
+              {admLogado && (admLogado.perfil === 'adm' || admLogado.dono_produto) && admLogado.perfil !== 'especialista' && (
+                <button
+                  type="button"
+                  onClick={onOpenHistorico}
+                  className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer text-slate-300 hover:text-white hover:bg-white/10 group"
+                  title="Histórico de Visitas Detalhado"
+                >
+                  <span className="shrink-0 text-slate-300 group-hover:text-totvs-cyan transition-colors">
+                    <Icons.BarChart />
+                  </span>
+                  {isExpanded && (
+                    <div className="min-w-0 flex-1">
+                      <span className="text-xs font-bold block truncate">Histórico de Visitas</span>
+                      <span className="text-[9.5px] text-slate-400 block truncate">Métricas Consolidadas</span>
+                    </div>
+                  )}
+                </button>
+              )}
 
               {/* 4. Área Corporativa / Perfil */}
               <button
@@ -2586,7 +2588,13 @@
             onToggle={() => setIsSidebarExpanded(prev => !prev)}
             onOpenShowroom={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             onOpenPlantonistas={() => setShowPlantonistasModal(true)}
-            onOpenHistorico={() => setShowVisitorHistoryModal(true)}
+            onOpenHistorico={() => {
+              if (!admLogado || (admLogado.perfil !== 'adm' && !admLogado.dono_produto) || admLogado.perfil === 'especialista') {
+                showToast('Acesso restrito: Funcionalidade exclusiva de Administradores.');
+                return;
+              }
+              setShowVisitorHistoryModal(true);
+            }}
             onOpenAdmin={handleOpenAdmin}
             onLogoutAdm={handleLogoutAdm}
             admLogado={admLogado}
@@ -2963,8 +2971,8 @@
             />
           )}
 
-          {/* MODAL DE HISTÓRICO DE VISITANTES (MESES & ANOS ANTERIORES) */}
-          {showVisitorHistoryModal && (
+          {/* MODAL DE HISTÓRICO DE VISITANTES (MESES & ANOS ANTERIORES) - EXCLUSIVO ADM */}
+          {showVisitorHistoryModal && admLogado && (admLogado.perfil === 'adm' || admLogado.dono_produto) && admLogado.perfil !== 'especialista' && (
             <VisitorHistoryModal
               currentYear={visitorMetrics.ano_atual || new Date().getFullYear()}
               onClose={() => setShowVisitorHistoryModal(false)}
@@ -3961,7 +3969,7 @@
                       className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-totvs-blue to-totvs-cyan hover:from-[#003B8E] hover:to-[#00B4D8] text-white font-black text-xs transition shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                     >
                       <Icons.Check />
-                      <span>{salvando ? 'Ativando...' : (isPmm ? 'Ativar e Entrar como PMM' : 'Ativar e Entrar como ADM')}</span>
+                      <span>{salvando ? 'Ativando...' : (isEspecialista ? 'Ativar e Entrar como Especialista' : (isPmm ? 'Ativar e Entrar como PMM' : 'Ativar e Entrar como ADM'))}</span>
                     </button>
                   </div>
                 </form>
