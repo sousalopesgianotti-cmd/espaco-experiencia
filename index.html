@@ -7964,7 +7964,11 @@
 
       // Estados e Ref para Upload de Foto de Perfil
       const [uploadingAvatar, setUploadingAvatar] = useState(false);
+      const [uploadingMeuAvatar, setUploadingMeuAvatar] = useState(false);
+      const [uploadingEditAvatar, setUploadingEditAvatar] = useState(false);
       const avatarInputRef = useRef(null);
+      const meuAvatarInputRef = useRef(null);
+      const editAvatarInputRef = useRef(null);
 
       // Validação estrita do formulário de convite
       const formConviteValido = useMemo(() => {
@@ -8124,30 +8128,35 @@
         );
       }, [especialistasCatalogo, buscaEspecialista]);
 
-      // Upload de Foto de Perfil do Administrador
-      const handleUploadAvatar = (e) => {
+      // Upload de Foto de Perfil (Cabeçalho, Meu Perfil ou Edição de Terceiros)
+      const handleUploadAvatar = (e, targetEmail = null, context = 'header') => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
 
+        const emailAlvo = targetEmail || admLogado?.email;
+        const isSelf = emailAlvo === admLogado?.email;
+
         if (!file.type.startsWith('image/')) {
-          alert('Por favor, selecione um arquivo de imagem válido (JPG, PNG ou WebM).');
+          if (showToast) showToast('Por favor, selecione um arquivo de imagem válido (JPG, PNG ou WEBP).');
           return;
         }
 
         if (file.size > 5 * 1024 * 1024) {
-          alert('A foto selecionada deve ter no máximo 5 MB.');
+          if (showToast) showToast('A foto selecionada deve ter no máximo 5 MB.');
           return;
         }
 
-        setUploadingAvatar(true);
+        if (context === 'meuPerfil') setUploadingMeuAvatar(true);
+        else if (context === 'editPerfil') setUploadingEditAvatar(true);
+        else setUploadingAvatar(true);
+
         const reader = new FileReader();
         reader.onload = () => {
           const rawBase64 = reader.result;
           const img = new Image();
           img.onload = async () => {
-            // Redimensionar para tamanho ideal de avatar (160x160 JPEG)
             const canvas = document.createElement('canvas');
-            const MAX_DIM = 160;
+            const MAX_DIM = 240;
             let w = img.width;
             let h = img.height;
             if (w > h) {
@@ -8159,39 +8168,87 @@
             canvas.height = h;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, w, h);
-            const base64Data = canvas.toDataURL('image/jpeg', 0.82);
-          try {
-            const res = await fetch('/api/admin/avatar', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: admLogado.email,
-                foto: base64Data
-              })
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-              if (onUpdateAdmProfile) {
-                onUpdateAdmProfile(data.usuario);
-              }
-              if (onAdmsChange) onAdmsChange();
-              if (showToast) showToast('Foto de perfil atualizada com sucesso! 📸');
-            } else {
-              alert(data.message || 'Erro ao atualizar foto de perfil.');
+            const base64Data = canvas.toDataURL('image/jpeg', 0.85);
+
+            if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+              google.script.run
+                .withSuccessHandler((res) => {
+                  if (context === 'meuPerfil') setUploadingMeuAvatar(false);
+                  else if (context === 'editPerfil') setUploadingEditAvatar(false);
+                  else setUploadingAvatar(false);
+
+                  if (res && res.success) {
+                    if (isSelf && onUpdateAdmProfile) {
+                      onUpdateAdmProfile({ ...admLogado, foto: base64Data });
+                    }
+                    if (editUserAlvo && editUserAlvo.email === emailAlvo) {
+                      setEditUserAlvo(prev => ({ ...prev, foto: base64Data }));
+                    }
+                    if (onAdmsChange) onAdmsChange();
+                    if (onRefresh) onRefresh();
+                    if (showToast) showToast('Foto de perfil atualizada com sucesso! 📸');
+                  } else {
+                    if (showToast) showToast(res?.message || 'Erro ao salvar foto.');
+                  }
+                })
+                .withFailureHandler((err) => {
+                  if (context === 'meuPerfil') setUploadingMeuAvatar(false);
+                  else if (context === 'editPerfil') setUploadingEditAvatar(false);
+                  else setUploadingAvatar(false);
+                  if (showToast) showToast('Falha de conexão com a nuvem TOTVS.');
+                })
+                .atualizarFotoUsuario(emailAlvo, base64Data);
+              return;
             }
-          } catch (err) {
-            alert('Erro de conexão ao enviar foto de perfil.');
-          } finally {
-            setUploadingAvatar(false);
-            if (avatarInputRef.current) avatarInputRef.current.value = '';
+
+            try {
+              const res = await fetch('/api/admin/avatar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email: emailAlvo,
+                  foto: base64Data,
+                  autorEmail: admLogado.email,
+                  autorNome: admLogado.nome
+                })
+              });
+              const data = await res.json();
+              if (res.ok && data.success) {
+                if (isSelf && onUpdateAdmProfile) {
+                  onUpdateAdmProfile(data.usuario || { ...admLogado, foto: base64Data });
+                }
+                if (editUserAlvo && editUserAlvo.email === emailAlvo) {
+                  setEditUserAlvo(prev => ({ ...prev, foto: base64Data }));
+                }
+                if (onAdmsChange) onAdmsChange();
+                if (onRefresh) onRefresh();
+                if (showToast) showToast('Foto de perfil atualizada com sucesso! 📸');
+              } else {
+                if (showToast) showToast(data.message || 'Erro ao atualizar foto de perfil.');
+              }
+            } catch (err) {
+              if (showToast) showToast('Erro de conexão ao enviar foto de perfil.');
+            } finally {
+              if (context === 'meuPerfil') {
+                setUploadingMeuAvatar(false);
+                if (meuAvatarInputRef.current) meuAvatarInputRef.current.value = '';
+              } else if (context === 'editPerfil') {
+                setUploadingEditAvatar(false);
+                if (editAvatarInputRef.current) editAvatarInputRef.current.value = '';
+              } else {
+                setUploadingAvatar(false);
+                if (avatarInputRef.current) avatarInputRef.current.value = '';
+              }
             }
           };
           img.src = rawBase64;
         };
 
         reader.onerror = () => {
-          alert('Falha ao processar o arquivo de imagem.');
-          setUploadingAvatar(false);
+          if (showToast) showToast('Falha ao processar o arquivo de imagem.');
+          if (context === 'meuPerfil') setUploadingMeuAvatar(false);
+          else if (context === 'editPerfil') setUploadingEditAvatar(false);
+          else setUploadingAvatar(false);
         };
 
         reader.readAsDataURL(file);
@@ -10045,6 +10102,56 @@
                 </div>
 
                 <form onSubmit={handleSalvarMeuPerfil} className="p-6 space-y-4">
+                  {/* Card com Foto de Perfil & Upload */}
+                  <div className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <div className="relative group shrink-0">
+                      {admLogado?.foto ? (
+                        <img
+                          src={admLogado.foto}
+                          alt={admLogado.nome}
+                          className="w-16 h-16 rounded-2xl object-cover border-2 border-totvs-blue shadow-md"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-totvs-blue to-totvs-cyan text-white flex items-center justify-center font-black text-xl border-2 border-slate-200 shadow-md">
+                          {admLogado?.nome ? admLogado.nome.charAt(0).toUpperCase() : 'A'}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => meuAvatarInputRef.current?.click()}
+                        disabled={uploadingMeuAvatar}
+                        className="absolute -bottom-1 -right-1 p-1.5 rounded-xl bg-totvs-blue hover:bg-totvs-dark text-white shadow-md border-2 border-white transition cursor-pointer group-hover:scale-105"
+                        title="Alterar foto de perfil"
+                      >
+                        <Icons.Camera />
+                      </button>
+                      <input
+                        ref={meuAvatarInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleUploadAvatar(e, admLogado?.email, 'meuPerfil')}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-800">Foto de Perfil</span>
+                        {uploadingMeuAvatar && (
+                          <span className="text-[11px] text-totvs-blue font-bold animate-pulse">Salvando foto...</span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">JPEG, PNG ou WEBP (máximo 5MB). Atualizada em tempo real.</p>
+                      <button
+                        type="button"
+                        onClick={() => meuAvatarInputRef.current?.click()}
+                        disabled={uploadingMeuAvatar}
+                        className="mt-2 text-xs font-bold text-totvs-blue hover:text-totvs-dark bg-white hover:bg-blue-50 px-3 py-1 rounded-xl border border-blue-200 transition inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        <span>📷 Alterar Foto</span>
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-slate-700 text-xs leading-relaxed">
                     <span className="font-bold text-totvs-blue block mb-0.5">Identificação e Credenciais:</span>
                     Você pode alterar seu <strong>Nome Completo</strong> e, caso queira, definir uma <strong>Nova Senha</strong> (mínimo 6 caracteres, letras e números). Deixe os campos de senha em branco para manter a senha atual.
@@ -10176,6 +10283,55 @@
                 </div>
 
                 <form onSubmit={handleSalvarEditPerfil} className="p-6 space-y-4">
+                  {/* Card com Foto de Perfil & Upload de Terceiro */}
+                  <div className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <div className="relative group shrink-0">
+                      {editUserAlvo?.foto ? (
+                        <img
+                          src={editUserAlvo.foto}
+                          alt={editUserAlvo.nome}
+                          className="w-16 h-16 rounded-2xl object-cover border-2 border-totvs-blue shadow-md"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-totvs-blue to-totvs-cyan text-white flex items-center justify-center font-black text-xl border-2 border-slate-200 shadow-md">
+                          {editUserAlvo?.nome ? editUserAlvo.nome.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => editAvatarInputRef.current?.click()}
+                        disabled={uploadingEditAvatar}
+                        className="absolute -bottom-1 -right-1 p-1.5 rounded-xl bg-totvs-blue hover:bg-totvs-dark text-white shadow-md border-2 border-white transition cursor-pointer group-hover:scale-105"
+                        title="Alterar foto deste usuário"
+                      >
+                        <Icons.Camera />
+                      </button>
+                      <input
+                        ref={editAvatarInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleUploadAvatar(e, editUserAlvo?.email, 'editPerfil')}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-800">Foto de Perfil</span>
+                        {uploadingEditAvatar && (
+                          <span className="text-[11px] text-totvs-blue font-bold animate-pulse">Salvando foto...</span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">JPEG, PNG ou WEBP (máximo 5MB). Atualizada em tempo real.</p>
+                      <button
+                        type="button"
+                        onClick={() => editAvatarInputRef.current?.click()}
+                        disabled={uploadingEditAvatar}
+                        className="mt-2 text-xs font-bold text-totvs-blue hover:text-totvs-dark bg-white hover:bg-blue-50 px-3 py-1 rounded-xl border border-blue-200 transition inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        <span>📷 Alterar Foto</span>
+                      </button>
+                    </div>
+                  </div>
                   {editUserAlvo.ativo === false && (
                     <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs leading-relaxed flex items-center gap-2 font-medium">
                       <span>⏸️</span>

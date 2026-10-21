@@ -970,22 +970,54 @@ const server = http.createServer(async (req, res) => {
       const body = await readBodyJson(req);
       const email = (body.email || '').trim().toLowerCase();
       const foto = (body.foto || '').trim();
+      const autorEmail = (body.autorEmail || '').trim().toLowerCase();
+      const autorNome = (body.autorNome || 'Administrador').trim();
 
       if (!email || !foto) {
         return sendJson(res, { success: false, message: 'E-mail e foto são obrigatórios.' }, 400);
+      }
+
+      // Validação de Imunidade do Dono do Produto
+      const isAlvoDono = email === 'andre.gianotti@totvs.com.br';
+      if (isAlvoDono && autorEmail && autorEmail !== 'andre.gianotti@totvs.com.br') {
+        return sendJson(res, {
+          success: false,
+          message: 'Ação restrita: Os dados do Dono do Produto (andre.gianotti@totvs.com.br) possuem imunidade total e só podem ser alterados por ele mesmo.'
+        }, 403);
       }
 
       const usrFile = path.join(DATA_DIR, 'usuarios.json');
       let usuarios = readJsonFile(usrFile, []);
       if (!Array.isArray(usuarios)) usuarios = [usuarios];
 
-      const userIdx = usuarios.findIndex(u => u.email.toLowerCase().trim() === email);
+      const userIdx = usuarios.findIndex(u => u.email.toLowerCase().trim() === email || (body.id && u.id === body.id));
       if (userIdx === -1) {
-        return sendJson(res, { success: false, message: 'Administrador não encontrado.' }, 404);
+        return sendJson(res, { success: false, message: 'Perfil não encontrado na base de dados.' }, 404);
       }
 
       usuarios[userIdx].foto = foto;
       writeJsonFile(usrFile, usuarios);
+
+      // Registrar Auditoria
+      try {
+        const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+        let logs = readJsonFile(auditFile, []);
+        if (!Array.isArray(logs)) logs = [];
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: autorNome || usuarios[userIdx].nome,
+          analista_email: autorEmail || email,
+          perfil: usuarios[userIdx].perfil || 'adm',
+          segmento_id: 'usuarios',
+          segmento_nome: 'Gestão de Perfis',
+          acao: autorEmail === email ? 'Atualização de Foto de Perfil' : `Alteração de Foto de ${usuarios[userIdx].nome}`,
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `Foto de perfil atualizada com sucesso (${foto.startsWith('data:image') ? 'Imagem customizada enviada' : 'Avatar atualizado'}).`
+        });
+        writeJsonFile(auditFile, logs);
+      } catch (eAudit) {}
 
       return sendJson(res, {
         success: true,
@@ -997,7 +1029,8 @@ const server = http.createServer(async (req, res) => {
           perfil: usuarios[userIdx].perfil || 'adm',
           cargo: usuarios[userIdx].cargo,
           dono_produto: usuarios[userIdx].dono_produto === true || usuarios[userIdx].email.toLowerCase().trim() === 'andre.gianotti@totvs.com.br',
-          foto: foto
+          foto: foto,
+          ativo: usuarios[userIdx].ativo !== false
         }
       });
     }
