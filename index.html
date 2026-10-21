@@ -7784,18 +7784,7 @@
       const [deletingInviteToken, setDeletingInviteToken] = useState(null);
       const [limpandoConvites, setLimpandoConvites] = useState(false);
 
-      // Estados para Edição do Próprio Perfil (Nome & Senha do Usuário Logado)
-      const [modalMeuPerfil, setModalMeuPerfil] = useState(false);
-      const [meuNomeInput, setMeuNomeInput] = useState('');
-      const [desejaAlterarMinhaSenha, setDesejaAlterarMinhaSenha] = useState(false);
-      const [minhaNovaSenhaInput, setMinhaNovaSenhaInput] = useState('');
-      const [confirmaMinhaNovaSenhaInput, setConfirmaMinhaNovaSenhaInput] = useState('');
-      const [showMinhaNovaSenha, setShowMinhaNovaSenha] = useState(false);
-      const [showMinhaConfirmaSenha, setShowMinhaConfirmaSenha] = useState(false);
-      const [salvandoMeuPerfil, setSalvandoMeuPerfil] = useState(false);
-      const [erroMeuPerfil, setErroMeuPerfil] = useState('');
-
-      // Estados para Edição de Terceiros na Lista de Perfis Cadastrados
+      // Estados para Edição de Perfis Cadastrados (inclusive do próprio usuário)
       const [modalEditarPerfil, setModalEditarPerfil] = useState(false);
       const [editUserAlvo, setEditUserAlvo] = useState(null);
       const [editNomeInput, setEditNomeInput] = useState('');
@@ -7841,101 +7830,6 @@
           if (showToast) showToast('Erro de comunicação ao alternar chave mestra.');
         } finally {
           setTogglingAuthMode(false);
-        }
-      };
-      const handleAbrirMeuPerfil = () => {
-        setMeuNomeInput(admLogado?.nome || '');
-        setDesejaAlterarMinhaSenha(false);
-        setMinhaNovaSenhaInput('');
-        setConfirmaMinhaNovaSenhaInput('');
-        setShowMinhaNovaSenha(false);
-        setShowMinhaConfirmaSenha(false);
-        setErroMeuPerfil('');
-        setModalMeuPerfil(true);
-      };
-
-      const handleSalvarMeuPerfil = async (e) => {
-        if (e) e.preventDefault();
-        setErroMeuPerfil('');
-
-        const nomeLimpo = meuNomeInput.trim();
-        if (!nomeLimpo) {
-          setErroMeuPerfil('O nome de exibição não pode ficar em branco.');
-          return;
-        }
-
-        let senhaLimpa = undefined;
-        if (desejaAlterarMinhaSenha) {
-          const s = minhaNovaSenhaInput.trim();
-          if (s.length < 6 || !/^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(s)) {
-            setErroMeuPerfil('A nova senha deve possuir no mínimo 6 caracteres e conter letras e números.');
-            return;
-          }
-          if (s !== confirmaMinhaNovaSenhaInput.trim()) {
-            setErroMeuPerfil('A confirmação da nova senha não confere.');
-            return;
-          }
-          senhaLimpa = s;
-        }
-
-        if (!senhaLimpa && nomeLimpo === (admLogado?.nome || '').trim()) {
-          setErroMeuPerfil('Nenhuma alteração foi realizada.');
-          return;
-        }
-
-        setSalvandoMeuPerfil(true);
-        const payload = {
-          email: admLogado.email,
-          nome: nomeLimpo,
-          novaSenha: senhaLimpa || undefined,
-          autorEmail: admLogado.email,
-          autorNome: admLogado.nome
-        };
-
-        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((res) => {
-              setSalvandoMeuPerfil(false);
-              if (res && res.success) {
-                setModalMeuPerfil(false);
-                if (onUpdateAdmProfile) {
-                  onUpdateAdmProfile(res.usuario || { ...admLogado, nome: nomeLimpo });
-                }
-                if (onRefresh) onRefresh();
-                if (showToast) showToast('Seu perfil foi atualizado com sucesso! 👤✨');
-              } else {
-                setErroMeuPerfil(res.message || 'Erro ao atualizar perfil.');
-              }
-            })
-            .withFailureHandler((err) => {
-              setSalvandoMeuPerfil(false);
-              setErroMeuPerfil('Falha ao comunicar com a nuvem TOTVS: ' + (err.message || err));
-            })
-            .atualizarPerfilUsuario(payload);
-          return;
-        }
-
-        try {
-          const res = await fetch('/api/admin/update-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          const data = await res.json();
-          if (data.success) {
-            setModalMeuPerfil(false);
-            if (onUpdateAdmProfile) {
-              onUpdateAdmProfile(data.usuario || { ...admLogado, nome: nomeLimpo });
-            }
-            if (onRefresh) onRefresh();
-            if (showToast) showToast('Seu perfil foi atualizado com sucesso! 👤✨');
-          } else {
-            setErroMeuPerfil(data.message || 'Erro ao atualizar perfil.');
-          }
-        } catch (err) {
-          setErroMeuPerfil('Erro de conexão ao atualizar perfil.');
-        } finally {
-          setSalvandoMeuPerfil(false);
         }
       };
 
@@ -8040,10 +7934,8 @@
 
       // Estados e Ref para Upload de Foto de Perfil
       const [uploadingAvatar, setUploadingAvatar] = useState(false);
-      const [uploadingMeuAvatar, setUploadingMeuAvatar] = useState(false);
       const [uploadingEditAvatar, setUploadingEditAvatar] = useState(false);
       const avatarInputRef = useRef(null);
-      const meuAvatarInputRef = useRef(null);
       const editAvatarInputRef = useRef(null);
 
       // Validação estrita do formulário de convite
@@ -8191,8 +8083,7 @@
           return;
         }
 
-        if (context === 'meuPerfil') setUploadingMeuAvatar(true);
-        else if (context === 'editPerfil') setUploadingEditAvatar(true);
+        if (context === 'editPerfil') setUploadingEditAvatar(true);
         else setUploadingAvatar(true);
 
         const reader = new FileReader();
@@ -8274,10 +8165,7 @@
             } catch (err) {
               if (showToast) showToast('Erro de conexão ao enviar foto de perfil.');
             } finally {
-              if (context === 'meuPerfil') {
-                setUploadingMeuAvatar(false);
-                if (meuAvatarInputRef.current) meuAvatarInputRef.current.value = '';
-              } else if (context === 'editPerfil') {
+              if (context === 'editPerfil') {
                 setUploadingEditAvatar(false);
                 if (editAvatarInputRef.current) editAvatarInputRef.current.value = '';
               } else {
@@ -8699,23 +8587,6 @@
               </div>
 
               <div className="flex items-center gap-2 self-end sm:self-center">
-                <button
-                  type="button"
-                  onClick={handleAbrirMeuPerfil}
-                  className="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold border border-white/20 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  title="Editar meu nome e alterar minha senha de acesso"
-                >
-                  <span>👤 Meu Perfil (Nome & Senha)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={onRefresh}
-                  title="Atualizar dados"
-                  className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition text-xs flex items-center gap-1 cursor-pointer"
-                >
-                  <Icons.Clock />
-                  <span className="hidden sm:inline">Atualizar</span>
-                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -9879,246 +9750,6 @@
             </div>
 
           </div>
-
-          {/* Modal de Edição do Próprio Perfil (Nome & Senha do Usuário Logado) */}
-          {modalMeuPerfil && (
-            <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
-              <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-5 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-totvs-blue text-white flex items-center justify-center font-bold text-sm shadow">
-                      👤
-                    </div>
-                    <div>
-                      <h4 className="font-extrabold text-sm text-white">Meu Perfil • Editar Dados</h4>
-                      <p className="text-[11px] text-slate-300">
-                        {admLogado?.nome} ({admLogado?.dono_produto ? 'Dono do Produto' : (admLogado?.perfil === 'pmm' ? 'PMM' : 'Administrador')})
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setModalMeuPerfil(false);
-                      setErroMeuPerfil('');
-                      setMeuNomeInput('');
-                      setMinhaNovaSenhaInput('');
-                      setConfirmaMinhaNovaSenhaInput('');
-                    }}
-                    className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition cursor-pointer"
-                  >
-                    <Icons.X />
-                  </button>
-                </div>
-
-                <form onSubmit={handleSalvarMeuPerfil} className="p-6 space-y-4">
-                  {/* Card com Foto de Perfil & Upload */}
-                  <div className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-                    <div className="relative group shrink-0">
-                      {admLogado?.foto ? (
-                        <img
-                          src={admLogado.foto}
-                          alt={admLogado.nome}
-                          className="w-16 h-16 rounded-2xl object-cover border-2 border-totvs-blue shadow-md"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-totvs-blue to-totvs-cyan text-white flex items-center justify-center font-black text-xl border-2 border-slate-200 shadow-md">
-                          {admLogado?.nome ? admLogado.nome.charAt(0).toUpperCase() : 'A'}
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => meuAvatarInputRef.current?.click()}
-                        disabled={uploadingMeuAvatar}
-                        className="absolute -bottom-1 -right-1 p-1.5 rounded-xl bg-totvs-blue hover:bg-totvs-dark text-white shadow-md border-2 border-white transition cursor-pointer group-hover:scale-105"
-                        title="Alterar foto de perfil"
-                      >
-                        <Icons.Camera />
-                      </button>
-                      <input
-                        ref={meuAvatarInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleUploadAvatar(e, admLogado?.email, 'meuPerfil')}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-800">Foto de Perfil</span>
-                        {uploadingMeuAvatar && (
-                          <span className="text-[11px] text-totvs-blue font-bold animate-pulse">Salvando foto...</span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">JPEG, PNG ou WEBP (máximo 5MB). Atualizada em tempo real.</p>
-                      <button
-                        type="button"
-                        onClick={() => meuAvatarInputRef.current?.click()}
-                        disabled={uploadingMeuAvatar}
-                        className="mt-2 text-xs font-bold text-totvs-blue hover:text-totvs-dark bg-white hover:bg-blue-50 px-3 py-1 rounded-xl border border-blue-200 transition inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
-                      >
-                        <span>📷 Alterar Foto</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-slate-700 text-xs leading-relaxed">
-                    <span className="font-bold text-totvs-blue block mb-0.5">Regras de Acesso e Exibição:</span>
-                    Todo login é realizado <strong>exclusivamente pelo e-mail corporativo cadastrado</strong> no convite (imutável). O campo abaixo define o seu <strong>Nome de Exibição personalizado</strong> que aparece no canto superior direito da tela. Apenas a senha de acesso e a foto de perfil podem ser alteradas.
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-bold text-slate-800">
-                        Nome de Exibição (Canto Superior Direito) *
-                      </label>
-                      <span className="text-[10px] text-totvs-blue font-semibold">Exibido no topo da tela</span>
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Seu nome de exibição no topo"
-                      value={meuNomeInput}
-                      onChange={(e) => setMeuNomeInput(e.target.value)}
-                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-semibold text-slate-800 shadow-xs"
-                      required
-                      autoFocus
-                    />
-                    <span className="text-[10px] text-slate-500 block mt-1">
-                      Este é o nome personalizado que ficará visível no canto superior direito da página principal e nos registros.
-                    </span>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">
-                      E-mail Corporativo (Chave de Login Exclusiva)
-                    </label>
-                    <input
-                      type="email"
-                      value={admLogado?.email || ''}
-                      disabled
-                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 font-mono cursor-not-allowed"
-                    />
-                    <span className="text-[10px] text-slate-500 block mt-1">
-                      🔒 O e-mail corporativo foi cadastrado no convite de acesso. Todo login é feito unicamente por ele e não pode ser alterado.
-                    </span>
-                  </div>
-
-                  {/* Card Seletor de Troca de Senha */}
-                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                    <label className="flex items-center gap-2.5 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={desejaAlterarMinhaSenha}
-                        onChange={(e) => {
-                          setDesejaAlterarMinhaSenha(e.target.checked);
-                          if (!e.target.checked) {
-                            setMinhaNovaSenhaInput('');
-                            setConfirmaMinhaNovaSenhaInput('');
-                            setShowMinhaNovaSenha(false);
-                            setShowMinhaConfirmaSenha(false);
-                            setErroMeuPerfil('');
-                          }
-                        }}
-                        className="w-4 h-4 text-totvs-blue rounded focus:ring-totvs-blue border-slate-300 cursor-pointer"
-                      />
-                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                        🔑 Desejo alterar minha senha de acesso
-                      </span>
-                    </label>
-
-                    {desejaAlterarMinhaSenha && (
-                      <div className="pt-3 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in duration-200">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">
-                            Nova Senha *
-                          </label>
-                          <div className="relative">
-                            <input
-                              type={showMinhaNovaSenha ? "text" : "password"}
-                              autoComplete="new-password"
-                              placeholder="Mínimo 6 chars"
-                              value={minhaNovaSenhaInput}
-                              onChange={(e) => setMinhaNovaSenhaInput(e.target.value)}
-                              className="w-full text-xs px-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
-                              required={desejaAlterarMinhaSenha}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowMinhaNovaSenha(!showMinhaNovaSenha)}
-                              title={showMinhaNovaSenha ? "Ocultar senha" : "Visualizar senha"}
-                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-1 rounded cursor-pointer"
-                            >
-                              {showMinhaNovaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
-                            </button>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1">
-                            Confirmar Nova Senha *
-                          </label>
-                          <div className="relative">
-                            <input
-                              type={showMinhaConfirmaSenha ? "text" : "password"}
-                              autoComplete="new-password"
-                              placeholder="Repita a nova senha"
-                              value={confirmaMinhaNovaSenhaInput}
-                              onChange={(e) => setConfirmaMinhaNovaSenhaInput(e.target.value)}
-                              className="w-full text-xs px-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
-                              required={desejaAlterarMinhaSenha}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowMinhaConfirmaSenha(!showMinhaConfirmaSenha)}
-                              title={showMinhaConfirmaSenha ? "Ocultar senha" : "Visualizar senha"}
-                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-1 rounded cursor-pointer"
-                            >
-                              {showMinhaConfirmaSenha ? <Icons.EyeOff /> : <Icons.Eye />}
-                            </button>
-                          </div>
-                        </div>
-                        <div className="col-span-full">
-                          <span className="text-[10px] text-slate-500">
-                            A nova senha deve possuir no mínimo 6 caracteres e conter letras e números.
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {erroMeuPerfil && (
-                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
-                      ⚠️ {erroMeuPerfil}
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setModalMeuPerfil(false);
-                        setErroMeuPerfil('');
-                        setMeuNomeInput('');
-                        setMinhaNovaSenhaInput('');
-                        setConfirmaMinhaNovaSenhaInput('');
-                        setShowMinhaNovaSenha(false);
-                        setShowMinhaConfirmaSenha(false);
-                      }}
-                      className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs transition cursor-pointer"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={salvandoMeuPerfil || !meuNomeInput.trim()}
-                      className="px-5 py-2 rounded-xl bg-totvs-blue hover:bg-totvs-dark text-white font-bold text-xs transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-sm"
-                    >
-                      {salvandoMeuPerfil ? 'Salvando...' : 'Salvar Alterações'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
 
           {/* Modal Administrativo de Edição de Terceiros (Nome & Senha de Qualquer Perfil) */}
           {modalEditarPerfil && editUserAlvo && (
