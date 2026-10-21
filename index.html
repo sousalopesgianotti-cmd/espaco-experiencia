@@ -2102,7 +2102,6 @@
       });
       const [showVisitorModal, setShowVisitorModal] = useState(false);
       const [showVisitorHistoryModal, setShowVisitorHistoryModal] = useState(false);
-      const [dismissedReminderToday, setDismissedReminderToday] = useState(false);
       const [visitorsList, setVisitorsList] = useState([]);
 
       // Governança: Chave Mestra do Perfil Especialista & Plantonista de Hoje
@@ -2182,35 +2181,82 @@
           .catch(() => {});
       };
 
-      const handleOpenGoogleForm = async () => {
-        const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfQWaQrpLcHNW1HkOhe2RQ2AnpNEzb-Duna6hyP1__FxGalmQ/viewform";
-        window.open(formUrl, '_blank', 'noopener,noreferrer');
-        try {
-          const res = await fetch('/api/visitors/form-opened', { method: 'POST' });
-          const data = await res.json();
-          if (data && data.success) {
-            setVisitorMetrics(prev => ({ ...prev, formulario_aberto_hoje: true }));
-          }
-        } catch (e) {}
-      };
+      // Data atual no formato ISO YYYY-MM-DD para controle diário no localStorage
+      const todayIso = useMemo(() => {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }, []);
 
-      // Lembrete inteligente das 17:00 (se formulário não foi aberto hoje)
-      // Permite testar via query param ?test_lembrete=1
-      const isTestLembrete = useMemo(() => {
+      const [dismissed13hToday, setDismissed13hToday] = useState(() => {
         try {
-          return new URLSearchParams(window.location.search).get('test_lembrete') === '1';
+          const d = new Date();
+          const k = `totvs_remind_13h_${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          return localStorage.getItem(k) === 'true';
         } catch (e) {
           return false;
         }
+      });
+
+      const [dismissed17hToday, setDismissed17hToday] = useState(() => {
+        try {
+          const d = new Date();
+          const k = `totvs_remind_17h_${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          return localStorage.getItem(k) === 'true';
+        } catch (e) {
+          return false;
+        }
+      });
+
+      // Estado para alternância da pergunta inline às 17:00
+      const [confirmandoFechamento17h, setConfirmandoFechamento17h] = useState(false);
+
+      // Suporte para homologação via parâmetro de busca ?test_lembrete=13 ou ?test_lembrete=17 (ou ?test_lembrete=1)
+      const testLembreteParam = useMemo(() => {
+        try {
+          return new URLSearchParams(window.location.search).get('test_lembrete');
+        } catch (e) {
+          return null;
+        }
       }, []);
+
       const currentHour = new Date().getHours();
-      // Tarja amarela pausada temporariamente para receber a nova inteligência/utilidade
-      const shouldShowFormReminder = false;
-      /*
-      const shouldShowFormReminder = (currentHour >= 17 || isTestLembrete) && 
-        !visitorMetrics.formulario_aberto_hoje && 
-        !dismissedReminderToday;
-      */
+      const isTest13 = testLembreteParam === '13';
+      const isTest17 = testLembreteParam === '17' || testLembreteParam === '1';
+
+      // Turno 17:00 (prioritário)
+      const isTurno17 = (currentHour >= 17 || isTest17);
+      // Turno 13:00 (13:00 às 16:59)
+      const isTurno13 = (!isTurno17 && ((currentHour >= 13 && currentHour < 17) || isTest13));
+
+      // Se nenhum visitante foi registrado hoje (total = 0)
+      const semVisitantesHoje = Number(visitorMetrics.hoje || 0) === 0;
+
+      const showAviso17h = semVisitantesHoje && isTurno17 && !dismissed17hToday;
+      const showAviso13h = semVisitantesHoje && isTurno13 && !dismissed13hToday;
+      const shouldShowVisitorReminder = showAviso17h || showAviso13h;
+
+      const handleDismiss13h = () => {
+        try {
+          localStorage.setItem(`totvs_remind_13h_${todayIso}`, 'true');
+        } catch (e) {}
+        setDismissed13hToday(true);
+      };
+
+      const handleConfirmarSim17h = () => {
+        try {
+          localStorage.setItem(`totvs_remind_17h_${todayIso}`, 'true');
+        } catch (e) {}
+        setDismissed17hToday(true);
+        setConfirmandoFechamento17h(false);
+      };
+
+      const handleResponderNao17h = () => {
+        setConfirmandoFechamento17h(false);
+        setShowVisitorModal(true);
+      };
 
       // Busca, Barra Lateral e Calendário dos Plantonistas
       const [searchTerm, setSearchTerm] = useState('');
@@ -2708,41 +2754,120 @@
               </div>
             </header>
 
-          {/* LEMBRETE INTELIGENTE DAS 17:00 (FORMULÁRIO NÃO PREENCHIDO HOJE) */}
-          {shouldShowFormReminder && (
-            <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 px-4 py-2 shadow-md border-b border-amber-300/60 relative z-30 animate-in slide-in-from-top duration-300">
-              <div className="max-w-[1720px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
-                <div className="flex items-center gap-2 text-center sm:text-left">
-                  <span className="w-6 h-6 rounded-lg bg-slate-950/20 text-slate-950 flex items-center justify-center shrink-0 font-bold text-xs shadow-inner">
-                    <Icons.Clock />
-                  </span>
-                  <div>
-                    <p className="text-xs font-black text-slate-950 leading-tight">
-                      ⚠️ Você ainda não preencheu o Formulário hoje!
-                    </p>
-                    <p className="text-[10.5px] font-medium text-slate-900/85">
-                      Lembrete diário das 17:00 • Ajude a manter os dados de visitação atualizados.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
-                  <button
-                    type="button"
-                    onClick={handleOpenGoogleForm}
-                    className="flex-1 sm:flex-initial bg-slate-950 hover:bg-slate-900 text-white font-black text-[11px] px-3 py-1.5 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <span>Abrir Formulário</span>
-                    <Icons.ExternalLink />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDismissedReminderToday(true)}
-                    className="p-1.5 text-slate-950/80 hover:text-slate-950 rounded-lg hover:bg-slate-950/10 transition cursor-pointer"
-                    title="Dispensar lembrete por hoje"
-                  >
-                    <Icons.X />
-                  </button>
-                </div>
+          {/* TARJA INTELIGENTE DE AVISO DE VISITANTES (13:00 E 17:00) */}
+          {shouldShowVisitorReminder && (
+            <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 px-4 py-2.5 shadow-md border-b border-amber-300/60 relative z-30 animate-in slide-in-from-top duration-300">
+              <div className="max-w-[1720px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+                {showAviso13h && (
+                  <>
+                    <div className="flex items-center gap-2.5 text-center sm:text-left">
+                      <span className="w-7 h-7 rounded-xl bg-slate-950/20 text-slate-950 flex items-center justify-center shrink-0 font-bold text-xs shadow-inner">
+                        <Icons.Clock />
+                      </span>
+                      <div>
+                        <p className="text-xs sm:text-[13px] font-black text-slate-950 leading-tight">
+                          ⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 13:00
+                        </p>
+                        <p className="text-[10.5px] font-medium text-slate-900/85">
+                          Lembrete das 13:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                      <button
+                        type="button"
+                        onClick={handleDismiss13h}
+                        className="bg-slate-950 hover:bg-slate-900 text-white font-black text-xs px-3.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                        title="Confirmar leitura e fechar aviso"
+                      >
+                        <Icons.Check />
+                        <span>Entendido</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDismiss13h}
+                        className="p-1.5 text-slate-950/80 hover:text-slate-950 rounded-lg hover:bg-slate-950/10 transition cursor-pointer"
+                        title="Fechar aviso"
+                      >
+                        <Icons.X />
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {showAviso17h && !confirmandoFechamento17h && (
+                  <>
+                    <div className="flex items-center gap-2.5 text-center sm:text-left">
+                      <span className="w-7 h-7 rounded-xl bg-slate-950/20 text-slate-950 flex items-center justify-center shrink-0 font-bold text-xs shadow-inner">
+                        <Icons.Clock />
+                      </span>
+                      <div>
+                        <p className="text-xs sm:text-[13px] font-black text-slate-950 leading-tight">
+                          ⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 17:00
+                        </p>
+                        <p className="text-[10.5px] font-medium text-slate-900/85">
+                          Lembrete das 17:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setConfirmandoFechamento17h(true)}
+                        className="bg-slate-950 hover:bg-slate-900 text-white font-black text-xs px-3.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                        title="Responder sobre visitação de hoje"
+                      >
+                        <span>Responder / Fechar</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmandoFechamento17h(true)}
+                        className="p-1.5 text-slate-950/80 hover:text-slate-950 rounded-lg hover:bg-slate-950/10 transition cursor-pointer"
+                        title="Fechar aviso"
+                      >
+                        <Icons.X />
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {showAviso17h && confirmandoFechamento17h && (
+                  <>
+                    <div className="flex items-center gap-2.5 text-center sm:text-left">
+                      <span className="w-7 h-7 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center shrink-0 font-black text-sm shadow-inner">
+                        ?
+                      </span>
+                      <div>
+                        <p className="text-xs sm:text-[13px] font-black text-slate-950 leading-tight">
+                          Você tem certeza que não houve nenhum visitante?
+                        </p>
+                        <p className="text-[10.5px] font-medium text-slate-900/85">
+                          Confirmação de encerramento do dia no Espaço Experiência.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                      <button
+                        type="button"
+                        onClick={handleConfirmarSim17h}
+                        className="bg-slate-950 hover:bg-slate-900 text-white font-black text-xs px-3.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                        title="Confirmar que realmente não houve nenhum visitante hoje"
+                      >
+                        <Icons.Check />
+                        <span>SIM, TENHO CERTEZA</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleResponderNao17h}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-3.5 py-1.5 rounded-lg shadow-md transition flex items-center gap-1.5 cursor-pointer"
+                        title="Abrir formulário de registro de visitantes agora"
+                      >
+                        <Icons.Plus />
+                        <span>NÃO, REGISTRAR AGORA</span>
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
