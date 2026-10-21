@@ -574,6 +574,7 @@ function obterDadosIniciais() {
     var videoGestao = carregarVideoGestao(ss);
     var visitantes = carregarVisitantes(ss);
     var metricas = calcularMetricasVisitantes(visitantes);
+    var authObrigatoria = PropertiesService.getScriptProperties().getProperty("AUTH_ESPECIALISTA_OBRIGATORIA") === "true";
     
     return {
       success: true,
@@ -582,7 +583,8 @@ function obterDadosIniciais() {
       plantonistas: plantonistas,
       videoGestao: videoGestao,
       visitantes: visitantes,
-      metricas: metricas
+      metricas: metricas,
+      auth_especialista_obrigatoria: authObrigatoria
     };
   } catch (err) {
     return {
@@ -600,7 +602,8 @@ function obterDadosIniciais() {
         subtitulo: "Mensagem institucional da liderança aos visitantes do Espaço Experiência"
       },
       visitantes: [],
-      metricas: { hoje: 0, semana: 0, mes: 0, ano: 0, total: 0 }
+      metricas: { hoje: 0, semana: 0, mes: 0, ano: 0, total: 0 },
+      auth_especialista_obrigatoria: false
     };
   }
 }
@@ -4319,5 +4322,73 @@ function definirNovaSenhaObrigatoria(email, novaSenha) {
     return { success: false, message: "Usuário não encontrado na base corporativa." };
   } catch(e) {
     return { success: false, message: e.message };
+  }
+}
+
+
+/**
+ * Consulta a Chave Mestra do Perfil Especialista
+ */
+function obterModoAuthEspecialista() {
+  try {
+    var val = PropertiesService.getScriptProperties().getProperty("AUTH_ESPECIALISTA_OBRIGATORIA");
+    return {
+      success: true,
+      auth_especialista_obrigatoria: val === "true"
+    };
+  } catch (err) {
+    return {
+      success: false,
+      auth_especialista_obrigatoria: false,
+      error: err.message
+    };
+  }
+}
+
+/**
+ * Altera a Chave Mestra do Perfil Especialista (Exclusivo Dono do Produto)
+ */
+function salvarModoAuthEspecialista(obrigatoria, autorEmail, autorNome) {
+  try {
+    var email = (autorEmail || "").trim().toLowerCase();
+    var isDono = email === "andre.gianotti@totvs.com.br";
+    if (!isDono) {
+      var ativo = obterUsuarioAtivo();
+      if (ativo && (ativo.email === "andre.gianotti@totvs.com.br" || ativo.dono_produto)) {
+        isDono = true;
+      }
+    }
+    if (!isDono) {
+      return {
+        success: false,
+        message: "Ação restrita: Somente o Dono do Produto (andre.gianotti@totvs.com.br) tem autorização para alterar a chave do Perfil Especialista."
+      };
+    }
+
+    var boolVal = obrigatoria === true;
+    PropertiesService.getScriptProperties().setProperty("AUTH_ESPECIALISTA_OBRIGATORIA", boolVal ? "true" : "false");
+
+    // Auditoria
+    try {
+      var ss = getSpreadsheet();
+      var sheetAudit = ss.getSheetByName("Logs_Auditoria");
+      if (sheetAudit) {
+        var id = "aud-" + new Date().getTime();
+        var agora = new Date();
+        var dataStr = Utilities.formatDate(agora, "America/Sao_Paulo", "dd/MM/yyyy");
+        var horaStr = Utilities.formatDate(agora, "America/Sao_Paulo", "HH:mm:ss");
+        var acao = boolVal ? "Ativação do Modo Estrito (Login Obrigatório para Especialistas)" : "Ativação do Modo Aberto (Acesso Especialista Sem Login)";
+        var detalhes = "A chave mestra do Perfil Especialista foi alterada para " + (boolVal ? "MODO ESTRITO (exige login individual)" : "MODO ABERTO (usuários deslogados herdam privilégios de especialista)") + " pelo Dono do Produto.";
+        sheetAudit.appendRow([id, autorNome || "André Gianotti", email || "andre.gianotti@totvs.com.br", "adm", "governanca", "Governança do Showroom", acao, dataStr, horaStr, agora.getTime(), detalhes]);
+      }
+    } catch (errAudit) {}
+
+    return {
+      success: true,
+      message: "Chave do Perfil Especialista alterada para " + (boolVal ? "Modo Estrito (Login Obrigatório)" : "Modo Aberto (Sem Login Obrigatório)") + " com sucesso!",
+      auth_especialista_obrigatoria: boolVal
+    };
+  } catch (err) {
+    return { success: false, message: "Erro ao salvar modo de autenticação: " + err.message };
   }
 }

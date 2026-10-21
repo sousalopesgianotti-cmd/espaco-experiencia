@@ -1186,7 +1186,8 @@
     function PlantonistasModal({
       onClose,
       admLogado,
-      showToast
+      showToast,
+      authEspecialistaObrigatoria = false
     }) {
       const [loading, setLoading] = useState(true);
       const [especialistas, setEspecialistas] = useState([]);
@@ -1283,8 +1284,10 @@
         setViewMonth(today.getMonth());
       };
 
+      const podeEditarEscala = !authEspecialistaObrigatoria || !!admLogado;
+
       const handleOpenEditDate = (d) => {
-        if (!admLogado) return;
+        if (!podeEditarEscala) return;
         const iso = formatIsoDate(viewYear, viewMonth, d);
         setEditingDate(iso);
         const currentEscala = escalas[iso];
@@ -1312,8 +1315,8 @@
               turno: customTurno,
               observacoes: customObs,
               autor: {
-                nome: admLogado?.nome || 'Administrador',
-                email: admLogado?.email || 'admin@totvs.com.br'
+                nome: admLogado?.nome || 'Especialista',
+                email: admLogado?.email || 'especialista@totvs.com.br'
               }
             })
           });
@@ -1694,6 +1697,12 @@
                       </span>
                     </>
                   )}
+                  {!admLogado && !authEspecialistaObrigatoria && (
+                    <span className="text-[10.5px] font-bold px-2.5 py-1 rounded-lg border flex items-center gap-1 text-purple-700 bg-purple-50 border-purple-200" title="Chave Mestra em Modo Aberto: Edição de plantão liberada para especialistas">
+                      <Icons.Shield />
+                      <span>Modo Especialista Aberto (Sem Login)</span>
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -1723,11 +1732,11 @@
                     return (
                       <div
                         key={idx}
-                        onClick={() => admLogado && handleOpenEditDate(dayNum)}
+                        onClick={() => podeEditarEscala && handleOpenEditDate(dayNum)}
                         className={`min-h-[85px] p-2 flex flex-col justify-between transition relative ${
                           isWeekend ? 'bg-slate-50/70' : 'bg-white hover:bg-slate-50'
                         } ${isToday ? 'ring-2 ring-totvs-cyan ring-inset bg-cyan-50/30' : ''} ${
-                          admLogado ? 'cursor-pointer hover:border-totvs-cyan/60' : ''
+                          podeEditarEscala ? 'cursor-pointer hover:border-totvs-cyan/60' : ''
                         }`}
                       >
                         {/* Topo da Célula: Número do Dia */}
@@ -1741,7 +1750,7 @@
                           >
                             {dayNum}
                           </span>
-                          {admLogado && (
+                          {podeEditarEscala && (
                             <span className="text-[9px] text-slate-400 hover:text-totvs-cyan transition">
                               ✏️
                             </span>
@@ -2060,6 +2069,40 @@
       const [dismissedReminderToday, setDismissedReminderToday] = useState(false);
       const [visitorsList, setVisitorsList] = useState([]);
 
+      // Governança: Chave Mestra do Perfil Especialista & Plantonista de Hoje
+      const [authEspecialistaObrigatoria, setAuthEspecialistaObrigatoria] = useState(false);
+      const [plantonistaHoje, setPlantonistaHoje] = useState(null);
+
+      const carregarAuthMode = () => {
+        fetch('/api/config/auth-mode')
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.success && data.auth_especialista_obrigatoria !== undefined) {
+              setAuthEspecialistaObrigatoria(data.auth_especialista_obrigatoria === true);
+            }
+          })
+          .catch(() => {});
+      };
+
+      const carregarPlantonistaHoje = () => {
+        fetch('/api/plantonistas')
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.success && data.escalas) {
+              const today = new Date();
+              const yyyy = today.getFullYear();
+              const mm = String(today.getMonth() + 1).padStart(2, '0');
+              const dd = String(today.getDate()).padStart(2, '0');
+              const todayIso = `${yyyy}-${mm}-${dd}`;
+              const plantao = data.escalas[todayIso];
+              if (plantao && plantao.nome) {
+                setPlantonistaHoje(plantao.nome);
+              }
+            }
+          })
+          .catch(() => {});
+      };
+
       const carregarVisitorMetrics = () => {
         fetch('/api/visitors/metrics')
           .then(res => res.json())
@@ -2195,9 +2238,11 @@
             }
           }
 
-        // 4. Carregar métricas de visitantes presenciais
+        // 4. Carregar métricas de visitantes, governança e vídeo
         carregarVisitorMetrics();
         carregarVisitantes();
+        carregarAuthMode();
+        carregarPlantonistaHoje();
         carregarVideoGestao();
 
         // 5. Buscar segmentos
@@ -2517,7 +2562,7 @@
                     <button
                       type="button"
                       onClick={() => {
-                        if (!admLogado) {
+                        if (authEspecialistaObrigatoria && !admLogado) {
                           showToast('Identifique-se para registrar visitantes presenciais.');
                           setShowLoginModal(true);
                           return;
@@ -2525,7 +2570,7 @@
                         setShowVisitorModal(true);
                       }}
                       className="flex items-center gap-1.5 bg-gradient-to-r from-totvs-cyan to-teal-300 hover:from-cyan-300 hover:to-teal-200 text-slate-900 font-black px-2.5 sm:px-3 py-1 rounded-lg text-xs shadow-xs transition transform hover:scale-102 active:scale-98 cursor-pointer ml-0.5"
-                      title="Registrar visita presencial no Espaço Experiência TOTVS"
+                      title={authEspecialistaObrigatoria && !admLogado ? "Identifique-se para registrar visitantes presenciais" : "Registrar visita presencial no Espaço Experiência TOTVS"}
                     >
                       <Icons.UserPlus />
                       <span className="hidden md:inline">Registrar Visitante</span>
@@ -2835,6 +2880,7 @@
           {showVisitorModal && (
             <VisitorRegisterModal
               admLogado={admLogado}
+              plantonistaHoje={plantonistaHoje}
               onClose={() => setShowVisitorModal(false)}
               onSuccess={(newMetrics) => {
                 if (newMetrics) setVisitorMetrics(newMetrics);
@@ -2852,6 +2898,8 @@
           {adminModal && (
             <AdminModal
               admLogado={admLogado}
+              authEspecialistaObrigatoria={authEspecialistaObrigatoria}
+              onAuthModeChange={(novoModo) => setAuthEspecialistaObrigatoria(novoModo)}
               onUpdateAdmProfile={handleUpdateAdmProfile}
               activeTab={adminTab}
               onTabChange={setAdminTab}
@@ -2911,6 +2959,7 @@
             <PlantonistasModal
               onClose={() => setShowPlantonistasModal(false)}
               admLogado={admLogado}
+              authEspecialistaObrigatoria={authEspecialistaObrigatoria}
               showToast={showToast}
             />
           )}
@@ -6547,7 +6596,7 @@
     }
 
     // --- COMPONENTE: REGISTRO DE VISITANTE NO ESPAÇO EXPERIÊNCIA (ACESSO ABERTO) ---
-    function VisitorRegisterModal({ onClose, onSuccess, onFormOpened, showToast, admLogado }) {
+    function VisitorRegisterModal({ onClose, onSuccess, onFormOpened, showToast, admLogado, plantonistaHoje }) {
       const [dataVisita, setDataVisita] = useState(() => {
         const today = new Date();
         const yyyy = today.getFullYear();
@@ -6558,7 +6607,13 @@
       const [empresa, setEmpresa] = useState('');
       const [tipoVisitante, setTipoVisitante] = useState('');
       const [numeroPessoas, setNumeroPessoas] = useState(1);
-      const [responsavel, setResponsavel] = useState(admLogado ? admLogado.nome : '');
+      const [responsavel, setResponsavel] = useState(() => {
+        if (admLogado && admLogado.nome) return admLogado.nome;
+        if (plantonistaHoje) {
+          return typeof plantonistaHoje === 'string' ? plantonistaHoje : (plantonistaHoje.nome || '');
+        }
+        return '';
+      });
       const [salvando, setSalvando] = useState(false);
       const [copiedFormLink, setCopiedFormLink] = useState(false);
 
@@ -6861,6 +6916,13 @@
                     required
                     className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
                   />
+                  {!admLogado && plantonistaHoje && (
+                    <p className="text-[10.5px] text-purple-700 mt-1.5 flex items-center gap-1.5 font-semibold bg-purple-50/80 px-2.5 py-1 rounded-lg border border-purple-200/60">
+                      <span>💡 Especialista escalado hoje:</span>
+                      <span className="font-bold">{typeof plantonistaHoje === 'string' ? plantonistaHoje : plantonistaHoje.nome}</span>
+                      <span className="text-slate-400 font-normal">(Você pode alterar se for outro anfitrião)</span>
+                    </p>
+                  )}
                 </div>
 
                 {/* Card em Destaque: Formulário Google Forms */}
@@ -7479,7 +7541,9 @@
       onLogout,
       videoGestao,
       onVideoGestaoChange,
-      showToast
+      showToast,
+      authEspecialistaObrigatoria = false,
+      onAuthModeChange
     }) {
       // Bloquear rolagem do fundo e fechar com a tecla ESC
       useEffect(() => {
@@ -7554,6 +7618,43 @@
       const [modalTrocarSenha, setModalTrocarSenha] = useState(false);
       const [novaSenhaInput, setNovaSenhaInput] = useState('');
       const [confirmaNovaSenhaInput, setConfirmaNovaSenhaInput] = useState('');
+
+      // Alternância da Chave Mestra do Perfil Especialista (Dono do Produto)
+      const [togglingAuthMode, setTogglingAuthMode] = useState(false);
+
+      const handleToggleAuthMode = async () => {
+        if (!admLogado?.dono_produto) {
+          if (showToast) showToast('Apenas o Dono do Produto pode alterar esta chave.');
+          return;
+        }
+        setTogglingAuthMode(true);
+        const novoValor = !authEspecialistaObrigatoria;
+
+        try {
+          const res = await fetch('/api/config/auth-mode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              obrigatoria: novoValor,
+              autorNome: admLogado.nome,
+              autorEmail: admLogado.email,
+              dono_produto: admLogado.dono_produto
+            })
+          });
+          const data = await res.json();
+          if (data && data.success) {
+            if (onAuthModeChange) onAuthModeChange(data.auth_especialista_obrigatoria);
+            if (showToast) showToast(data.message || 'Chave alterada com sucesso! ✅');
+            if (onRefresh) onRefresh();
+          } else {
+            if (showToast) showToast(data.message || 'Erro ao alterar chave mestra.');
+          }
+        } catch (err) {
+          if (showToast) showToast('Erro de comunicação ao alternar chave mestra.');
+        } finally {
+          setTogglingAuthMode(false);
+        }
+      };
       const [salvandoSenha, setSalvandoSenha] = useState(false);
       const [erroTrocaSenha, setErroTrocaSenha] = useState('');
 
@@ -8385,6 +8486,61 @@
                       <span>Convidar Outro ADM</span>
                     </button>
                   </div>
+
+                  {/* Card de Governança: Chave Mestra do Perfil Especialista (Exclusivo Dono do Produto) */}
+                  {admLogado?.dono_produto && (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-purple-50/90 via-indigo-50/60 to-blue-50/80 border border-purple-200 shadow-xs space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                            <Icons.Shield />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="font-extrabold text-slate-900 text-sm">
+                                Chave Mestra do Perfil Especialista
+                              </h4>
+                              <span className="text-[10px] bg-purple-100 text-purple-900 font-extrabold px-2.5 py-0.5 rounded-full border border-purple-300">
+                                👑 Exclusivo Dono do Produto
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-600 mt-1 max-w-xl">
+                              {authEspecialistaObrigatoria
+                                ? '🔒 MODO ESTRITO ATIVO: O acesso como Especialista exige autenticação prévia individual (login e senha) para registrar visitantes e editar plantões.'
+                                : '🔓 MODO ABERTO ATIVO: O contexto "deslogado" herda os privilégios operacionais de Especialista. Qualquer colaborador pode registrar visitantes e editar escalas sem efetuar login.'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0 self-end sm:self-center bg-white/80 px-3.5 py-2 rounded-xl border border-purple-200/80 shadow-2xs">
+                          <div className="text-right">
+                            <span className={`text-xs font-black block ${authEspecialistaObrigatoria ? 'text-purple-700' : 'text-emerald-700'}`}>
+                              {authEspecialistaObrigatoria ? 'Modo Estrito' : 'Modo Aberto'}
+                            </span>
+                            <span className="text-[9.5px] text-slate-400 block">
+                              {authEspecialistaObrigatoria ? 'Login Obrigatório' : 'Acesso Flexível'}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleToggleAuthMode}
+                            disabled={togglingAuthMode}
+                            className={`w-14 h-7 rounded-full transition-colors p-1 flex items-center cursor-pointer shadow-inner ${
+                              authEspecialistaObrigatoria ? 'bg-purple-600 justify-end' : 'bg-slate-300 justify-start'
+                            } ${togglingAuthMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            title={authEspecialistaObrigatoria ? 'Clique para desativar login obrigatório (ativar Modo Aberto)' : 'Clique para ativar login obrigatório (ativar Modo Estrito)'}
+                          >
+                            <div className="w-5 h-5 rounded-full bg-white shadow-md transform transition-transform" />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-2 border-t border-purple-200/60 flex items-center justify-between text-[11px] text-slate-500">
+                        <span>Estado Atual: <strong className={authEspecialistaObrigatoria ? 'text-purple-700' : 'text-emerald-700'}>{authEspecialistaObrigatoria ? 'Exige credenciais de Especialista ou ADM' : 'Especialista operacional ativo para deslogados'}</strong></span>
+                        <span className="text-[10px] text-slate-400">Auditoria gravada em tempo real 📋</span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Lista de Perfis Cadastrados */}
                   <div className="space-y-3">

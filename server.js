@@ -534,6 +534,65 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    // 5.2 GET /api/config/auth-mode (Consulta o status da Chave Mestra do Perfil Especialista)
+    if (pathname === '/api/config/auth-mode' && method === 'GET') {
+      const configFile = path.join(DATA_DIR, 'config.json');
+      const cfg = readJsonFile(configFile, { auth_especialista_obrigatoria: false });
+      return sendJson(res, {
+        success: true,
+        auth_especialista_obrigatoria: cfg.auth_especialista_obrigatoria === true
+      });
+    }
+
+    // 5.3 POST /api/config/auth-mode (Alternar Chave Mestra - Exclusivo Dono do Produto)
+    if (pathname === '/api/config/auth-mode' && method === 'POST') {
+      const body = await readBodyJson(req);
+      const autorEmail = (body.autorEmail || '').trim().toLowerCase();
+      const isDono = autorEmail === 'andre.gianotti@totvs.com.br' || body.dono_produto === true;
+
+      if (!isDono) {
+        return sendJson(res, {
+          success: false,
+          message: 'Ação restrita: Somente o Dono do Produto (andre.gianotti@totvs.com.br) tem autorização para alterar a chave do Perfil Especialista.'
+        }, 403);
+      }
+
+      const configFile = path.join(DATA_DIR, 'config.json');
+      let cfg = readJsonFile(configFile, { auth_especialista_obrigatoria: false });
+      const novoModo = body.obrigatoria !== undefined ? (body.obrigatoria === true) : !(cfg.auth_especialista_obrigatoria === true);
+      cfg.auth_especialista_obrigatoria = novoModo;
+      writeJsonFile(configFile, cfg);
+
+      // Registrar em Auditoria
+      try {
+        const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+        let logs = readJsonFile(auditFile, []);
+        if (!Array.isArray(logs)) logs = [];
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: body.autorNome || 'André Gianotti',
+          analista_email: autorEmail || 'andre.gianotti@totvs.com.br',
+          perfil: 'adm',
+          segmento_id: 'governanca',
+          segmento_nome: 'Governança do Showroom',
+          acao: novoModo ? 'Ativação do Modo Estrito (Login Obrigatório para Especialistas)' : 'Ativação do Modo Aberto (Acesso Especialista Sem Login)',
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `A chave mestra do Perfil Especialista foi alterada para ${novoModo ? 'MODO ESTRITO (exige login individual)' : 'MODO ABERTO (usuários deslogados herdam privilégios de especialista)'} pelo Dono do Produto.`
+        });
+        writeJsonFile(auditFile, logs);
+      } catch (eAudit) {
+        console.warn('Erro ao registrar auditoria da chave mestra:', eAudit);
+      }
+
+      return sendJson(res, {
+        success: true,
+        message: `Chave do Perfil Especialista alterada para ${novoModo ? 'Modo Estrito (Login Obrigatório)' : 'Modo Aberto (Sem Login Obrigatório)'} com sucesso!`,
+        auth_especialista_obrigatoria: novoModo
+      });
+    }
+
     // 6. GET /api/admin/metrics (Métricas de Acesso e Totais)
     if (pathname === '/api/admin/metrics' && method === 'GET') {
       const accessFile = path.join(DATA_DIR, 'logs_acesso.json');
