@@ -2870,16 +2870,16 @@
                       title={admLogado.perfil === 'especialista' ? "Meu Perfil de Especialista" : "Painel do Administrador"}
                     >
                       {admLogado.foto ? (
-                        <img src={admLogado.foto} alt={admLogado.nome} className="w-5 h-5 rounded-full object-cover border border-totvs-cyan" />
+                        <img src={admLogado.foto} alt={admLogado.nome} className="w-6 h-6 rounded-full object-cover border border-totvs-cyan shrink-0" />
                       ) : (
-                        <div className={`w-5 h-5 rounded-full text-white flex items-center justify-center font-black text-[10px] ${
+                        <div className={`w-6 h-6 rounded-full text-white flex items-center justify-center font-black text-[10px] shrink-0 ${
                           admLogado.perfil === 'especialista' ? 'bg-purple-700' : 'bg-totvs-blue'
                         }`}>
                           {admLogado.nome ? admLogado.nome.charAt(0).toUpperCase() : 'U'}
                         </div>
                       )}
-                      <span className="font-bold text-xs truncate max-w-[110px] hidden md:inline">{admLogado.nome}</span>
-                      <span className={`text-[8.5px] font-black uppercase px-1.5 py-0.2 rounded ${
+                      <span className="font-bold text-xs truncate max-w-[140px] sm:max-w-[200px] md:max-w-[280px] inline-block">{admLogado.nome}</span>
+                      <span className={`text-[8.5px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 ${
                         admLogado.dono_produto 
                           ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' 
                           : admLogado.perfil === 'especialista'
@@ -3524,17 +3524,23 @@
                 )}
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                    Nome Completo *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-bold text-slate-700">
+                      Nome de Exibição (Canto Superior Direito) *
+                    </label>
+                    <span className="text-[10px] text-purple-700 font-semibold">Exibido no topo da tela</span>
+                  </div>
                   <input
                     type="text"
-                    placeholder="Seu nome completo"
+                    placeholder="Seu nome de exibição no topo"
                     value={nomeInput}
                     onChange={(e) => setNomeInput(e.target.value)}
-                    className="w-full text-xs px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 font-medium"
+                    className="w-full text-xs px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 font-semibold shadow-xs"
                     required
                   />
+                  <span className="text-[10px] text-slate-500 block mt-1">
+                    Nome personalizado exibido no canto superior direito da tela. O login permanece vinculado ao seu e-mail corporativo imutável.
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -10542,28 +10548,34 @@
                   </div>
 
                   <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-slate-700 text-xs leading-relaxed">
-                    <span className="font-bold text-totvs-blue block mb-0.5">Identificação e Credenciais:</span>
-                    Você pode alterar seu <strong>Nome Completo</strong> e, caso queira, definir uma <strong>Nova Senha</strong> (mínimo 6 caracteres, letras e números). Deixe os campos de senha em branco para manter a senha atual.
+                    <span className="font-bold text-totvs-blue block mb-0.5">Regras de Acesso e Exibição:</span>
+                    Todo login é realizado <strong>exclusivamente pelo e-mail corporativo cadastrado</strong> no convite (imutável). O campo abaixo define o seu <strong>Nome de Exibição personalizado</strong> que aparece no canto superior direito da tela. Apenas a senha de acesso e a foto de perfil podem ser alteradas.
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Nome Completo *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-800">
+                        Nome de Exibição (Canto Superior Direito) *
+                      </label>
+                      <span className="text-[10px] text-totvs-blue font-semibold">Exibido no topo da tela</span>
+                    </div>
                     <input
                       type="text"
-                      placeholder="Seu nome completo"
+                      placeholder="Seu nome de exibição no topo"
                       value={meuNomeInput}
                       onChange={(e) => setMeuNomeInput(e.target.value)}
-                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-medium text-slate-800"
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-semibold text-slate-800 shadow-xs"
                       required
                       autoFocus
                     />
+                    <span className="text-[10px] text-slate-500 block mt-1">
+                      Este é o nome personalizado que ficará visível no canto superior direito da página principal e nos registros.
+                    </span>
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1">
-                      E-mail Corporativo (Identificador Exclusivo)
+                      E-mail Corporativo (Chave de Login Exclusiva)
                     </label>
                     <input
                       type="email"
@@ -10571,7 +10583,9 @@
                       disabled
                       className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 font-mono cursor-not-allowed"
                     />
-                    <span className="text-[10px] text-slate-400 block mt-0.5">O e-mail é a chave corporativa exclusiva e não pode ser alterado.</span>
+                    <span className="text-[10px] text-slate-500 block mt-1">
+                      🔒 O e-mail corporativo foi cadastrado no convite de acesso. Todo login é feito unicamente por ele e não pode ser alterado.
+                    </span>
                   </div>
 
                   <div className="pt-2 border-t border-slate-100 space-y-3">
@@ -10729,28 +10743,34 @@
                   )}
 
                   <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-slate-700 text-xs leading-relaxed">
-                    <span className="font-bold text-totvs-blue block mb-0.5">Gestão de Credenciais:</span>
-                    Atualize o <strong>Nome</strong> e/ou defina uma <strong>Nova Senha</strong> personalizada para este usuário (mínimo 6 caracteres alfanuméricos). Se deixar os campos de senha vazios, a senha atual dele é preservada.
+                    <span className="font-bold text-totvs-blue block mb-0.5">Regras de Acesso e Exibição:</span>
+                    O login deste usuário é realizado <strong>exclusivamente pelo e-mail corporativo cadastrado</strong> no convite (imutável). O campo abaixo atualiza o <strong>Nome de Exibição</strong> que fica visível na página, no canto superior direito. Apenas a senha e a foto podem ser alteradas.
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Nome do Usuário *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-800">
+                        Nome de Exibição (Canto Superior Direito) *
+                      </label>
+                      <span className="text-[10px] text-totvs-blue font-semibold">Exibido no topo da tela</span>
+                    </div>
                     <input
                       type="text"
-                      placeholder="Nome completo do usuário"
+                      placeholder="Nome de exibição no topo"
                       value={editNomeInput}
                       onChange={(e) => setEditNomeInput(e.target.value)}
-                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-medium text-slate-800"
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-semibold text-slate-800 shadow-xs"
                       required
                       autoFocus
                     />
+                    <span className="text-[10px] text-slate-500 block mt-1">
+                      Este é o nome personalizado que ficará visível no canto superior direito da página e nos registros.
+                    </span>
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1">
-                      E-mail Corporativo (Identificador Exclusivo)
+                      E-mail Corporativo (Chave de Login Exclusiva)
                     </label>
                     <input
                       type="email"
@@ -10758,7 +10778,9 @@
                       disabled
                       className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 font-mono cursor-not-allowed"
                     />
-                    <span className="text-[10px] text-slate-400 block mt-0.5">O e-mail é a chave corporativa exclusiva e não pode ser alterado.</span>
+                    <span className="text-[10px] text-slate-500 block mt-1">
+                      🔒 O e-mail corporativo foi cadastrado no convite de acesso. Todo login é feito unicamente por ele e não pode ser alterado.
+                    </span>
                   </div>
 
                   <div className="pt-2 border-t border-slate-100 space-y-3">
