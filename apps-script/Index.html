@@ -3242,6 +3242,7 @@
     // --- COMPONENTE: MODAL "MEU PERFIL" DO ESPECIALISTA ---
     function MeuPerfilModal({ usuario, onClose, onUpdateUser, onLogout, showToast }) {
       const [nomeInput, setNomeInput] = useState(usuario.nome || '');
+      const [desejaAlterarSenha, setDesejaAlterarSenha] = useState(false);
       const [novaSenha, setNovaSenha] = useState('');
       const [confirmaSenha, setConfirmaSenha] = useState('');
       const [salvandoPerfil, setSalvandoPerfil] = useState(false);
@@ -3356,17 +3357,18 @@
           return;
         }
 
-        const senhaLimpa = novaSenha.trim();
-        if (senhaLimpa) {
-          const senhaValida = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(senhaLimpa);
-          if (!senhaValida) {
+        let senhaLimpa = undefined;
+        if (desejaAlterarSenha) {
+          const s = novaSenha.trim();
+          if (s.length < 6 || !/^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(s)) {
             setErroPerfil('A nova senha deve possuir no mínimo 6 caracteres e conter letras e números.');
             return;
           }
-          if (senhaLimpa !== confirmaSenha.trim()) {
+          if (s !== confirmaSenha.trim()) {
             setErroPerfil('A confirmação da nova senha não confere.');
             return;
           }
+          senhaLimpa = s;
         }
 
         if (!senhaLimpa && nomeLimpo === (usuario.nome || '').trim()) {
@@ -3543,37 +3545,65 @@
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                      Nova Senha (opcional)
-                    </label>
+                {/* Card Seletor de Troca de Senha */}
+                <div className="p-3.5 bg-purple-50/50 border border-purple-200/80 rounded-2xl space-y-3">
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none">
                     <input
-                      type="password"
-                      placeholder="Deixe em branco p/ manter atual"
-                      value={novaSenha}
-                      onChange={(e) => setNovaSenha(e.target.value)}
-                      className="w-full text-xs px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                      type="checkbox"
+                      checked={desejaAlterarSenha}
+                      onChange={(e) => {
+                        setDesejaAlterarSenha(e.target.checked);
+                        if (!e.target.checked) {
+                          setNovaSenha('');
+                          setConfirmaSenha('');
+                          setErroPerfil('');
+                        }
+                      }}
+                      className="w-4 h-4 text-purple-700 rounded focus:ring-purple-400 border-slate-300 cursor-pointer"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                      Confirmar Nova Senha
-                    </label>
-                    <input
-                      type="password"
-                      placeholder="Repita a nova senha se alterar"
-                      value={confirmaSenha}
-                      onChange={(e) => setConfirmaSenha(e.target.value)}
-                      className="w-full text-xs px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                    />
-                  </div>
-                </div>
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      🔑 Desejo alterar minha senha de acesso
+                    </span>
+                  </label>
 
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[10px] text-slate-400">
-                    Mínimo 6 chars (letras e números) se alterar senha.
-                  </span>
+                  {desejaAlterarSenha && (
+                    <div className="pt-3 border-t border-purple-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in duration-200">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Nova Senha *
+                        </label>
+                        <input
+                          type="password"
+                          autoComplete="new-password"
+                          placeholder="Mínimo 6 chars"
+                          value={novaSenha}
+                          onChange={(e) => setNovaSenha(e.target.value)}
+                          className="w-full text-xs px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 font-mono"
+                          required={desejaAlterarSenha}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Confirmar Nova Senha *
+                        </label>
+                        <input
+                          type="password"
+                          autoComplete="new-password"
+                          placeholder="Repita a nova senha"
+                          value={confirmaSenha}
+                          onChange={(e) => setConfirmaSenha(e.target.value)}
+                          className="w-full text-xs px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 font-mono"
+                          required={desejaAlterarSenha}
+                        />
+                      </div>
+                      <div className="col-span-full">
+                        <span className="text-[10px] text-purple-900 font-medium">
+                          Mínimo 6 caracteres (letras e números).
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
                   <button
                     type="submit"
                     disabled={salvandoPerfil || !nomeInput.trim()}
@@ -8075,6 +8105,7 @@
       // Estados para Edição do Próprio Perfil (Nome & Senha do Usuário Logado)
       const [modalMeuPerfil, setModalMeuPerfil] = useState(false);
       const [meuNomeInput, setMeuNomeInput] = useState('');
+      const [desejaAlterarMinhaSenha, setDesejaAlterarMinhaSenha] = useState(false);
       const [minhaNovaSenhaInput, setMinhaNovaSenhaInput] = useState('');
       const [confirmaMinhaNovaSenhaInput, setConfirmaMinhaNovaSenhaInput] = useState('');
       const [salvandoMeuPerfil, setSalvandoMeuPerfil] = useState(false);
@@ -8084,6 +8115,7 @@
       const [modalEditarPerfil, setModalEditarPerfil] = useState(false);
       const [editUserAlvo, setEditUserAlvo] = useState(null);
       const [editNomeInput, setEditNomeInput] = useState('');
+      const [desejaAlterarSenhaEdit, setDesejaAlterarSenhaEdit] = useState(false);
       const [editNovaSenhaInput, setEditNovaSenhaInput] = useState('');
       const [editConfirmaSenhaInput, setEditConfirmaSenhaInput] = useState('');
       const [salvandoEditPerfil, setSalvandoEditPerfil] = useState(false);
@@ -8147,6 +8179,7 @@
       };
       const handleAbrirMeuPerfil = () => {
         setMeuNomeInput(admLogado?.nome || '');
+        setDesejaAlterarMinhaSenha(false);
         setMinhaNovaSenhaInput('');
         setConfirmaMinhaNovaSenhaInput('');
         setErroMeuPerfil('');
@@ -8159,20 +8192,22 @@
 
         const nomeLimpo = meuNomeInput.trim();
         if (!nomeLimpo) {
-          setErroMeuPerfil('O nome completo não pode ficar em branco.');
+          setErroMeuPerfil('O nome de exibição não pode ficar em branco.');
           return;
         }
 
-        const senhaLimpa = minhaNovaSenhaInput.trim();
-        if (senhaLimpa) {
-          if (senhaLimpa.length < 6 || !/^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(senhaLimpa)) {
+        let senhaLimpa = undefined;
+        if (desejaAlterarMinhaSenha) {
+          const s = minhaNovaSenhaInput.trim();
+          if (s.length < 6 || !/^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(s)) {
             setErroMeuPerfil('A nova senha deve possuir no mínimo 6 caracteres e conter letras e números.');
             return;
           }
-          if (senhaLimpa !== confirmaMinhaNovaSenhaInput.trim()) {
+          if (s !== confirmaMinhaNovaSenhaInput.trim()) {
             setErroMeuPerfil('A confirmação da nova senha não confere.');
             return;
           }
+          senhaLimpa = s;
         }
 
         if (!senhaLimpa && nomeLimpo === (admLogado?.nome || '').trim()) {
@@ -8239,6 +8274,7 @@
       const handleAbrirEditarPerfil = (usuarioAlvo) => {
         setEditUserAlvo(usuarioAlvo);
         setEditNomeInput(usuarioAlvo.nome || '');
+        setDesejaAlterarSenhaEdit(false);
         setEditNovaSenhaInput('');
         setEditConfirmaSenhaInput('');
         setErroEditPerfil('');
@@ -8252,20 +8288,22 @@
 
         const nomeLimpo = editNomeInput.trim();
         if (!nomeLimpo) {
-          setErroEditPerfil('O nome não pode ficar em branco.');
+          setErroEditPerfil('O nome de exibição não pode ficar em branco.');
           return;
         }
 
-        const senhaLimpa = editNovaSenhaInput.trim();
-        if (senhaLimpa) {
-          if (senhaLimpa.length < 6 || !/^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(senhaLimpa)) {
+        let senhaLimpa = undefined;
+        if (desejaAlterarSenhaEdit) {
+          const s = editNovaSenhaInput.trim();
+          if (s.length < 6 || !/^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(s)) {
             setErroEditPerfil('A nova senha deve possuir no mínimo 6 caracteres e conter letras e números.');
             return;
           }
-          if (senhaLimpa !== editConfirmaSenhaInput.trim()) {
+          if (s !== editConfirmaSenhaInput.trim()) {
             setErroEditPerfil('A confirmação da nova senha não confere.');
             return;
           }
+          senhaLimpa = s;
         }
 
         if (!senhaLimpa && nomeLimpo === (editUserAlvo.nome || '').trim()) {
@@ -10588,36 +10626,64 @@
                     </span>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 space-y-3">
-                    <span className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                      Alteração de Senha (Opcional)
-                    </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          Nova Senha
-                        </label>
-                        <input
-                          type="password"
-                          placeholder="Mínimo 6 chars"
-                          value={minhaNovaSenhaInput}
-                          onChange={(e) => setMinhaNovaSenhaInput(e.target.value)}
-                          className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
-                        />
+                  {/* Card Seletor de Troca de Senha */}
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                    <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={desejaAlterarMinhaSenha}
+                        onChange={(e) => {
+                          setDesejaAlterarMinhaSenha(e.target.checked);
+                          if (!e.target.checked) {
+                            setMinhaNovaSenhaInput('');
+                            setConfirmaMinhaNovaSenhaInput('');
+                            setErroMeuPerfil('');
+                          }
+                        }}
+                        className="w-4 h-4 text-totvs-blue rounded focus:ring-totvs-blue border-slate-300 cursor-pointer"
+                      />
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        🔑 Desejo alterar minha senha de acesso
+                      </span>
+                    </label>
+
+                    {desejaAlterarMinhaSenha && (
+                      <div className="pt-3 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in duration-200">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Nova Senha *
+                          </label>
+                          <input
+                            type="password"
+                            autoComplete="new-password"
+                            placeholder="Mínimo 6 chars"
+                            value={minhaNovaSenhaInput}
+                            onChange={(e) => setMinhaNovaSenhaInput(e.target.value)}
+                            className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
+                            required={desejaAlterarMinhaSenha}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Confirmar Nova Senha *
+                          </label>
+                          <input
+                            type="password"
+                            autoComplete="new-password"
+                            placeholder="Repita a nova senha"
+                            value={confirmaMinhaNovaSenhaInput}
+                            onChange={(e) => setConfirmaMinhaNovaSenhaInput(e.target.value)}
+                            className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
+                            required={desejaAlterarMinhaSenha}
+                          />
+                        </div>
+                        <div className="col-span-full">
+                          <span className="text-[10px] text-slate-500">
+                            A nova senha deve possuir no mínimo 6 caracteres e conter letras e números.
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          Confirmar Nova Senha
-                        </label>
-                        <input
-                          type="password"
-                          placeholder="Repita a senha"
-                          value={confirmaMinhaNovaSenhaInput}
-                          onChange={(e) => setConfirmaMinhaNovaSenhaInput(e.target.value)}
-                          className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
-                        />
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   {erroMeuPerfil && (
@@ -10783,36 +10849,64 @@
                     </span>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 space-y-3">
-                    <span className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                      Definir Nova Senha Personalizada (Opcional)
-                    </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          Nova Senha
-                        </label>
-                        <input
-                          type="password"
-                          placeholder="Mínimo 6 chars"
-                          value={editNovaSenhaInput}
-                          onChange={(e) => setEditNovaSenhaInput(e.target.value)}
-                          className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
-                        />
+                  {/* Card Seletor de Troca de Senha */}
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                    <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={desejaAlterarSenhaEdit}
+                        onChange={(e) => {
+                          setDesejaAlterarSenhaEdit(e.target.checked);
+                          if (!e.target.checked) {
+                            setEditNovaSenhaInput('');
+                            setEditConfirmaSenhaInput('');
+                            setErroEditPerfil('');
+                          }
+                        }}
+                        className="w-4 h-4 text-totvs-blue rounded focus:ring-totvs-blue border-slate-300 cursor-pointer"
+                      />
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        🔑 Desejo alterar a senha deste usuário
+                      </span>
+                    </label>
+
+                    {desejaAlterarSenhaEdit && (
+                      <div className="pt-3 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in duration-200">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Nova Senha *
+                          </label>
+                          <input
+                            type="password"
+                            autoComplete="new-password"
+                            placeholder="Mínimo 6 chars"
+                            value={editNovaSenhaInput}
+                            onChange={(e) => setEditNovaSenhaInput(e.target.value)}
+                            className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
+                            required={desejaAlterarSenhaEdit}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Confirmar Nova Senha *
+                          </label>
+                          <input
+                            type="password"
+                            autoComplete="new-password"
+                            placeholder="Repita a nova senha"
+                            value={editConfirmaSenhaInput}
+                            onChange={(e) => setEditConfirmaSenhaInput(e.target.value)}
+                            className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
+                            required={desejaAlterarSenhaEdit}
+                          />
+                        </div>
+                        <div className="col-span-full">
+                          <span className="text-[10px] text-slate-500">
+                            A nova senha deve possuir no mínimo 6 caracteres e conter letras e números.
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          Confirmar Nova Senha
-                        </label>
-                        <input
-                          type="password"
-                          placeholder="Repita a senha"
-                          value={editConfirmaSenhaInput}
-                          onChange={(e) => setEditConfirmaSenhaInput(e.target.value)}
-                          className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-totvs-blue font-mono"
-                        />
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   {erroEditPerfil && (
