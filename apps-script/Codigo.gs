@@ -3965,7 +3965,6 @@ function getPlantonistasPadrao() {
     }
   }
 };
-};
 }
 
 
