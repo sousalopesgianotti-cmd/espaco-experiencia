@@ -3546,11 +3546,11 @@
 
         setSalvandoPerfil(true);
         const payload = {
-          email: usuario.email,
-          nome: nomeLimpo,
-          novaSenha: senhaLimpa || undefined,
-          autorEmail: usuario.email,
-          autorNome: usuario.nome
+          email: String(usuario.email || ''),
+          nome: String(nomeLimpo || ''),
+          novaSenha: String(senhaLimpa || ''),
+          autorEmail: String(usuario.email || ''),
+          autorNome: String(usuario.nome || '')
         };
 
         try {
@@ -8342,34 +8342,39 @@
 
         setSalvandoEditPerfil(true);
         const payload = {
-          id: editUserAlvo.id,
-          email: editUserAlvo.email,
-          nome: nomeLimpo,
-          novaSenha: senhaLimpa || undefined,
-          autorEmail: admLogado.email,
-          autorNome: admLogado.nome
+          id: String(editUserAlvo.id || ''),
+          email: String(editUserAlvo.email || ''),
+          nome: String(nomeLimpo || ''),
+          novaSenha: String(senhaLimpa || ''),
+          autorEmail: String(admLogado?.email || ''),
+          autorNome: String(admLogado?.nome || '')
         };
 
         if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((res) => {
-              setSalvandoEditPerfil(false);
-              if (res && res.success) {
-                setModalEditarPerfil(false);
-                if (editUserAlvo.email === admLogado.email && onUpdateAdmProfile) {
-                  onUpdateAdmProfile(res.usuario || { ...admLogado, nome: nomeLimpo });
+          try {
+            google.script.run
+              .withSuccessHandler((res) => {
+                setSalvandoEditPerfil(false);
+                if (res && res.success) {
+                  setModalEditarPerfil(false);
+                  if (editUserAlvo.email === admLogado.email && onUpdateAdmProfile) {
+                    onUpdateAdmProfile(res.usuario || { ...admLogado, nome: nomeLimpo });
+                  }
+                  if (onRefresh) onRefresh();
+                  if (showToast) showToast(`Perfil de "${nomeLimpo}" atualizado com sucesso! ✏️`);
+                } else {
+                  setErroEditPerfil(res?.message || 'Erro ao atualizar perfil.');
                 }
-                if (onRefresh) onRefresh();
-                if (showToast) showToast(`Perfil de "${nomeLimpo}" atualizado com sucesso! ✏️`);
-              } else {
-                setErroEditPerfil(res.message || 'Erro ao atualizar perfil.');
-              }
-            })
-            .withFailureHandler((err) => {
-              setSalvandoEditPerfil(false);
-              setErroEditPerfil('Falha ao comunicar com a nuvem TOTVS: ' + (err.message || err));
-            })
-            .atualizarPerfilUsuario(payload);
+              })
+              .withFailureHandler((err) => {
+                setSalvandoEditPerfil(false);
+                setErroEditPerfil('Falha ao comunicar com a nuvem TOTVS: ' + (err?.message || err));
+              })
+              .atualizarPerfilUsuario(payload);
+          } catch (e) {
+            setSalvandoEditPerfil(false);
+            setErroEditPerfil('Erro no Apps Script: ' + (e?.message || e));
+          }
           return;
         }
 
@@ -8599,33 +8604,47 @@
             const base64Data = canvas.toDataURL('image/jpeg', 0.85);
 
             if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-              google.script.run
-                .withSuccessHandler((res) => {
-                  if (context === 'meuPerfil') setUploadingMeuAvatar(false);
-                  else if (context === 'editPerfil') setUploadingEditAvatar(false);
-                  else setUploadingAvatar(false);
+              try {
+                const runner = google.script.run
+                  .withSuccessHandler((res) => {
+                    if (context === 'meuPerfil') setUploadingMeuAvatar(false);
+                    else if (context === 'editPerfil') setUploadingEditAvatar(false);
+                    else setUploadingAvatar(false);
 
-                  if (res && res.success) {
-                    if (isSelf && onUpdateAdmProfile) {
-                      onUpdateAdmProfile({ ...admLogado, foto: base64Data });
+                    if (res && res.success) {
+                      if (isSelf && onUpdateAdmProfile) {
+                        onUpdateAdmProfile({ ...admLogado, foto: base64Data });
+                      }
+                      if (editUserAlvo && editUserAlvo.email === emailAlvo) {
+                        setEditUserAlvo(prev => ({ ...prev, foto: base64Data }));
+                      }
+                      if (onAdmsChange) onAdmsChange();
+                      if (onRefresh) onRefresh();
+                      if (showToast) showToast('Foto de perfil atualizada com sucesso! 📸');
+                    } else {
+                      if (showToast) showToast(res?.message || 'Erro ao salvar foto.');
                     }
-                    if (editUserAlvo && editUserAlvo.email === emailAlvo) {
-                      setEditUserAlvo(prev => ({ ...prev, foto: base64Data }));
-                    }
-                    if (onAdmsChange) onAdmsChange();
-                    if (onRefresh) onRefresh();
-                    if (showToast) showToast('Foto de perfil atualizada com sucesso! 📸');
-                  } else {
-                    if (showToast) showToast(res?.message || 'Erro ao salvar foto.');
-                  }
-                })
-                .withFailureHandler((err) => {
-                  if (context === 'meuPerfil') setUploadingMeuAvatar(false);
-                  else if (context === 'editPerfil') setUploadingEditAvatar(false);
-                  else setUploadingAvatar(false);
-                  if (showToast) showToast('Falha de conexão com a nuvem TOTVS.');
-                })
-                .atualizarFotoUsuario(emailAlvo, base64Data);
+                  })
+                  .withFailureHandler((err) => {
+                    if (context === 'meuPerfil') setUploadingMeuAvatar(false);
+                    else if (context === 'editPerfil') setUploadingEditAvatar(false);
+                    else setUploadingAvatar(false);
+                    if (showToast) showToast('Falha de conexão com a nuvem TOTVS: ' + (err?.message || err));
+                  });
+
+                if (typeof runner.atualizarFotoUsuario === 'function') {
+                  runner.atualizarFotoUsuario(emailAlvo, base64Data);
+                } else if (typeof runner.salvarAvatarAdmin === 'function') {
+                  runner.salvarAvatarAdmin(emailAlvo, base64Data);
+                } else {
+                  runner.atualizarFotoUsuario(emailAlvo, base64Data);
+                }
+              } catch (e) {
+                if (context === 'meuPerfil') setUploadingMeuAvatar(false);
+                else if (context === 'editPerfil') setUploadingEditAvatar(false);
+                else setUploadingAvatar(false);
+                if (showToast) showToast('Erro ao enviar foto: ' + (e?.message || e));
+              }
               return;
             }
 

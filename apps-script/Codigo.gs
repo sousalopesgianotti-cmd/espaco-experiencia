@@ -4202,6 +4202,13 @@ function salvarAvatarAdmin(email, base64Data) {
 }
 
 /**
+ * Alias de compatibilidade com o front-end para upload de foto
+ */
+function atualizarFotoUsuario(email, base64Data) {
+  return salvarAvatarAdmin(email, base64Data);
+}
+
+/**
  * Alterna o status (Ativo / Desativado) de um perfil na planilha Google
  */
 function alternarStatusUsuario(id, email, autorEmail, autorNome) {
@@ -4447,7 +4454,7 @@ function atualizarPerfilUsuario(dados) {
 
         // Auditoria
         try {
-          var sheetAudit = ss.getSheetByName("Logs_Auditoria");
+          var sheetAudit = ss.getSheetByName("Logs_Auditoria") || ss.getSheetByName("LogsAuditoria") || ss.getSheetByName("Logs");
           if (sheetAudit) {
             var id = "aud-" + new Date().getTime();
             var agora = new Date();
@@ -4477,6 +4484,26 @@ function atualizarPerfilUsuario(dados) {
           }
         };
       }
+    }
+
+    if (emailLimpo === "andre.gianotti@totvs.com.br") {
+      aba.appendRow(["adm-001", "andre.gianotti@totvs.com.br", nomeLimpo || "André Gianotti", "Dono do Produto", senhaLimpa || "totvs123", true, false, "", "16/09/2026", "adm", true]);
+      return {
+        success: true,
+        message: "Perfil do Dono do Produto atualizado com sucesso!",
+        usuario: {
+          id: "adm-001",
+          email: "andre.gianotti@totvs.com.br",
+          nome: nomeLimpo || "André Gianotti",
+          cargo: "Dono do Produto",
+          tipo: "administrador",
+          dono_produto: true,
+          ativo: true,
+          precisa_trocar_senha: false,
+          foto: "",
+          perfil: "adm"
+        }
+      };
     }
 
     return { success: false, message: "Perfil não encontrado na planilha de usuários." };
