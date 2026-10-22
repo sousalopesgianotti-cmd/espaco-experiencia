@@ -976,7 +976,7 @@
       );
     }
 
-    // Barra Lateral de Menu Retrátil (Estilo SaaS Quirons / TOTVS)
+    // Barra Lateral de Menu Retrátil (Estilo SaaS Quirons / TOTVS - Adaptativo Mobile & Desktop)
     function SidebarNav({
       isExpanded,
       onToggle,
@@ -988,238 +988,270 @@
       admLogado,
       activeNav = 'showroom'
     }) {
+      const handleNavClick = (callback) => {
+        if (typeof callback === 'function') callback();
+        if (typeof window !== 'undefined' && window.innerWidth < 768 && isExpanded) {
+          onToggle();
+        }
+      };
+
       return (
-        <aside
-          className={`fixed left-0 top-0 bottom-0 z-[60] bg-totvs-dark text-white border-r border-slate-800 transition-all duration-300 ease-in-out flex flex-col justify-between select-none shadow-2xl ${
-            isExpanded ? 'w-60 sm:w-64' : 'w-16'
-          }`}
-        >
-          {/* Topo da Sidebar: Botão Hambúrguer + Branding */}
-          <div>
-            <div className="h-16 flex items-center px-3 border-b border-slate-800/80 justify-between overflow-hidden">
-              <button
-                type="button"
-                onClick={onToggle}
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer shrink-0"
-                title={isExpanded ? "Recolher menu lateral" : "Expandir menu lateral"}
-              >
-                <Icons.Menu />
-              </button>
+        <React.Fragment>
+          {/* Backdrop no Mobile quando a gaveta estiver aberta */}
+          {isExpanded && (
+            <div 
+              className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs md:hidden animate-in fade-in duration-200"
+              onClick={onToggle}
+            />
+          )}
 
-              {isExpanded && (
-                <div className="flex items-center gap-2.5 pl-2 overflow-hidden truncate animate-in fade-in duration-200">
-                  <TotvsSymbol className="w-6 h-6 text-totvs-cyan shrink-0" />
-                  <div className="leading-tight truncate">
-                    <span className="font-extrabold text-sm tracking-tight text-white block">TOTVS</span>
-                    <span className="text-[9.5px] font-black uppercase text-totvs-cyan tracking-wider block">Espaço Exp.</span>
-                  </div>
+          <aside
+            className={`fixed left-0 top-0 bottom-0 z-50 bg-totvs-dark text-white border-r border-slate-800 transition-all duration-300 ease-in-out flex flex-col justify-between select-none shadow-2xl ${
+              isExpanded 
+                ? 'translate-x-0 w-72 max-w-[85vw] md:w-60 md:sm:w-64' 
+                : '-translate-x-full md:translate-x-0 md:w-16'
+            }`}
+          >
+            {/* Topo da Sidebar: Botão Hambúrguer / Fechar + Branding */}
+            <div>
+              <div className="h-16 flex items-center px-3 border-b border-slate-800/80 justify-between overflow-hidden">
+                <div className="flex items-center gap-2 overflow-hidden w-full justify-between">
+                  {/* Botão recolher no Desktop */}
+                  <button
+                    type="button"
+                    onClick={onToggle}
+                    className="w-10 h-10 rounded-xl items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer shrink-0 hidden md:flex"
+                    title={isExpanded ? "Recolher menu lateral" : "Expandir menu lateral"}
+                  >
+                    <Icons.Menu />
+                  </button>
+
+                  {/* Botão fechar (X) no Mobile */}
+                  <button
+                    type="button"
+                    onClick={onToggle}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer shrink-0 md:hidden"
+                    title="Fechar menu lateral"
+                  >
+                    <Icons.X />
+                  </button>
+
+                  {isExpanded && (
+                    <div className="flex items-center gap-2.5 pl-2 overflow-hidden truncate animate-in fade-in duration-200">
+                      <TotvsSymbol className="w-6 h-6 text-totvs-cyan shrink-0" />
+                      <div className="leading-tight truncate">
+                        <span className="font-extrabold text-sm tracking-tight text-white block">TOTVS</span>
+                        <span className="text-[9.5px] font-black uppercase text-totvs-cyan tracking-wider block">Espaço Exp.</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Lista de Navegação / Funcionalidades */}
-            <nav className="p-2 space-y-1.5 mt-2">
-              {/* 1. Showroom (Início) */}
-              <button
-                type="button"
-                onClick={onOpenShowroom}
-                className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
-                  activeNav === 'showroom'
-                    ? 'bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/40 shadow-xs'
-                    : 'text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-                title="Showroom (Início • Retornar à Vitrine)"
-              >
-                <span className={`shrink-0 transition-colors ${
-                  activeNav === 'showroom' ? 'text-totvs-cyan' : 'text-slate-300 group-hover:text-totvs-cyan'
-                }`}>
-                  <Icons.Home />
-                </span>
-                {isExpanded && (
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs font-bold block truncate">Showroom</span>
-                    <span className={`text-[9.5px] block truncate ${
-                      activeNav === 'showroom' ? 'text-totvs-cyan/80' : 'text-slate-400'
-                    }`}>
-                      {activeNav === 'showroom' ? 'Vitrine Ativa' : 'Voltar ao Início'}
-                    </span>
-                  </div>
-                )}
-              </button>
-
-              {/* 2. Calendário dos Plantonistas */}
-              <button
-                type="button"
-                onClick={onOpenPlantonistas}
-                className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
-                  activeNav === 'plantonistas'
-                    ? 'bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/40 shadow-xs'
-                    : 'text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-                title="Calendário dos Plantonistas do Espaço"
-              >
-                <span className={`shrink-0 transition-colors ${
-                  activeNav === 'plantonistas' ? 'text-totvs-cyan' : 'text-slate-300 group-hover:text-totvs-cyan'
-                }`}>
-                  <Icons.CalendarDays />
-                </span>
-                {isExpanded && (
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs font-bold block truncate">Plantonistas</span>
-                    <span className={`text-[9.5px] block truncate ${
-                      activeNav === 'plantonistas' ? 'text-totvs-cyan/80' : 'text-slate-400'
-                    }`}>
-                      {activeNav === 'plantonistas' ? 'Pop-up Aberto' : 'Gestão de Escalas 2026'}
-                    </span>
-                  </div>
-                )}
-              </button>
-
-              {/* 3. Histórico de Visitas (Competência exclusiva do ADM) */}
-              {admLogado && (admLogado.perfil === 'adm' || admLogado.dono_produto) && admLogado.perfil !== 'especialista' && (
+              {/* Lista de Navegação / Funcionalidades */}
+              <nav className="p-2 space-y-1.5 mt-2">
+                {/* 1. Showroom (Início) */}
                 <button
                   type="button"
-                  onClick={onOpenHistorico}
+                  onClick={() => handleNavClick(onOpenShowroom)}
                   className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
-                    activeNav === 'historico'
+                    activeNav === 'showroom'
                       ? 'bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/40 shadow-xs'
                       : 'text-slate-300 hover:text-white hover:bg-white/10'
                   }`}
-                  title="Histórico de Visitas Detalhado"
+                  title="Showroom (Início • Retornar à Vitrine)"
                 >
                   <span className={`shrink-0 transition-colors ${
-                    activeNav === 'historico' ? 'text-totvs-cyan' : 'text-slate-300 group-hover:text-totvs-cyan'
+                    activeNav === 'showroom' ? 'text-totvs-cyan' : 'text-slate-300 group-hover:text-totvs-cyan'
                   }`}>
-                    <Icons.BarChart />
+                    <Icons.Home />
                   </span>
                   {isExpanded && (
                     <div className="min-w-0 flex-1">
-                      <span className="text-xs font-bold block truncate">Histórico de Visitas</span>
+                      <span className="text-xs font-bold block truncate">Showroom</span>
                       <span className={`text-[9.5px] block truncate ${
-                        activeNav === 'historico' ? 'text-totvs-cyan/80' : 'text-slate-400'
+                        activeNav === 'showroom' ? 'text-totvs-cyan/80' : 'text-slate-400'
                       }`}>
-                        {activeNav === 'historico' ? 'Pop-up Aberto' : 'Métricas Consolidadas'}
+                        {activeNav === 'showroom' ? 'Vitrine Ativa' : 'Voltar ao Início'}
                       </span>
                     </div>
                   )}
                 </button>
-              )}
 
-              {/* 4. Área Corporativa / Perfil */}
-              <button
-                type="button"
-                onClick={onOpenAdmin}
-                className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
-                  activeNav === 'admin'
-                    ? 'ring-2 ring-totvs-cyan bg-totvs-blue/30 text-white shadow-xs'
-                    : admLogado?.perfil === 'especialista'
-                      ? 'bg-purple-900/30 text-purple-200 border border-purple-400/40 hover:bg-purple-900/50'
-                      : admLogado 
-                        ? 'bg-totvs-blue/20 text-totvs-cyan border border-totvs-cyan/30 hover:bg-totvs-blue/30' 
-                        : 'text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-                title={
-                  admLogado?.perfil === 'especialista'
-                    ? `Meu Perfil (${admLogado.nome})`
-                    : admLogado
-                      ? `Área ADM (${admLogado.nome})`
-                      : "Entrar / Identificar-se"
-                }
-              >
-                <span className="shrink-0 relative">
-                  {admLogado && admLogado.foto ? (
-                    <img
-                      src={admLogado.foto}
-                      alt={admLogado.nome}
-                      className={`w-7 h-7 rounded-full object-cover border-2 shadow-sm ${
-                        admLogado.perfil === 'especialista' ? 'border-purple-400' : 'border-totvs-cyan'
-                      }`}
-                    />
-                  ) : admLogado ? (
-                    <div className={`w-7 h-7 rounded-full text-white text-xs font-black flex items-center justify-center border shadow-sm ${
-                      admLogado.perfil === 'especialista'
-                        ? 'bg-gradient-to-tr from-purple-700 to-totvs-blue border-purple-300'
-                        : 'bg-gradient-to-tr from-totvs-blue to-totvs-cyan border-totvs-cyan'
-                    }`}>
-                      {admLogado.nome ? admLogado.nome.charAt(0).toUpperCase() : (admLogado.perfil === 'especialista' ? 'E' : 'A')}
-                    </div>
-                  ) : (
-                    <Icons.Shield />
-                  )}
-                  {admLogado && (
-                    <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-[#07162c] ${
-                      admLogado.perfil === 'especialista' ? 'bg-purple-400' : 'bg-emerald-400 animate-pulse'
-                    }`}></span>
-                  )}
-                </span>
-                {isExpanded && (
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold block truncate">
-                        {admLogado ? admLogado.nome : 'Entrar'}
-                      </span>
-                      {admLogado && (
-                        <span className={`text-[8px] font-black uppercase px-1 py-0.2 rounded ${
-                          admLogado.dono_produto 
-                            ? 'bg-emerald-500/20 text-emerald-300' 
-                            : admLogado.perfil === 'especialista'
-                              ? 'bg-purple-500/20 text-purple-300'
-                              : (admLogado.perfil === 'pmm' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-cyan-500/20 text-cyan-300')
-                        }`}>
-                          {admLogado.dono_produto ? 'DONO' : (admLogado.perfil === 'especialista' ? 'ESP' : (admLogado.perfil === 'pmm' ? 'PMM' : 'ADM'))}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[9.5px] text-slate-400 block truncate">
-                      {admLogado 
-                        ? (admLogado.dono_produto 
-                            ? '👑 Dono do Produto' 
-                            : (admLogado.perfil === 'especialista'
-                                ? '🌟 Especialista'
-                                : (admLogado.perfil === 'pmm' ? '🎯 PMM (Gestão)' : 'Administrador')))
-                        : 'Identificar-se'}
-                    </span>
-                  </div>
-                )}
-              </button>
-
-              {/* 4.1 Opção discreta de Deslogar / Voltar à área comum (visível apenas quando logado) */}
-              {admLogado && (
+                {/* 2. Calendário dos Plantonistas */}
                 <button
                   type="button"
-                  onClick={onLogoutAdm}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition text-left cursor-pointer group text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 ${
-                    isExpanded ? 'pl-4' : 'justify-center'
+                  onClick={() => handleNavClick(onOpenPlantonistas)}
+                  className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
+                    activeNav === 'plantonistas'
+                      ? 'bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/40 shadow-xs'
+                      : 'text-slate-300 hover:text-white hover:bg-white/10'
                   }`}
-                  title="Deslogar e voltar à área comum"
+                  title="Calendário dos Plantonistas do Espaço"
                 >
-                  <span className="shrink-0 text-slate-400 group-hover:text-rose-400 transition-colors">
-                    <Icons.LogOut />
+                  <span className={`shrink-0 transition-colors ${
+                    activeNav === 'plantonistas' ? 'text-totvs-cyan' : 'text-slate-300 group-hover:text-totvs-cyan'
+                  }`}>
+                    <Icons.CalendarDays />
                   </span>
                   {isExpanded && (
                     <div className="min-w-0 flex-1">
-                      <span className="text-xs font-semibold block truncate">Deslogar</span>
-                      <span className="text-[9px] text-slate-400 block truncate">Voltar à área comum</span>
+                      <span className="text-xs font-bold block truncate">Plantonistas</span>
+                      <span className={`text-[9.5px] block truncate ${
+                        activeNav === 'plantonistas' ? 'text-totvs-cyan/80' : 'text-slate-400'
+                      }`}>
+                        {activeNav === 'plantonistas' ? 'Pop-up Aberto' : 'Gestão de Escalas 2026'}
+                      </span>
                     </div>
                   )}
                 </button>
-              )}
-            </nav>
-          </div>
 
-          {/* Rodapé da Sidebar */}
-          <div className="p-3 border-t border-slate-800/80 overflow-hidden">
-            {isExpanded ? (
-              <div className="text-center text-[10px] text-slate-500 truncate">
-                TOTVS Espaço Exp. • v2.7
-              </div>
-            ) : (
-              <div className="flex justify-center text-[10px] font-mono text-slate-500">
-                v2.7
-              </div>
-            )}
-          </div>
-        </aside>
+                {/* 3. Histórico de Visitas (Competência exclusiva do ADM) */}
+                {admLogado && (admLogado.perfil === 'adm' || admLogado.dono_produto) && admLogado.perfil !== 'especialista' && (
+                  <button
+                    type="button"
+                    onClick={() => handleNavClick(onOpenHistorico)}
+                    className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
+                      activeNav === 'historico'
+                        ? 'bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/40 shadow-xs'
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    }`}
+                    title="Histórico de Visitas Detalhado"
+                  >
+                    <span className={`shrink-0 transition-colors ${
+                      activeNav === 'historico' ? 'text-totvs-cyan' : 'text-slate-300 group-hover:text-totvs-cyan'
+                    }`}>
+                      <Icons.BarChart />
+                    </span>
+                    {isExpanded && (
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-bold block truncate">Histórico de Visitas</span>
+                        <span className={`text-[9.5px] block truncate ${
+                          activeNav === 'historico' ? 'text-totvs-cyan/80' : 'text-slate-400'
+                        }`}>
+                          {activeNav === 'historico' ? 'Pop-up Aberto' : 'Métricas Consolidadas'}
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                )}
+
+                {/* 4. Área Corporativa / Perfil */}
+                <button
+                  type="button"
+                  onClick={() => handleNavClick(onOpenAdmin)}
+                  className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
+                    activeNav === 'admin'
+                      ? 'ring-2 ring-totvs-cyan bg-totvs-blue/30 text-white shadow-xs'
+                      : admLogado?.perfil === 'especialista'
+                        ? 'bg-purple-900/30 text-purple-200 border border-purple-400/40 hover:bg-purple-900/50'
+                        : admLogado 
+                          ? 'bg-totvs-blue/20 text-totvs-cyan border border-totvs-cyan/30 hover:bg-totvs-blue/30' 
+                          : 'text-slate-300 hover:text-white hover:bg-white/10'
+                  }`}
+                  title={
+                    admLogado?.perfil === 'especialista'
+                      ? `Meu Perfil (${admLogado.nome})`
+                      : admLogado
+                        ? `Área ADM (${admLogado.nome})`
+                        : "Entrar / Identificar-se"
+                  }
+                >
+                  <span className="shrink-0 relative">
+                    {admLogado && admLogado.foto ? (
+                      <img
+                        src={admLogado.foto}
+                        alt={admLogado.nome}
+                        className={`w-7 h-7 rounded-full object-cover border-2 shadow-sm ${
+                          admLogado.perfil === 'especialista' ? 'border-purple-400' : 'border-totvs-cyan'
+                        }`}
+                      />
+                    ) : admLogado ? (
+                      <div className={`w-7 h-7 rounded-full text-white text-xs font-black flex items-center justify-center border shadow-sm ${
+                        admLogado.perfil === 'especialista'
+                          ? 'bg-gradient-to-tr from-purple-700 to-totvs-blue border-purple-300'
+                          : 'bg-gradient-to-tr from-totvs-blue to-totvs-cyan border-totvs-cyan'
+                      }`}>
+                        {admLogado.nome ? admLogado.nome.charAt(0).toUpperCase() : (admLogado.perfil === 'especialista' ? 'E' : 'A')}
+                      </div>
+                    ) : (
+                      <Icons.Shield />
+                    )}
+                    {admLogado && (
+                      <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-[#07162c] ${
+                        admLogado.perfil === 'especialista' ? 'bg-purple-400' : 'bg-emerald-400 animate-pulse'
+                      }`}></span>
+                    )}
+                  </span>
+                  {isExpanded && (
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold block truncate">
+                          {admLogado ? admLogado.nome : 'Entrar'}
+                        </span>
+                        {admLogado && (
+                          <span className={`text-[8px] font-black uppercase px-1 py-0.2 rounded ${
+                            admLogado.dono_produto 
+                              ? 'bg-emerald-500/20 text-emerald-300' 
+                              : admLogado.perfil === 'especialista'
+                                ? 'bg-purple-500/20 text-purple-300'
+                                : (admLogado.perfil === 'pmm' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-cyan-500/20 text-cyan-300')
+                          }`}>
+                            {admLogado.dono_produto ? 'DONO' : (admLogado.perfil === 'especialista' ? 'ESP' : (admLogado.perfil === 'pmm' ? 'PMM' : 'ADM'))}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[9.5px] text-slate-400 block truncate">
+                        {admLogado 
+                          ? (admLogado.dono_produto 
+                              ? '👑 Dono do Produto' 
+                              : (admLogado.perfil === 'especialista'
+                                  ? '🌟 Especialista'
+                                  : (admLogado.perfil === 'pmm' ? '🎯 PMM (Gestão)' : 'Administrador')))
+                          : 'Identificar-se'}
+                      </span>
+                    </div>
+                  )}
+                </button>
+
+                {/* 4.1 Opção discreta de Deslogar / Voltar à área comum (visível apenas quando logado) */}
+                {admLogado && (
+                  <button
+                    type="button"
+                    onClick={() => handleNavClick(onLogoutAdm)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition text-left cursor-pointer group text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 ${
+                      isExpanded ? 'pl-4' : 'justify-center'
+                    }`}
+                    title="Deslogar e voltar à área comum"
+                  >
+                    <span className="shrink-0 text-slate-400 group-hover:text-rose-400 transition-colors">
+                      <Icons.LogOut />
+                    </span>
+                    {isExpanded && (
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-semibold block truncate">Deslogar</span>
+                        <span className="text-[9px] text-slate-400 block truncate">Voltar à área comum</span>
+                      </div>
+                    )}
+                  </button>
+                )}
+              </nav>
+            </div>
+
+            {/* Rodapé da Sidebar */}
+            <div className="p-3 border-t border-slate-800/80 overflow-hidden">
+              {isExpanded ? (
+                <div className="text-center text-[10px] text-slate-500 truncate">
+                  TOTVS Espaço Exp. • v2.7
+                </div>
+              ) : (
+                <div className="flex justify-center text-[10px] font-mono text-slate-500">
+                  v2.7
+                </div>
+              )}
+            </div>
+          </aside>
+        </React.Fragment>
       );
     }
 
@@ -1636,8 +1668,8 @@
       };
 
       return (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-5 animate-in fade-in duration-200">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-5xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[92vh] animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
             
             {/* CABEÇALHO DO MODAL */}
             <div className="bg-gradient-to-r from-totvs-dark via-totvs-cardDark to-totvs-blue text-white p-5 sm:p-6 flex items-center justify-between border-b border-slate-700">
@@ -2819,8 +2851,8 @@
           />
 
           {/* CONTEÚDO PRINCIPAL (COM MARGEM DINÂMICA PARA ACOMODAR A SIDEBAR) */}
-          <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${
-            isSidebarExpanded ? 'pl-60 sm:pl-64' : 'pl-16'
+          <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pl-0 ${
+            isSidebarExpanded ? 'md:pl-60 md:sm:pl-64' : 'md:pl-16'
           }`}>
           
             {/* TOAST NOTIFICAÇÃO */}
@@ -2833,26 +2865,35 @@
 
             {/* HEADER PRINCIPAL NOBRE (MANTÉM APENAS: BRANDING, VÍDEO & CONTADORES) */}
             <header className="bg-totvs-dark text-white border-b border-slate-700/80 sticky top-0 z-30 shadow-md">
-              <div className="max-w-[1720px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+              <div className="max-w-[1720px] mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2.5 sm:gap-4">
                 
-                {/* 1. Lado Esquerdo: Logo TOTVS Oficial + Espaço Experiência + Subtítulo */}
-                <div className="flex items-center gap-3 shrink-0">
-                  <TotvsLogo className="h-7 text-white" />
+                {/* 1. Lado Esquerdo: Hambúrguer Mobile + Logo TOTVS Oficial + Espaço Experiência + Subtítulo */}
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsSidebarExpanded(true)}
+                    className="md:hidden p-2 -ml-1 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition cursor-pointer shrink-0"
+                    title="Abrir menu lateral"
+                  >
+                    <Icons.Menu />
+                  </button>
+                  <TotvsLogo className="h-6 sm:h-7 text-white shrink-0" />
                   <div className="h-5 w-px bg-slate-700/80 mx-0.5 hidden sm:block"></div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/30 shadow-2xs">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider px-2 sm:px-2.5 py-0.5 rounded-full bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/30 shadow-2xs">
                         Espaço Experiência
                       </span>
-                      <span className="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5 border-l border-slate-700/80 pl-2">
+                      <span className="text-[10px] sm:text-[11px] font-semibold text-slate-300 flex items-center gap-1.5 border-l border-slate-700/80 pl-1.5 sm:pl-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-totvs-cyan animate-pulse"></span>
                         <span className="hidden sm:inline">{headerDateTimeFormatted.completo}</span>
                         <span className="sm:hidden">{headerDateTimeFormatted.compacto}</span>
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-300 font-medium flex items-center gap-1.5 mt-0.5">
+                    <p className="text-[10px] sm:text-[11px] text-slate-300 font-medium flex items-center gap-1.5 mt-0.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                      <span>Showroom Inteligente • {segmentos.length || 11} Estações de Tecnologia</span>
+                      <span className="hidden sm:inline">Showroom Inteligente • {segmentos.length || 11} Estações de Tecnologia</span>
+                      <span className="sm:hidden">{segmentos.length || 11} Estações</span>
                     </p>
                   </div>
                 </div>
@@ -2863,18 +2904,18 @@
                     <button
                       type="button"
                       onClick={() => setShowVideoModal(true)}
-                      className="w-full sm:w-auto flex items-center gap-3.5 bg-gradient-to-r from-totvs-blue/35 via-slate-800/85 to-totvs-cyan/20 hover:from-totvs-blue/55 hover:to-totvs-cyan/35 border border-totvs-cyan/50 hover:border-totvs-cyan px-4 py-2 rounded-2xl transition-all duration-300 group shadow-md hover:shadow-totvs-cyan/20 cursor-pointer transform hover:-translate-y-0.5"
+                      className="w-full sm:w-auto flex items-center gap-2.5 sm:gap-3.5 bg-gradient-to-r from-totvs-blue/35 via-slate-800/85 to-totvs-cyan/20 hover:from-totvs-blue/55 hover:to-totvs-cyan/35 border border-totvs-cyan/50 hover:border-totvs-cyan px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl transition-all duration-300 group shadow-md hover:shadow-totvs-cyan/20 cursor-pointer transform hover:-translate-y-0.5"
                       title="Assistir ao Discurso Institucional da Liderança em Vídeo"
                     >
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-totvs-cyan to-teal-300 text-slate-950 flex items-center justify-center font-black text-sm shrink-0 shadow-md group-hover:scale-110 group-hover:rotate-3 transition-transform">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-totvs-cyan to-teal-300 text-slate-950 flex items-center justify-center font-black text-xs sm:text-sm shrink-0 shadow-md group-hover:scale-110 group-hover:rotate-3 transition-transform">
                         <Icons.Play />
                       </div>
                       <div className="text-left leading-tight pr-1">
-                        <span className="text-[9.5px] font-black uppercase text-totvs-cyan tracking-wider flex items-center gap-1">
+                        <span className="text-[9px] sm:text-[9.5px] font-black uppercase text-totvs-cyan tracking-wider flex items-center gap-1">
                           <span>Discurso da Liderança</span>
-                          <span className="text-[8.5px] px-1 py-0.2 rounded bg-totvs-cyan/20 text-totvs-cyan font-bold">16:9</span>
+                          <span className="text-[8px] sm:text-[8.5px] px-1 py-0.2 rounded bg-totvs-cyan/20 text-totvs-cyan font-bold">16:9</span>
                         </span>
-                        <span className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[260px] sm:max-w-[340px] block mt-0.5 group-hover:text-cyan-100 transition-colors">
+                        <span className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[200px] sm:max-w-[340px] block mt-0.5 group-hover:text-cyan-100 transition-colors">
                           {videoGestao.mensagem || 'Assistir Discurso Institucional'}
                         </span>
                       </div>
@@ -2884,22 +2925,22 @@
                   <div className="flex-1 hidden xl:block"></div>
                 )}
 
-                {/* 3. Lado Direito: Contadores de Visitantes */}
-                <div className="flex items-center gap-2 sm:gap-3 shrink-0 order-2 xl:order-3 ml-auto xl:ml-0">
+                {/* 3. Lado Direito: Contadores de Visitantes & Botão de Identificação */}
+                <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 order-2 xl:order-3 ml-auto xl:ml-0">
                   <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-800/80 p-1 rounded-xl border border-slate-700/80 shadow-xs">
-                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
-                      <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Hoje:</span>
-                      <span className="font-black text-white">{visitorMetrics.hoje}</span>
+                    <div className="flex items-center gap-1 px-2 py-1 sm:px-2.5 rounded-lg bg-white/5 border border-white/10 text-xs">
+                      <span className="text-[9px] sm:text-[9.5px] text-slate-400 font-extrabold uppercase">Hoje:</span>
+                      <span className="font-black text-white text-[11px] sm:text-xs">{visitorMetrics.hoje}</span>
                     </div>
 
-                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
-                      <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Sem:</span>
-                      <span className="font-black text-white">{visitorMetrics.semana}</span>
+                    <div className="flex items-center gap-1 px-2 py-1 sm:px-2.5 rounded-lg bg-white/5 border border-white/10 text-xs">
+                      <span className="text-[9px] sm:text-[9.5px] text-slate-400 font-extrabold uppercase">Sem:</span>
+                      <span className="font-black text-white text-[11px] sm:text-xs">{visitorMetrics.semana}</span>
                     </div>
 
-                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
-                      <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Mês:</span>
-                      <span className="font-black text-white">{visitorMetrics.mes}</span>
+                    <div className="flex items-center gap-1 px-2 py-1 sm:px-2.5 rounded-lg bg-white/5 border border-white/10 text-xs">
+                      <span className="text-[9px] sm:text-[9.5px] text-slate-400 font-extrabold uppercase">Mês:</span>
+                      <span className="font-black text-white text-[11px] sm:text-xs">{visitorMetrics.mes}</span>
                     </div>
 
                     <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
@@ -3598,8 +3639,8 @@
       };
 
       return (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-lg w-full max-h-[92dvh] sm:max-h-[90vh] flex flex-col border border-slate-200 overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
             {/* Topo / Header */}
             <div className="bg-gradient-to-r from-totvs-dark via-slate-900 to-purple-900 p-5 text-white flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -3931,8 +3972,8 @@
       };
 
       return (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-150 relative">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-150 relative">
             <button
               onClick={onClose}
               className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
@@ -4062,8 +4103,8 @@
       };
 
       return (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 border border-slate-200 animate-in fade-in zoom-in-95 duration-200 relative">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 border border-slate-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 relative">
             <div className="text-center mb-6">
               <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto mb-3 font-black text-2xl">
                 🔑
@@ -4891,8 +4932,8 @@
       };
 
       return (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-5">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden border border-slate-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 flex flex-col max-h-[92dvh] sm:max-h-[92vh]">
             
             {/* Header do Modal com Identidade Visual TOTVS */}
             <div className="relative overflow-hidden bg-gradient-to-r from-totvs-dark via-totvs-cardDark to-totvs-blue text-white p-4 sm:p-6 flex items-center justify-between shrink-0 border-b border-totvs-cyan/20">
@@ -6504,13 +6545,13 @@
 
       return (
         <div 
-          className="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 md:p-6 animate-in fade-in duration-150"
+          className="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 animate-in fade-in duration-150"
           onClick={onClose}
           onTouchMove={(e) => { if (e.target === e.currentTarget) e.preventDefault(); }}
           onWheel={(e) => { if (e.target === e.currentTarget) e.preventDefault(); }}
         >
           <div 
-            className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full flex flex-col max-h-[90vh] overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-150"
+            className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-3xl w-full flex flex-col max-h-[92dvh] sm:max-h-[90vh] overflow-hidden border border-slate-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -6551,7 +6592,7 @@
                   placeholder="Buscar por empresa, nome ou anfitrião..."
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:border-transparent"
+                  className="w-full pl-8 pr-3 py-2 bg-white border border-slate-300 rounded-xl text-base sm:text-xs font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:border-transparent"
                 />
                 <span className="absolute left-2.5 top-2.5 text-slate-400 text-xs">🔍</span>
               </div>
@@ -6559,7 +6600,7 @@
                 <button
                   type="button"
                   onClick={onExportExcel}
-                  className="flex-1 sm:flex-none px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  className="flex-1 sm:flex-none px-3.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition cursor-pointer min-h-[44px]"
                   title="Exportar planilha Excel (.csv UTF-8 com ponto-e-vírgula)"
                 >
                   <span>📥 Salvar em Excel</span>
@@ -6567,7 +6608,7 @@
                 <button
                   type="button"
                   onClick={onExportPDF}
-                  className="flex-1 sm:flex-none px-3.5 py-2 bg-totvs-blue hover:bg-[#001D42] text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  className="flex-1 sm:flex-none px-3.5 py-2.5 bg-totvs-blue hover:bg-[#001D42] text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition cursor-pointer min-h-[44px]"
                   title="Exportar relatório da categoria em PDF"
                 >
                   <span>📄 Exportar PDF</span>
@@ -7195,7 +7236,7 @@
 
       return (
         <div 
-          className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden overscroll-none"
+          className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 overflow-hidden overscroll-none"
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
@@ -7207,7 +7248,7 @@
           }}
         >
           <div 
-            className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150 my-auto"
+            className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-4xl w-full max-h-[92dvh] sm:max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 my-0 sm:my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header Fixo */}
@@ -7865,7 +7906,7 @@
 
       return (
         <div 
-          className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden overscroll-none"
+          className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 overflow-hidden overscroll-none"
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
@@ -7877,7 +7918,7 @@
           }}
         >
           <div 
-            className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150 my-auto"
+            className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-lg w-full max-h-[92dvh] sm:max-h-[88vh] flex flex-col overflow-hidden border border-slate-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 my-0 sm:my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             
@@ -7939,7 +7980,7 @@
                     value={dataVisita}
                     onChange={(e) => setDataVisita(e.target.value)}
                     required
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
+                    className="w-full text-base sm:text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
                   />
                 </div>
 
@@ -7955,7 +7996,7 @@
                     value={empresa}
                     onChange={(e) => setEmpresa(e.target.value)}
                     required
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
+                    className="w-full text-base sm:text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
                   />
                 </div>
 
@@ -7974,7 +8015,7 @@
                     <button
                       type="button"
                       onClick={() => setTipoVisitante('cliente')}
-                      className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
+                      className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl text-xs font-bold transition border cursor-pointer min-h-[44px] ${
                         tipoVisitante === 'cliente'
                           ? 'bg-totvs-blue text-white border-totvs-blue shadow-sm ring-2 ring-totvs-blue/30 scale-101'
                           : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-800'
@@ -7987,7 +8028,7 @@
                     <button
                       type="button"
                       onClick={() => setTipoVisitante('prospect')}
-                      className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
+                      className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl text-xs font-bold transition border cursor-pointer min-h-[44px] ${
                         tipoVisitante === 'prospect'
                           ? 'bg-teal-600 text-white border-teal-600 shadow-sm ring-2 ring-teal-500/30 scale-101'
                           : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-800'
@@ -8000,7 +8041,7 @@
                     <button
                       type="button"
                       onClick={() => setTipoVisitante('visitante_interno')}
-                      className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
+                      className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl text-xs font-bold transition border cursor-pointer min-h-[44px] ${
                         (tipoVisitante === 'visitante_interno' || tipoVisitante === 'visitante_externo')
                           ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm ring-2 ring-indigo-500/30 scale-101'
                           : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-800'
@@ -8037,7 +8078,7 @@
                         if (!numeroPessoas || numeroPessoas < 1) setNumeroPessoas(1);
                       }}
                       required
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
+                      className="w-full text-base sm:text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
                     />
                     <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-xs font-semibold text-slate-400">
                       pessoa(s)
@@ -8062,7 +8103,7 @@
                     value={responsavel}
                     onChange={(e) => setResponsavel(e.target.value)}
                     required
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
+                    className="w-full text-base sm:text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:bg-white transition"
                   />
                   {!admLogado && plantonistaHoje && (
                     <p className="text-[10.5px] text-purple-700 mt-1.5 flex items-center gap-1.5 font-semibold bg-purple-50/80 px-2.5 py-1 rounded-lg border border-purple-200/60">
@@ -8091,14 +8132,14 @@
                   type="button"
                   onClick={onClose}
                   disabled={salvando}
-                  className="bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs px-4 py-2.5 rounded-xl border border-slate-200 transition cursor-pointer"
+                  className="bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs px-4 py-2.5 rounded-xl border border-slate-200 transition cursor-pointer min-h-[44px]"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={salvando || !empresa.trim() || !tipoVisitante || !responsavel.trim() || !dataVisita || !numeroPessoas}
-                  className="flex-1 bg-gradient-to-r from-totvs-blue to-[#003B8E] hover:from-[#003B8E] hover:to-totvs-dark text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  className="flex-1 bg-gradient-to-r from-totvs-blue to-[#003B8E] hover:from-[#003B8E] hover:to-totvs-dark text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer min-h-[44px]"
                 >
                   <Icons.UserPlus />
                   <span>{salvando ? 'Salvando...' : 'Confirmar e Salvar Visita'}</span>
@@ -9523,8 +9564,8 @@
         : (metricsData?.totalVisitas !== undefined ? metricsData.totalVisitas : (accessLogs?.length || 0));
 
       return (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8">
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden my-0 sm:my-8 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[92dvh] sm:max-h-none flex flex-col">
             
             {/* Header Modal com Avatar e Upload de Foto */}
             <div className="bg-gradient-to-r from-totvs-dark via-totvs-cardDark to-totvs-dark text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
