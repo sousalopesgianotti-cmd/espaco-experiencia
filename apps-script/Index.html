@@ -2925,27 +2925,17 @@
                   <div className="flex-1 hidden xl:block"></div>
                 )}
 
-                {/* 3. Lado Direito: Contadores de Visitantes & Botão de Identificação */}
-                <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 order-2 xl:order-3 ml-auto xl:ml-0">
-                  <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-800/80 p-1 rounded-xl border border-slate-700/80 shadow-xs">
-                    <div className="flex items-center gap-1 px-2 py-1 sm:px-2.5 rounded-lg bg-white/5 border border-white/10 text-xs">
-                      <span className="text-[9px] sm:text-[9.5px] text-slate-400 font-extrabold uppercase">Hoje:</span>
-                      <span className="font-black text-white text-[11px] sm:text-xs">{visitorMetrics.hoje}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1 px-2 py-1 sm:px-2.5 rounded-lg bg-white/5 border border-white/10 text-xs">
-                      <span className="text-[9px] sm:text-[9.5px] text-slate-400 font-extrabold uppercase">Sem:</span>
-                      <span className="font-black text-white text-[11px] sm:text-xs">{visitorMetrics.semana}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1 px-2 py-1 sm:px-2.5 rounded-lg bg-white/5 border border-white/10 text-xs">
-                      <span className="text-[9px] sm:text-[9.5px] text-slate-400 font-extrabold uppercase">Mês:</span>
-                      <span className="font-black text-white text-[11px] sm:text-xs">{visitorMetrics.mes}</span>
-                    </div>
-
-                    <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs">
-                      <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Ano:</span>
-                      <span className="font-black text-white">{visitorMetrics.ano !== undefined ? visitorMetrics.ano : (visitorMetrics.total || 0)}</span>
+                {/* 3. Lado Direito: Contador Exclusivo "Hoje" e Ação de Registro */}
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0 order-2 xl:order-3 ml-auto xl:ml-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-800/80 p-1 rounded-2xl border border-slate-700/80 shadow-xs">
+                    {/* Pílula Exclusiva: HOJE */}
+                    <div 
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs shadow-xs"
+                      title="Total de pessoas em visitas registradas hoje no Espaço Experiência"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                      <span className="text-[10px] sm:text-[10.5px] text-slate-300 font-extrabold uppercase tracking-wider">Hoje:</span>
+                      <span className="font-black text-white text-xs sm:text-sm">{visitorMetrics.hoje}</span>
                     </div>
 
                     {/* Botão Registrar Visitante */}
@@ -2959,12 +2949,12 @@
                         }
                         setShowVisitorModal(true);
                       }}
-                      className="flex items-center gap-1.5 bg-gradient-to-r from-totvs-cyan to-teal-300 hover:from-cyan-300 hover:to-teal-200 text-slate-900 font-black px-2.5 sm:px-3 py-1 rounded-lg text-xs shadow-xs transition transform hover:scale-102 active:scale-98 cursor-pointer ml-0.5"
+                      className="flex items-center gap-1.5 bg-gradient-to-r from-totvs-cyan to-teal-300 hover:from-cyan-300 hover:to-teal-200 text-slate-900 font-black px-3 py-1.5 rounded-xl text-xs shadow-xs transition transform hover:scale-102 active:scale-98 cursor-pointer"
                       title={authEspecialistaObrigatoria && !admLogado ? "Identifique-se para registrar visitantes presenciais" : "Registrar visita presencial no Espaço Experiência TOTVS"}
                     >
                       <Icons.UserPlus />
-                      <span className="hidden md:inline">Registrar Visitante</span>
-                      <span className="md:hidden">Registrar</span>
+                      <span className="hidden sm:inline">Registrar Visitante</span>
+                      <span className="sm:hidden">Registrar</span>
                     </button>
                   </div>
 
