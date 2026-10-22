@@ -6453,6 +6453,190 @@
       );
     }
 
+    // --- COMPONENTE: MODAL DE DETALHAMENTO DE CATEGORIA DE VISITANTE ---
+    function VisitorCategoryDetailModal({ categoria, onClose, rawList = [], metrics = {}, periodoLabel = '', onExportExcel, onExportPDF }) {
+      const [busca, setBusca] = useState('');
+
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') {
+            e.stopPropagation();
+            onClose();
+          }
+        };
+        window.addEventListener('keydown', handleKeyDown, true);
+        return () => window.removeEventListener('keydown', handleKeyDown, true);
+      }, [onClose]);
+
+      const meta = useMemo(() => {
+        if (categoria === 'cliente') {
+          return {
+            nome: 'Clientes',
+            icone: '🏢',
+            corHeader: 'from-totvs-dark via-totvs-blue to-[#003B8E]',
+            badgeCor: 'bg-totvs-blue text-white'
+          };
+        }
+        if (categoria === 'prospect') {
+          return {
+            nome: 'Prospects',
+            icone: '🎯',
+            corHeader: 'from-emerald-900 via-emerald-800 to-teal-800',
+            badgeCor: 'bg-emerald-600 text-white'
+          };
+        }
+        return {
+          nome: 'Visitantes Internos',
+          icone: '🌐',
+          corHeader: 'from-amber-900 via-amber-800 to-orange-800',
+          badgeCor: 'bg-amber-600 text-white'
+        };
+      }, [categoria]);
+
+      const filteredList = useMemo(() => {
+        if (!busca.trim()) return rawList;
+        const termo = busca.toLowerCase();
+        return rawList.filter(v => {
+          const str = `${v.empresa || ''} ${v.nome || ''} ${v.responsavel || ''} ${v.data || ''}`.toLowerCase();
+          return str.includes(termo);
+        });
+      }, [rawList, busca]);
+
+      return (
+        <div 
+          className="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 md:p-6 animate-in fade-in duration-150"
+          onClick={onClose}
+          onTouchMove={(e) => { if (e.target === e.currentTarget) e.preventDefault(); }}
+          onWheel={(e) => { if (e.target === e.currentTarget) e.preventDefault(); }}
+        >
+          <div 
+            className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full flex flex-col max-h-[90vh] overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className={`bg-gradient-to-r ${meta.corHeader} text-white p-4 sm:p-5 shrink-0 flex items-center justify-between`}>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl sm:text-3xl">{meta.icone}</span>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-black text-sm sm:text-base leading-tight">
+                      Comitivas de {meta.nome}
+                    </h3>
+                    {periodoLabel && (
+                      <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/20">
+                        {periodoLabel}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-white/80 font-medium mt-0.5">
+                    {metrics.pessoas || 0} participantes • {metrics.visitas || 0} visitas ({typeof metrics.pct === 'number' ? metrics.pct.toFixed(1) : 0}% do total)
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-white/80 hover:text-white p-2 rounded-xl hover:bg-white/10 transition cursor-pointer"
+                title="Fechar janela (ESC)"
+              >
+                <Icons.X />
+              </button>
+            </div>
+
+            {/* Barra de Ações: Busca + Botões de Salvar/Exportar */}
+            <div className="p-3 sm:p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Buscar por empresa, nome ou anfitrião..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  className="w-full pl-8 pr-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-totvs-blue focus:border-transparent"
+                />
+                <span className="absolute left-2.5 top-2.5 text-slate-400 text-xs">🔍</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={onExportExcel}
+                  className="flex-1 sm:flex-none px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  title="Exportar planilha Excel (.csv UTF-8 com ponto-e-vírgula)"
+                >
+                  <span>📥 Salvar em Excel</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onExportPDF}
+                  className="flex-1 sm:flex-none px-3.5 py-2 bg-totvs-blue hover:bg-[#001D42] text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  title="Exportar relatório da categoria em PDF"
+                >
+                  <span>📄 Exportar PDF</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Tabela de Comitivas */}
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 overscroll-contain">
+              {filteredList.length === 0 ? (
+                <div className="text-center py-10 text-slate-400">
+                  <p className="text-2xl mb-1">🔍</p>
+                  <p className="text-xs font-bold">Nenhum registro encontrado.</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Tente alterar o período ou o termo de busca.</p>
+                </div>
+              ) : (
+                <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-slate-100 text-slate-600 font-extrabold uppercase text-[10px] tracking-wider border-b border-slate-200">
+                      <tr>
+                        <th className="py-2.5 px-3">Data</th>
+                        <th className="py-2.5 px-3">Empresa / Instituição</th>
+                        <th className="py-2.5 px-3 text-center">Pessoas</th>
+                        <th className="py-2.5 px-3">Anfitrião TOTVS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 bg-white">
+                      {filteredList.map((v, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-2.5 px-3 font-medium text-slate-600 whitespace-nowrap text-[11px]">
+                            {v.data ? v.data.split('-').reverse().join('/') : '—'}
+                          </td>
+                          <td className="py-2.5 px-3 font-bold text-slate-900">
+                            {v.empresa || v.nome || 'Visitante Sem Identificação'}
+                          </td>
+                          <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[11px] font-black bg-slate-100 text-slate-800">
+                              {v.numero_pessoas || 1}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 text-slate-600 font-medium text-[11px]">
+                            {v.responsavel || 'Equipe TOTVS'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Rodapé */}
+            <div className="shrink-0 bg-slate-50 px-4 py-3 border-t border-slate-200 flex items-center justify-between text-xs">
+              <span className="text-slate-500 font-semibold text-[11px]">
+                Exibindo <strong>{filteredList.length}</strong> de <strong>{rawList.length}</strong> registros
+              </span>
+              <button
+                type="button"
+                onClick={onClose}
+                className="bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs px-4 py-2 rounded-xl border border-slate-200 transition cursor-pointer"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // --- COMPONENTE: HISTÓRICO DE VISITANTES COM GESTÃO À VISTA & RELATÓRIO PDF ---
     function VisitorHistoryModal({ onClose, currentYear = new Date().getFullYear(), showToast, visitorsList = [] }) {
       const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -6464,6 +6648,11 @@
       const [periodoFiltro, setPeriodoFiltro] = useState('ano'); // 'hoje', 'semana', 'mes', 'ano', 'custom'
       const [dataInicio, setDataInicio] = useState('');
       const [dataFim, setDataFim] = useState('');
+
+      // Estados para Hover e Detalhamento da Gestão à Vista
+      const [hoveredBloco, setHoveredBloco] = useState(null); // 'cliente' | 'prospect' | 'interno'
+      const [categoriaDetalheModal, setCategoriaDetalheModal] = useState(null); // 'cliente' | 'prospect' | 'interno'
+      const [buscaDetalhe, setBuscaDetalhe] = useState('');
 
       // Helper fuso Brasília para Hoje
       const getBrasiliaTodayStr = () => {
@@ -6630,6 +6819,132 @@
           return `Período Personalizado: ${ini} até ${fim}`;
         }
         return `Ano de ${selectedYear}`;
+      };
+
+      // Obter comitivas filtradas por classificação específica
+      const getVisitantesPorTipo = (tipoAlvo) => {
+        return filteredVisitors.filter(v => {
+          const t = (v.tipo_visitante || '').toLowerCase();
+          if (tipoAlvo === 'cliente') return t === 'cliente';
+          if (tipoAlvo === 'prospect') return t === 'prospect';
+          return t !== 'cliente' && t !== 'prospect';
+        });
+      };
+
+      // Exportar dados da categoria para planilha Excel (.csv UTF-8 com BOM)
+      const handleExportarExcel = (tipoAlvo = null) => {
+        const lista = tipoAlvo ? getVisitantesPorTipo(tipoAlvo) : filteredVisitors;
+        const categoriaLabel = tipoAlvo === 'cliente' ? 'Clientes' : (tipoAlvo === 'prospect' ? 'Prospects' : (tipoAlvo ? 'Visitantes_Internos' : 'Consolidado'));
+        
+        const headers = ["Data", "Empresa / Instituicao", "Classificacao", "Numero de Pessoas", "Anfitriao TOTVS"];
+        const rows = lista.map(v => {
+          const dtFmt = v.data ? v.data.split('-').reverse().join('/') : '';
+          const empresa = (v.empresa || v.nome || '').replace(/"/g, '""');
+          const cat = v.tipo_visitante === 'cliente' ? 'Cliente' : (v.tipo_visitante === 'prospect' ? 'Prospect' : 'Visitante Interno');
+          const qtd = v.numero_pessoas || 1;
+          const resp = (v.responsavel || 'Equipe TOTVS').replace(/"/g, '""');
+          return `"${dtFmt}";"${empresa}";"${cat}";${qtd};"${resp}"`;
+        });
+
+        const csvContent = "\uFEFF" + headers.join(";") + "\n" + rows.join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const dataHoje = new Date().toISOString().slice(0, 10);
+        a.download = `visitantes_${categoriaLabel.toLowerCase()}_${dataHoje}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        if (showToast) showToast(`Planilha de ${categoriaLabel} baixada com sucesso! 📊`);
+      };
+
+      // Exportar relatório analítico em PDF focado na categoria
+      const handleExportarPDFCategoria = (tipoAlvo) => {
+        const lista = getVisitantesPorTipo(tipoAlvo);
+        const catInfo = tipoAlvo === 'cliente' 
+          ? { nome: 'Clientes', cor: '#002554', metrics: metrics3Blocos.cliente }
+          : (tipoAlvo === 'prospect'
+            ? { nome: 'Prospects', cor: '#0D9488', metrics: metrics3Blocos.prospect }
+            : { nome: 'Visitantes Internos', cor: '#D97706', metrics: metrics3Blocos.interno });
+        
+        const periodoTxt = getPeriodoLabel();
+        const dataEmissao = new Date().toLocaleString('pt-BR');
+
+        const linhasTabela = lista.map(v => {
+          const dtFmt = v.data ? v.data.split('-').reverse().join('/') : '—';
+          return `
+            <tr>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-size: 11px;">${dtFmt}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-size: 11px; font-weight: bold; color: #0F172A;">${v.empresa || v.nome || '—'}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-size: 11px; text-align: center; font-weight: bold;">${v.numero_pessoas || 1}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid #E2E8F0; font-size: 11px; color: #475569;">${v.responsavel || 'Equipe TOTVS'}</td>
+            </tr>
+          `;
+        }).join('');
+
+        const htmlRelatorio = `
+          <!DOCTYPE html>
+          <html lang="pt-BR">
+          <head>
+            <meta charset="utf-8">
+            <title>Relatório de ${catInfo.nome} - TOTVS Espaço Experiência</title>
+            <style>
+              @page { size: A4 portrait; margin: 12mm 15mm; }
+              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #1E293B; margin: 0; padding: 0; }
+              .header { border-bottom: 3px solid ${catInfo.cor}; padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end; }
+              .brand-title { font-size: 20px; font-weight: 900; color: #002554; margin: 0; }
+              .brand-sub { font-size: 11px; font-weight: bold; color: ${catInfo.cor}; text-transform: uppercase; margin-top: 3px; }
+              .meta-box { font-size: 11px; color: #475569; text-align: right; line-height: 1.5; }
+              .card { background: #F8FAFC; border: 1.5px solid #CBD5E1; border-radius: 10px; padding: 14px; margin-bottom: 20px; }
+              .card-title { font-size: 11px; font-weight: 800; text-transform: uppercase; color: ${catInfo.cor}; }
+              .card-val { font-size: 24px; font-weight: 900; color: ${catInfo.cor}; margin-top: 4px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+              th { background-color: #F1F5F9; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #475569; padding: 8px 10px; text-align: left; border-bottom: 2px solid #CBD5E1; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div>
+                <h1 class="brand-title">TOTVS • Espaço Experiência</h1>
+                <div class="brand-sub">Relatório Analítico de ${catInfo.nome}</div>
+              </div>
+              <div class="meta-box">
+                <div><strong>Período:</strong> ${periodoTxt}</div>
+                <div><strong>Emissão:</strong> ${dataEmissao}</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">${catInfo.nome} no Período</div>
+              <div class="card-val">${catInfo.metrics.pessoas} pessoas <span style="font-size: 13px; font-weight: normal; color: #64748B;">(${catInfo.metrics.visitas} comitivas • ${catInfo.metrics.pct.toFixed(1)}% do total)</span></div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 15%;">Data</th>
+                  <th style="width: 45%;">Empresa / Instituição</th>
+                  <th style="width: 15%; text-align: center;">Pessoas</th>
+                  <th style="width: 25%;">Anfitrião</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${linhasTabela || '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #94A3B8;">Nenhuma visita nesta categoria no período.</td></tr>'}
+              </tbody>
+            </table>
+          </body>
+          </html>
+        `;
+        const printWindow = window.open('', '_blank', 'width=900,height=700');
+        if (printWindow) {
+          printWindow.document.open();
+          printWindow.document.write(htmlRelatorio);
+          printWindow.document.close();
+          setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+          }, 350);
+        }
       };
 
       // Exportação Executiva para PDF via template de impressão corporativo
@@ -7078,17 +7393,67 @@
                     {/* As 3 Colunas de Barras */}
                     <div className="relative z-10 grid grid-cols-3 gap-3 sm:gap-6 pl-10 pr-2 h-40 sm:h-44 items-end pt-1">
                       {/* Bloco 1: CLIENTES */}
-                      <div className="flex flex-col items-center h-full justify-end">
+                      <div 
+                        className="flex flex-col items-center h-full justify-end relative cursor-pointer group"
+                        onMouseEnter={() => setHoveredBloco('cliente')}
+                        onMouseLeave={() => setHoveredBloco(null)}
+                        onClick={() => { setCategoriaDetalheModal('cliente'); setBuscaDetalhe(''); }}
+                        title="Passe o mouse para ver resumo ou clique para abrir a lista completa"
+                      >
+                        {/* Janela Flutuante à Vista (Hover Tooltip) */}
+                        {hoveredBloco === 'cliente' && (
+                          <div className="absolute bottom-[calc(100%+8px)] z-40 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-3 shadow-2xl border border-slate-700 pointer-events-none animate-in fade-in zoom-in-95 duration-150 -left-6 sm:left-1/2 sm:-translate-x-1/2">
+                            <div className="flex items-center justify-between pb-2 border-b border-slate-700/80 mb-2">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-sm">🏢</span>
+                                <strong className="text-xs font-black text-white">Clientes ({metrics3Blocos.cliente.visitas} visitas)</strong>
+                              </div>
+                              <span className="text-[10px] font-black bg-blue-500/20 text-totvs-cyan px-2 py-0.5 rounded-full border border-totvs-cyan/30">
+                                {metrics3Blocos.cliente.pessoas} pessoas
+                              </span>
+                            </div>
+                            
+                            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-left">
+                              {getVisitantesPorTipo('cliente').length === 0 ? (
+                                <p className="text-[11px] text-slate-400 italic py-1">Nenhuma comitiva no período.</p>
+                              ) : (
+                                getVisitantesPorTipo('cliente').slice(0, 6).map((v, idx) => (
+                                  <div key={idx} className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
+                                    <div className="truncate flex-1">
+                                      <p className="font-extrabold text-white text-[11px] truncate">{v.empresa || v.nome || 'Visitante'}</p>
+                                      <p className="text-[9.5px] text-slate-400">{v.data ? v.data.split('-').reverse().join('/') : ''} • {v.responsavel || 'Equipe TOTVS'}</p>
+                                    </div>
+                                    <span className="text-[10px] font-black text-totvs-cyan shrink-0 bg-totvs-cyan/10 px-1.5 py-0.5 rounded">
+                                      {v.numero_pessoas || 1} {v.numero_pessoas === 1 ? 'pessoa' : 'pessoas'}
+                                    </span>
+                                  </div>
+                                ))
+                              )}
+                              {getVisitantesPorTipo('cliente').length > 6 && (
+                                <p className="text-[9.5px] text-slate-400 text-center font-bold pt-1">
+                                  + {getVisitantesPorTipo('cliente').length - 6} outras comitivas cadastradas
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="mt-2 pt-1.5 border-t border-slate-800 text-center">
+                              <p className="text-[9.5px] text-cyan-300 font-semibold">
+                                👆 Clique no bloco para abrir a lista completa e exportar
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Apenas Percentual no Topo do Bloco (sem tag) */}
                         <div className="text-center mb-1">
-                          <span className="text-xs sm:text-sm font-black text-slate-900">
+                          <span className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-totvs-blue transition-colors">
                             {metrics3Blocos.cliente.pct.toFixed(1)}%
                           </span>
                         </div>
 
                         {/* Barra */}
                         <div 
-                          className="w-full max-w-[90px] sm:max-w-[125px] rounded-t-xl bg-[#2B3E50] hover:bg-[#1E2B37] transition-all duration-300 relative shadow-sm flex flex-col justify-center items-center py-1.5"
+                          className="w-full max-w-[90px] sm:max-w-[125px] rounded-t-xl bg-[#2B3E50] group-hover:bg-[#1E2B37] group-hover:ring-2 group-hover:ring-totvs-cyan/70 group-hover:scale-102 transition-all duration-300 relative shadow-sm flex flex-col justify-center items-center py-1.5"
                           style={{
                             height: `${Math.max(8, Math.min(100, metrics3Blocos.cliente.pct))}%`,
                             minHeight: '28px'
@@ -7104,17 +7469,67 @@
                       </div>
 
                       {/* Bloco 2: PROSPECTS */}
-                      <div className="flex flex-col items-center h-full justify-end">
+                      <div 
+                        className="flex flex-col items-center h-full justify-end relative cursor-pointer group"
+                        onMouseEnter={() => setHoveredBloco('prospect')}
+                        onMouseLeave={() => setHoveredBloco(null)}
+                        onClick={() => { setCategoriaDetalheModal('prospect'); setBuscaDetalhe(''); }}
+                        title="Passe o mouse para ver resumo ou clique para abrir a lista completa"
+                      >
+                        {/* Janela Flutuante à Vista (Hover Tooltip) */}
+                        {hoveredBloco === 'prospect' && (
+                          <div className="absolute bottom-[calc(100%+8px)] z-40 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-3 shadow-2xl border border-slate-700 pointer-events-none animate-in fade-in zoom-in-95 duration-150 left-1/2 -translate-x-1/2">
+                            <div className="flex items-center justify-between pb-2 border-b border-slate-700/80 mb-2">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-sm">🎯</span>
+                                <strong className="text-xs font-black text-white">Prospects ({metrics3Blocos.prospect.visitas} visitas)</strong>
+                              </div>
+                              <span className="text-[10px] font-black bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-400/30">
+                                {metrics3Blocos.prospect.pessoas} pessoas
+                              </span>
+                            </div>
+                            
+                            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-left">
+                              {getVisitantesPorTipo('prospect').length === 0 ? (
+                                <p className="text-[11px] text-slate-400 italic py-1">Nenhuma comitiva no período.</p>
+                              ) : (
+                                getVisitantesPorTipo('prospect').slice(0, 6).map((v, idx) => (
+                                  <div key={idx} className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
+                                    <div className="truncate flex-1">
+                                      <p className="font-extrabold text-white text-[11px] truncate">{v.empresa || v.nome || 'Visitante'}</p>
+                                      <p className="text-[9.5px] text-slate-400">{v.data ? v.data.split('-').reverse().join('/') : ''} • {v.responsavel || 'Equipe TOTVS'}</p>
+                                    </div>
+                                    <span className="text-[10px] font-black text-emerald-300 shrink-0 bg-emerald-400/10 px-1.5 py-0.5 rounded">
+                                      {v.numero_pessoas || 1} {v.numero_pessoas === 1 ? 'pessoa' : 'pessoas'}
+                                    </span>
+                                  </div>
+                                ))
+                              )}
+                              {getVisitantesPorTipo('prospect').length > 6 && (
+                                <p className="text-[9.5px] text-slate-400 text-center font-bold pt-1">
+                                  + {getVisitantesPorTipo('prospect').length - 6} outras comitivas cadastradas
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="mt-2 pt-1.5 border-t border-slate-800 text-center">
+                              <p className="text-[9.5px] text-emerald-300 font-semibold">
+                                👆 Clique no bloco para abrir a lista completa e exportar
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Apenas Percentual no Topo do Bloco (sem tag) */}
                         <div className="text-center mb-1">
-                          <span className="text-xs sm:text-sm font-black text-emerald-800">
+                          <span className="text-xs sm:text-sm font-black text-emerald-800 group-hover:text-emerald-600 transition-colors">
                             {metrics3Blocos.prospect.pct.toFixed(1)}%
                           </span>
                         </div>
 
                         {/* Barra */}
                         <div 
-                          className="w-full max-w-[90px] sm:max-w-[125px] rounded-t-xl bg-[#2E7D32] hover:bg-[#1B5E20] transition-all duration-300 relative shadow-sm flex flex-col justify-center items-center py-1.5"
+                          className="w-full max-w-[90px] sm:max-w-[125px] rounded-t-xl bg-[#2E7D32] group-hover:bg-[#1B5E20] group-hover:ring-2 group-hover:ring-emerald-400/70 group-hover:scale-102 transition-all duration-300 relative shadow-sm flex flex-col justify-center items-center py-1.5"
                           style={{
                             height: `${Math.max(8, Math.min(100, metrics3Blocos.prospect.pct))}%`,
                             minHeight: '28px'
@@ -7130,17 +7545,67 @@
                       </div>
 
                       {/* Bloco 3: VISITANTES INTERNOS */}
-                      <div className="flex flex-col items-center h-full justify-end">
+                      <div 
+                        className="flex flex-col items-center h-full justify-end relative cursor-pointer group"
+                        onMouseEnter={() => setHoveredBloco('interno')}
+                        onMouseLeave={() => setHoveredBloco(null)}
+                        onClick={() => { setCategoriaDetalheModal('interno'); setBuscaDetalhe(''); }}
+                        title="Passe o mouse para ver resumo ou clique para abrir a lista completa"
+                      >
+                        {/* Janela Flutuante à Vista (Hover Tooltip) */}
+                        {hoveredBloco === 'interno' && (
+                          <div className="absolute bottom-[calc(100%+8px)] z-40 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-3 shadow-2xl border border-slate-700 pointer-events-none animate-in fade-in zoom-in-95 duration-150 right-0 sm:left-1/2 sm:-translate-x-1/2">
+                            <div className="flex items-center justify-between pb-2 border-b border-slate-700/80 mb-2">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-sm">🌐</span>
+                                <strong className="text-xs font-black text-white">Internos ({metrics3Blocos.interno.visitas} visitas)</strong>
+                              </div>
+                              <span className="text-[10px] font-black bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30">
+                                {metrics3Blocos.interno.pessoas} pessoas
+                              </span>
+                            </div>
+                            
+                            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-left">
+                              {getVisitantesPorTipo('interno').length === 0 ? (
+                                <p className="text-[11px] text-slate-400 italic py-1">Nenhuma comitiva no período.</p>
+                              ) : (
+                                getVisitantesPorTipo('interno').slice(0, 6).map((v, idx) => (
+                                  <div key={idx} className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
+                                    <div className="truncate flex-1">
+                                      <p className="font-extrabold text-white text-[11px] truncate">{v.empresa || v.nome || 'Visitante'}</p>
+                                      <p className="text-[9.5px] text-slate-400">{v.data ? v.data.split('-').reverse().join('/') : ''} • {v.responsavel || 'Equipe TOTVS'}</p>
+                                    </div>
+                                    <span className="text-[10px] font-black text-amber-300 shrink-0 bg-amber-400/10 px-1.5 py-0.5 rounded">
+                                      {v.numero_pessoas || 1} {v.numero_pessoas === 1 ? 'pessoa' : 'pessoas'}
+                                    </span>
+                                  </div>
+                                ))
+                              )}
+                              {getVisitantesPorTipo('interno').length > 6 && (
+                                <p className="text-[9.5px] text-slate-400 text-center font-bold pt-1">
+                                  + {getVisitantesPorTipo('interno').length - 6} outras comitivas cadastradas
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="mt-2 pt-1.5 border-t border-slate-800 text-center">
+                              <p className="text-[9.5px] text-amber-300 font-semibold">
+                                👆 Clique no bloco para abrir a lista completa e exportar
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Apenas Percentual no Topo do Bloco (sem tag) */}
                         <div className="text-center mb-1">
-                          <span className="text-xs sm:text-sm font-black text-amber-800">
+                          <span className="text-xs sm:text-sm font-black text-amber-800 group-hover:text-amber-600 transition-colors">
                             {metrics3Blocos.interno.pct.toFixed(1)}%
                           </span>
                         </div>
 
                         {/* Barra */}
                         <div 
-                          className="w-full max-w-[90px] sm:max-w-[125px] rounded-t-xl bg-[#EF6C00] hover:bg-[#E65100] transition-all duration-300 relative shadow-sm flex flex-col justify-center items-center py-1.5"
+                          className="w-full max-w-[90px] sm:max-w-[125px] rounded-t-xl bg-[#EF6C00] group-hover:bg-[#E65100] group-hover:ring-2 group-hover:ring-amber-400/70 group-hover:scale-102 transition-all duration-300 relative shadow-sm flex flex-col justify-center items-center py-1.5"
                           style={{
                             height: `${Math.max(8, Math.min(100, metrics3Blocos.interno.pct))}%`,
                             minHeight: '28px'
@@ -7163,8 +7628,12 @@
 
                     {/* RÓTULOS CLAROS ABAIXO DE CADA BLOCO (EIXO X) */}
                     <div className="grid grid-cols-3 gap-3 sm:gap-6 pl-10 pr-2 pt-2 text-center">
-                      <div className="p-1">
-                        <strong className="text-xs sm:text-sm font-black text-[#2B3E50] block truncate">
+                      <div 
+                        onClick={() => { setCategoriaDetalheModal('cliente'); setBuscaDetalhe(''); }}
+                        className="p-1 rounded-xl hover:bg-slate-100 transition cursor-pointer group"
+                        title="Clique para ver comitivas de Clientes"
+                      >
+                        <strong className="text-xs sm:text-sm font-black text-[#2B3E50] group-hover:text-totvs-blue transition-colors block truncate">
                           🏢 Cliente
                         </strong>
                         <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 block mt-0.5">
@@ -7172,8 +7641,12 @@
                         </span>
                       </div>
 
-                      <div className="p-1">
-                        <strong className="text-xs sm:text-sm font-black text-[#2E7D32] block truncate">
+                      <div 
+                        onClick={() => { setCategoriaDetalheModal('prospect'); setBuscaDetalhe(''); }}
+                        className="p-1 rounded-xl hover:bg-slate-100 transition cursor-pointer group"
+                        title="Clique para ver comitivas de Prospects"
+                      >
+                        <strong className="text-xs sm:text-sm font-black text-[#2E7D32] group-hover:text-emerald-700 transition-colors block truncate">
                           🎯 Prospect
                         </strong>
                         <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 block mt-0.5">
@@ -7181,8 +7654,12 @@
                         </span>
                       </div>
 
-                      <div className="p-1">
-                        <strong className="text-xs sm:text-sm font-black text-[#EF6C00] block truncate">
+                      <div 
+                        onClick={() => { setCategoriaDetalheModal('interno'); setBuscaDetalhe(''); }}
+                        className="p-1 rounded-xl hover:bg-slate-100 transition cursor-pointer group"
+                        title="Clique para ver comitivas de Visitantes Internos"
+                      >
+                        <strong className="text-xs sm:text-sm font-black text-[#EF6C00] group-hover:text-amber-700 transition-colors block truncate">
                           🌐 Visitante Interno
                         </strong>
                         <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 block mt-0.5">
@@ -7244,6 +7721,25 @@
               </button>
             </div>
           </div>
+
+          {/* Modal de Detalhamento da Categoria Selecionada (Aberto via clique na barra) */}
+          {categoriaDetalheModal && (
+            <VisitorCategoryDetailModal
+              categoria={categoriaDetalheModal}
+              onClose={() => setCategoriaDetalheModal(null)}
+              rawList={getVisitantesPorTipo(categoriaDetalheModal)}
+              metrics={
+                categoriaDetalheModal === 'cliente'
+                  ? metrics3Blocos.cliente
+                  : (categoriaDetalheModal === 'prospect'
+                    ? metrics3Blocos.prospect
+                    : metrics3Blocos.interno)
+              }
+              periodoLabel={getPeriodoLabel()}
+              onExportExcel={() => handleExportarExcel(categoriaDetalheModal)}
+              onExportPDF={() => handleExportarPDFCategoria(categoriaDetalheModal)}
+            />
+          )}
         </div>
       );
     }
