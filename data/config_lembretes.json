@@ -1,0 +1,17 @@
+{
+  "ativo": true,
+  "turno1": {
+    "horario": "13:00",
+    "titulo": "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 13:00",
+    "subtitulo": "Lembrete das 13:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia."
+  },
+  "turno2": {
+    "horario": "17:00",
+    "titulo": "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 17:00",
+    "subtitulo": "Lembrete das 17:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.",
+    "pergunta_confirmacao": "Você tem certeza que não houve nenhum visitante?",
+    "subtitulo_confirmacao": "Confirmação de encerramento do dia no Espaço Experiência."
+  },
+  "atualizado_em": "2026-10-25T22:56:08.256Z",
+  "atualizado_por": "André Gianotti"
+}

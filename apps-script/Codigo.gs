@@ -575,6 +575,7 @@ function obterDadosIniciais() {
     var visitantes = carregarVisitantes(ss);
     var metricas = calcularMetricasVisitantes(visitantes);
     var authObrigatoria = PropertiesService.getScriptProperties().getProperty("AUTH_ESPECIALISTA_OBRIGATORIA") === "true";
+    var configLembretes = obterConfigLembretes();
     
     return {
       success: true,
@@ -584,7 +585,8 @@ function obterDadosIniciais() {
       videoGestao: videoGestao,
       visitantes: visitantes,
       metricas: metricas,
-      auth_especialista_obrigatoria: authObrigatoria
+      auth_especialista_obrigatoria: authObrigatoria,
+      configLembretes: configLembretes
     };
   } catch (err) {
     return {
@@ -603,7 +605,8 @@ function obterDadosIniciais() {
       },
       visitantes: [],
       metricas: { hoje: 0, semana: 0, mes: 0, ano: 0, total: 0 },
-      auth_especialista_obrigatoria: false
+      auth_especialista_obrigatoria: false,
+      configLembretes: getLembretesPadrao()
     };
   }
 }
@@ -4508,6 +4511,112 @@ function atualizarPerfilUsuario(dados) {
 
     return { success: false, message: "Perfil não encontrado na planilha de usuários." };
   } catch(e) {
+    return { success: false, message: e.message };
+  }
+}
+
+/**
+ * ============================================================================
+ * GESTÃO DE CONFIGURAÇÃO DE LEMBRETES DIÁRIOS (EXCLUSIVO DONO DO PRODUTO)
+ * ============================================================================
+ */
+function getLembretesPadrao() {
+  return {
+    ativo: true,
+    turno1: {
+      horario: "13:00",
+      titulo: "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 13:00",
+      subtitulo: "Lembrete das 13:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.",
+      ativo: true
+    },
+    turno2: {
+      horario: "17:00",
+      titulo: "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 17:00",
+      subtitulo: "Lembrete das 17:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.",
+      pergunta_confirmacao: "Você tem certeza que não houve nenhum visitante?",
+      subtitulo_confirmacao: "Confirmação de encerramento do dia no Espaço Experiência.",
+      ativo: true
+    },
+    atualizado_em: "Padrão do Sistema",
+    atualizado_por: "Sistema TOTVS"
+  };
+}
+
+function obterConfigLembretes() {
+  try {
+    var raw = PropertiesService.getScriptProperties().getProperty("CONFIG_LEMBRETES");
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (parsed && parsed.turno1 && parsed.turno2) {
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return getLembretesPadrao();
+}
+
+function salvarConfigLembretes(configData, autorEmail, autorNome) {
+  try {
+    var emailLimpo = String(autorEmail || "").toLowerCase().trim();
+    var usuarioAtivo = obterUsuarioAtivo();
+    var isDono = emailLimpo === "andre.gianotti@totvs.com.br" || Boolean(usuarioAtivo && usuarioAtivo.dono_produto);
+
+    if (!isDono) {
+      return { 
+        success: false, 
+        message: "Acesso negado: Apenas o Dono do Produto possui permissão para alterar as configurações de lembretes diários." 
+      };
+    }
+
+    if (!configData || !configData.turno1 || !configData.turno2) {
+      return { success: false, message: "Estrutura de configuração de lembretes inválida." };
+    }
+
+    var agora = new Date();
+    var dataHoraStr = Utilities.formatDate(agora, "America/Sao_Paulo", "dd/MM/yyyy HH:mm:ss");
+
+    var safeConfig = {
+      ativo: configData.ativo !== false,
+      turno1: {
+        horario: String(configData.turno1.horario || "13:00").trim(),
+        titulo: String(configData.turno1.titulo || "").trim(),
+        subtitulo: String(configData.turno1.subtitulo || "").trim(),
+        ativo: configData.turno1.ativo !== false
+      },
+      turno2: {
+        horario: String(configData.turno2.horario || "17:00").trim(),
+        titulo: String(configData.turno2.titulo || "").trim(),
+        subtitulo: String(configData.turno2.subtitulo || "").trim(),
+        pergunta_confirmacao: String(configData.turno2.pergunta_confirmacao || "Você tem certeza que não houve nenhum visitante?").trim(),
+        subtitulo_confirmacao: String(configData.turno2.subtitulo_confirmacao || "Confirmação de encerramento do dia no Espaço Experiência.").trim(),
+        ativo: configData.turno2.ativo !== false
+      },
+      atualizado_em: dataHoraStr,
+      atualizado_por: autorNome || "André Gianotti"
+    };
+
+    PropertiesService.getScriptProperties().setProperty("CONFIG_LEMBRETES", JSON.stringify(safeConfig));
+
+    // Auditoria
+    try {
+      var ss = getSpreadsheet();
+      var sheetAudit = ss.getSheetByName("Logs_Auditoria") || ss.getSheetByName("LogsAuditoria") || ss.getSheetByName("Logs");
+      if (sheetAudit) {
+        var id = "aud-" + agora.getTime();
+        var dataStr = Utilities.formatDate(agora, "America/Sao_Paulo", "dd/MM/yyyy");
+        var horaStr = Utilities.formatDate(agora, "America/Sao_Paulo", "HH:mm:ss");
+        var acao = "Configuração de Lembretes Diários";
+        var detalhes = "Horários configurados: T1 (" + safeConfig.turno1.horario + ") | T2 (" + safeConfig.turno2.horario + ") por " + (autorNome || "André Gianotti");
+        sheetAudit.appendRow([id, autorNome || "André Gianotti", emailLimpo, "adm", "configuracoes", "Lembretes Diários", acao, dataStr, horaStr, agora.getTime(), detalhes]);
+      }
+    } catch(errAudit) {}
+
+    return {
+      success: true,
+      message: "Configuração dos lembretes diários salva com sucesso!",
+      config: safeConfig
+    };
+  } catch (e) {
     return { success: false, message: e.message };
   }
 }

@@ -2242,53 +2242,44 @@
         }
       });
 
+      // Configuração Dinâmica dos Lembretes Diários (Exclusivo Dono do Produto)
+      const DEFAULT_CONFIG_LEMBRETES = {
+        ativo: true,
+        turno1: {
+          horario: "13:00",
+          titulo: "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 13:00",
+          subtitulo: "Lembrete das 13:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.",
+          ativo: true
+        },
+        turno2: {
+          horario: "17:00",
+          titulo: "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 17:00",
+          subtitulo: "Lembrete das 17:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.",
+          pergunta_confirmacao: "Você tem certeza que não houve nenhum visitante?",
+          subtitulo_confirmacao: "Confirmação de encerramento do dia no Espaço Experiência.",
+          ativo: true
+        },
+        atualizado_em: "Padrão do Sistema",
+        atualizado_por: "Sistema TOTVS"
+      };
+
+      const [configLembretes, setConfigLembretes] = useState(DEFAULT_CONFIG_LEMBRETES);
+      // Simulação interativa na tela acionada pelo Dono do Produto (null | 'turno1' | 'turno2')
+      const [testeLembreteAtivo, setTesteLembreteAtivo] = useState(null);
+
+      const carregarConfigLembretes = () => {
+        fetch('/api/config/reminders')
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.success && data.config) {
+              setConfigLembretes(data.config);
+            }
+          })
+          .catch(() => {});
+      };
+
       // Estado para alternância da pergunta inline às 17:00
       const [confirmandoFechamento17h, setConfirmandoFechamento17h] = useState(false);
-
-      // Suporte para homologação via parâmetro de busca ?test_lembrete=13 ou ?test_lembrete=17 (ou ?test_lembrete=1)
-      const testLembreteParam = useMemo(() => {
-        try {
-          return new URLSearchParams(window.location.search).get('test_lembrete');
-        } catch (e) {
-          return null;
-        }
-      }, []);
-
-      const currentHour = new Date().getHours();
-      const isTest13 = testLembreteParam === '13';
-      const isTest17 = testLembreteParam === '17' || testLembreteParam === '1';
-
-      // Turno 17:00 (prioritário)
-      const isTurno17 = (currentHour >= 17 || isTest17);
-      // Turno 13:00 (13:00 às 16:59)
-      const isTurno13 = (!isTurno17 && ((currentHour >= 13 && currentHour < 17) || isTest13));
-
-      // Se nenhum visitante foi registrado hoje (total = 0)
-      const semVisitantesHoje = Number(visitorMetrics.hoje || 0) === 0;
-
-      const showAviso17h = semVisitantesHoje && isTurno17 && !dismissed17hToday;
-      const showAviso13h = semVisitantesHoje && isTurno13 && !dismissed13hToday;
-      const shouldShowVisitorReminder = showAviso17h || showAviso13h;
-
-      const handleDismiss13h = () => {
-        try {
-          localStorage.setItem(`totvs_remind_13h_${todayIso}`, 'true');
-        } catch (e) {}
-        setDismissed13hToday(true);
-      };
-
-      const handleConfirmarSim17h = () => {
-        try {
-          localStorage.setItem(`totvs_remind_17h_${todayIso}`, 'true');
-        } catch (e) {}
-        setDismissed17hToday(true);
-        setConfirmandoFechamento17h(false);
-      };
-
-      const handleResponderNao17h = () => {
-        setConfirmandoFechamento17h(false);
-        setShowVisitorModal(true);
-      };
 
       // Marcação dinâmica de dia e horário em tempo real no topo
       const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -2321,6 +2312,88 @@
           };
         }
       }, [currentDateTime]);
+
+      // Suporte para homologação via parâmetro de busca ?test_lembrete=13 ou ?test_lembrete=17 (ou ?test_lembrete=1)
+      const testLembreteParam = useMemo(() => {
+        try {
+          return new URLSearchParams(window.location.search).get('test_lembrete');
+        } catch (e) {
+          return null;
+        }
+      }, []);
+
+      const parseTimeToMinutes = (timeStr, defaultMinutes) => {
+        try {
+          if (!timeStr || typeof timeStr !== 'string') return defaultMinutes;
+          const parts = timeStr.trim().split(':');
+          if (parts.length >= 2) {
+            const h = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10);
+            if (!isNaN(h) && !isNaN(m)) return (h * 60) + m;
+          }
+        } catch (e) {}
+        return defaultMinutes;
+      };
+
+      const nowMinutes = currentDateTime.getHours() * 60 + currentDateTime.getMinutes();
+      const t1Minutes = parseTimeToMinutes(configLembretes?.turno1?.horario, 13 * 60);
+      const t2Minutes = parseTimeToMinutes(configLembretes?.turno2?.horario, 17 * 60);
+
+      const isTest13 = testLembreteParam === '13';
+      const isTest17 = testLembreteParam === '17' || testLembreteParam === '1';
+
+      const isSimulation1 = testeLembreteAtivo === 'turno1';
+      const isSimulation2 = testeLembreteAtivo === 'turno2';
+
+      const isTurno1Ativo = configLembretes?.ativo !== false && configLembretes?.turno1?.ativo !== false;
+      const isTurno2Ativo = configLembretes?.ativo !== false && configLembretes?.turno2?.ativo !== false;
+
+      // Turno 2 (prioritário - encerramento)
+      const isTurno17 = isSimulation2 || (!isSimulation1 && isTurno2Ativo && (nowMinutes >= t2Minutes || isTest17));
+      // Turno 1 (intermediário)
+      const isTurno13 = isSimulation1 || (!isSimulation2 && !isTurno17 && isTurno1Ativo && ((nowMinutes >= t1Minutes && nowMinutes < t2Minutes) || isTest13));
+
+      // Se nenhum visitante foi registrado hoje (total = 0)
+      const semVisitantesHoje = Number(visitorMetrics.hoje || 0) === 0;
+
+      // Em modo de teste do Dono do Produto, forçamos a exibição imediata
+      const showAviso17h = isSimulation2 || (semVisitantesHoje && isTurno17 && !dismissed17hToday);
+      const showAviso13h = !showAviso17h && (isSimulation1 || (semVisitantesHoje && isTurno13 && !dismissed13hToday));
+      const shouldShowVisitorReminder = showAviso17h || showAviso13h;
+
+      const handleDismiss13h = () => {
+        if (testeLembreteAtivo === 'turno1') {
+          setTesteLembreteAtivo(null);
+          showToast('Simulação do Lembrete Turno 1 concluída! ✅');
+          return;
+        }
+        try {
+          localStorage.setItem(`totvs_remind_13h_${todayIso}`, 'true');
+        } catch (e) {}
+        setDismissed13hToday(true);
+      };
+
+      const handleConfirmarSim17h = () => {
+        if (testeLembreteAtivo === 'turno2') {
+          setTesteLembreteAtivo(null);
+          setConfirmandoFechamento17h(false);
+          showToast('Simulação de Confirmação Turno 2 concluída! ✅');
+          return;
+        }
+        try {
+          localStorage.setItem(`totvs_remind_17h_${todayIso}`, 'true');
+        } catch (e) {}
+        setDismissed17hToday(true);
+        setConfirmandoFechamento17h(false);
+      };
+
+      const handleResponderNao17h = () => {
+        if (testeLembreteAtivo === 'turno2') {
+          setTesteLembreteAtivo(null);
+        }
+        setConfirmandoFechamento17h(false);
+        setShowVisitorModal(true);
+      };
 
       // Busca, Barra Lateral e Calendário dos Plantonistas
       const [searchTerm, setSearchTerm] = useState('');
@@ -2388,11 +2461,12 @@
             }
           }
 
-        // 4. Carregar métricas de visitantes, governança e vídeo
+        // 4. Carregar métricas de visitantes, governança, vídeo e lembretes
         carregarVisitorMetrics();
         carregarVisitantes();
         carregarAuthMode();
         carregarPlantonistaHoje();
+        carregarConfigLembretes();
         carregarVideoGestao();
 
         // 5. Buscar segmentos
@@ -2822,7 +2896,7 @@
               </div>
             </header>
 
-          {/* TARJA INTELIGENTE DE AVISO DE VISITANTES (13:00 E 17:00) */}
+          {/* TARJA INTELIGENTE DE AVISO DE VISITANTES (CONFIGURÁVEL PELO DONO DO PRODUTO) */}
           {shouldShowVisitorReminder && (
             <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 px-4 py-2.5 shadow-md border-b border-amber-300/60 relative z-30 animate-in slide-in-from-top duration-300">
               <div className="max-w-[1720px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -2834,10 +2908,10 @@
                       </span>
                       <div>
                         <p className="text-xs sm:text-[13px] font-black text-slate-950 leading-tight">
-                          ⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 13:00
+                          {configLembretes?.turno1?.titulo || "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 13:00"}
                         </p>
                         <p className="text-[10.5px] font-medium text-slate-900/85">
-                          Lembrete das 13:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.
+                          {configLembretes?.turno1?.subtitulo || "Lembrete das 13:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia."}
                         </p>
                       </div>
                     </div>
@@ -2871,10 +2945,10 @@
                       </span>
                       <div>
                         <p className="text-xs sm:text-[13px] font-black text-slate-950 leading-tight">
-                          ⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 17:00
+                          {configLembretes?.turno2?.titulo || "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 17:00"}
                         </p>
                         <p className="text-[10.5px] font-medium text-slate-900/85">
-                          Lembrete das 17:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.
+                          {configLembretes?.turno2?.subtitulo || "Lembrete das 17:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia."}
                         </p>
                       </div>
                     </div>
@@ -2907,10 +2981,10 @@
                       </span>
                       <div>
                         <p className="text-xs sm:text-[13px] font-black text-slate-950 leading-tight">
-                          Você tem certeza que não houve nenhum visitante?
+                          {configLembretes?.turno2?.pergunta_confirmacao || "Você tem certeza que não houve nenhum visitante?"}
                         </p>
                         <p className="text-[10.5px] font-medium text-slate-900/85">
-                          Confirmação de encerramento do dia no Espaço Experiência.
+                          {configLembretes?.turno2?.subtitulo_confirmacao || "Confirmação de encerramento do dia no Espaço Experiência."}
                         </p>
                       </div>
                     </div>
@@ -2936,6 +3010,50 @@
                     </div>
                   </>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* BADGE FLUTUANTE DE CONTROLE DA SIMULAÇÃO (EXCLUSIVO DONO DO PRODUTO) */}
+          {testeLembreteAtivo && (
+            <div className="fixed bottom-5 right-5 z-50 bg-slate-950/95 text-white border-2 border-amber-400 shadow-2xl rounded-2xl p-4 max-w-sm backdrop-blur-md animate-in slide-in-from-bottom duration-300">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 font-black text-sm shadow-md">
+                  🧪
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-black text-amber-300 flex items-center gap-1.5">
+                    <span>MODO DE TESTE ATIVO</span>
+                    <span className="text-[10px] bg-amber-400/20 text-amber-300 border border-amber-400/40 px-1.5 py-0.5 rounded font-mono">
+                      {testeLembreteAtivo === 'turno1' ? 'Turno 1' : 'Turno 2'}
+                    </span>
+                  </p>
+                  <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+                    O banner exibido no topo está em modo de teste interativo. Você pode simular as respostas ou reabrir as configurações.
+                  </p>
+                  <div className="flex items-center gap-2 mt-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdminTab('lembretes');
+                        setAdminModal(true);
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] transition shadow-xs cursor-pointer flex items-center gap-1"
+                    >
+                      <span>Reabrir Painel ADM</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTesteLembreteAtivo(null);
+                        showToast('Simulação de lembrete encerrada.');
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] transition border border-slate-700 cursor-pointer"
+                    >
+                      Encerrar Teste
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -3188,6 +3306,9 @@
               onLogout={handleLogoutAdm}
               videoGestao={videoGestao}
               onVideoGestaoChange={carregarVideoGestao}
+              configLembretes={configLembretes}
+              onConfigLembretesChange={(novaCfg) => setConfigLembretes(novaCfg)}
+              onTestLembrete={(turno) => setTesteLembreteAtivo(turno)}
               showToast={showToast}
             />
           )}
@@ -8341,7 +8462,10 @@
       onVideoGestaoChange,
       showToast,
       authEspecialistaObrigatoria = false,
-      onAuthModeChange
+      onAuthModeChange,
+      configLembretes = null,
+      onConfigLembretesChange = null,
+      onTestLembrete = null
     }) {
       // Bloquear rolagem do fundo e fechar com a tecla ESC
       useEffect(() => {
@@ -8363,11 +8487,11 @@
 
       // Governança: Restrições de navegação no Painel Administrativo
       // 1. Usuário PMM só tem acesso à aba de vídeo
-      // 2. A aba de Auditoria é restrita exclusivamente ao Dono do Produto
+      // 2. As abas de Auditoria e Lembretes Diários são restritas exclusivamente ao Dono do Produto
       useEffect(() => {
-        if (admLogado?.perfil === 'pmm' && (activeTab === 'adms' || activeTab === 'convites' || activeTab === 'audit')) {
+        if (admLogado?.perfil === 'pmm' && (activeTab === 'adms' || activeTab === 'convites' || activeTab === 'audit' || activeTab === 'lembretes')) {
           if (onTabChange) onTabChange('video');
-        } else if (activeTab === 'audit' && !admLogado?.dono_produto) {
+        } else if ((activeTab === 'audit' || activeTab === 'lembretes') && !admLogado?.dono_produto) {
           if (onTabChange) onTabChange('adms');
         }
       }, [admLogado, activeTab, onTabChange]);
@@ -8460,6 +8584,122 @@
           if (showToast) showToast('Erro de comunicação ao alternar chave mestra.');
         } finally {
           setTogglingAuthMode(false);
+        }
+      };
+
+      // Gestão de Configuração dos Lembretes Diários (Exclusivo Dono do Produto)
+      const [formLembretes, setFormLembretes] = useState(() => {
+        return {
+          ativo: configLembretes?.ativo !== false,
+          turno1: {
+            horario: configLembretes?.turno1?.horario || "13:00",
+            titulo: configLembretes?.turno1?.titulo || "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 13:00",
+            subtitulo: configLembretes?.turno1?.subtitulo || "Lembrete das 13:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.",
+            ativo: configLembretes?.turno1?.ativo !== false
+          },
+          turno2: {
+            horario: configLembretes?.turno2?.horario || "17:00",
+            titulo: configLembretes?.turno2?.titulo || "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 17:00",
+            subtitulo: configLembretes?.turno2?.subtitulo || "Lembrete das 17:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.",
+            pergunta_confirmacao: configLembretes?.turno2?.pergunta_confirmacao || "Você tem certeza que não houve nenhum visitante?",
+            subtitulo_confirmacao: configLembretes?.turno2?.subtitulo_confirmacao || "Confirmação de encerramento do dia no Espaço Experiência.",
+            ativo: configLembretes?.turno2?.ativo !== false
+          }
+        };
+      });
+
+      useEffect(() => {
+        if (configLembretes) {
+          setFormLembretes({
+            ativo: configLembretes.ativo !== false,
+            turno1: {
+              horario: configLembretes.turno1?.horario || "13:00",
+              titulo: configLembretes.turno1?.titulo || "",
+              subtitulo: configLembretes.turno1?.subtitulo || "",
+              ativo: configLembretes.turno1?.ativo !== false
+            },
+            turno2: {
+              horario: configLembretes.turno2?.horario || "17:00",
+              titulo: configLembretes.turno2?.titulo || "",
+              subtitulo: configLembretes.turno2?.subtitulo || "",
+              pergunta_confirmacao: configLembretes.turno2?.pergunta_confirmacao || "",
+              subtitulo_confirmacao: configLembretes.turno2?.subtitulo_confirmacao || "",
+              ativo: configLembretes.turno2?.ativo !== false
+            }
+          });
+        }
+      }, [configLembretes]);
+
+      const [salvandoLembretes, setSalvandoLembretes] = useState(false);
+      const [previewLembreteSubTab, setPreviewLembreteSubTab] = useState('t1'); // 't1' | 't2' | 't2_perg'
+
+      const handleSalvarLembretes = async () => {
+        if (!admLogado?.dono_produto) {
+          if (showToast) showToast('Acesso negado: apenas o Dono do Produto pode alterar esta configuração.');
+          return;
+        }
+
+        if (!formLembretes.turno1.horario || !formLembretes.turno2.horario) {
+          if (showToast) showToast('Por favor, informe os horários de ambos os turnos.');
+          return;
+        }
+
+        setSalvandoLembretes(true);
+        try {
+          // Suporte nativo Google Apps Script (interceptado via sync_apps_script.js)
+          const res = await fetch('/api/config/reminders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              config: formLembretes,
+              usuario: admLogado
+            })
+          });
+          const data = await res.json();
+          setSalvandoLembretes(false);
+          if (data && data.success) {
+            if (onConfigLembretesChange) onConfigLembretesChange(data.config);
+            if (showToast) showToast(data.message || 'Configurações de lembretes salvas com sucesso! ✅');
+            if (onRefresh) onRefresh();
+          } else {
+            if (showToast) showToast(data?.message || 'Erro ao salvar configurações de lembretes.');
+          }
+        } catch (err) {
+          setSalvandoLembretes(false);
+          if (showToast) showToast('Erro de comunicação ao salvar lembretes: ' + err.message);
+        }
+      };
+
+      const handleRestaurarPadraoLembretes = () => {
+        const confirmou = window.confirm("Deseja restaurar as mensagens e horários dos lembretes para os padrões de fábrica do Espaço Experiência (13:00 e 17:00)?");
+        if (!confirmou) return;
+
+        setFormLembretes({
+          ativo: true,
+          turno1: {
+            horario: "13:00",
+            titulo: "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 13:00",
+            subtitulo: "Lembrete das 13:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.",
+            ativo: true
+          },
+          turno2: {
+            horario: "17:00",
+            titulo: "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 17:00",
+            subtitulo: "Lembrete das 17:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.",
+            pergunta_confirmacao: "Você tem certeza que não houve nenhum visitante?",
+            subtitulo_confirmacao: "Confirmação de encerramento do dia no Espaço Experiência.",
+            ativo: true
+          }
+        });
+        if (showToast) showToast('Padrões restaurados no formulário. Clique em "Salvar Configurações" para aplicar.');
+      };
+
+      const handleDispararTesteLembrete = (turno) => {
+        if (onTestLembrete) {
+          onTestLembrete(turno);
+        }
+        if (onClose) {
+          onClose();
         }
       };
 
@@ -9287,18 +9527,33 @@
                   </button>
 
                   {Boolean(admLogado?.dono_produto) && (
-                    <button
-                      onClick={() => onTabChange('audit')}
-                      className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
-                        activeTab === 'audit'
-                          ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
-                          : 'border-transparent text-slate-500 hover:text-slate-800'
-                      }`}
-                    >
-                      <Icons.Edit />
-                      <span>Auditoria ({auditLogs.length})</span>
-                      <span className="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded">Dono</span>
-                    </button>
+                    <>
+                      <button
+                        onClick={() => onTabChange('audit')}
+                        className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
+                          activeTab === 'audit'
+                            ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                            : 'border-transparent text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        <Icons.Edit />
+                        <span>Auditoria ({auditLogs.length})</span>
+                        <span className="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded">Dono</span>
+                      </button>
+
+                      <button
+                        onClick={() => onTabChange('lembretes')}
+                        className={`px-4 py-3 font-bold text-xs border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer ${
+                          activeTab === 'lembretes'
+                            ? 'border-totvs-blue text-totvs-blue bg-white rounded-t-xl shadow-sm'
+                            : 'border-transparent text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        <Icons.Clock />
+                        <span>Lembretes Diários</span>
+                        <span className="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded">Dono</span>
+                      </button>
+                    </>
                   )}
                 </>
               )}
@@ -10373,6 +10628,404 @@
                       )}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* ABA EXCLUSIVA DO DONO DO PRODUTO: CONFIGURAÇÃO E TESTE DE LEMBRETES DIÁRIOS */}
+              {activeTab === 'lembretes' && Boolean(admLogado?.dono_produto) && (
+                <div className="space-y-6">
+                  {/* Topo da Aba */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 rounded-2xl border border-amber-300/40">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-900 border border-amber-400/40 flex items-center justify-center shrink-0 shadow-inner">
+                        <Icons.Clock />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-extrabold text-slate-800">
+                            Lembretes Diários de Visitação
+                          </h3>
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300/60 shadow-xs">
+                            Exclusivo Dono do Produto
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Personalize horários, títulos, mensagens de cobrança quando não houver visitantes registrados no dia (<strong className="text-slate-700">Hoje = 0</strong>) e teste na tela em tempo real.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Caixa Explicativa das Regras de Negócio */}
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                    <p className="font-bold text-slate-800 flex items-center gap-1.5">
+                      <span>💡 Regras de Governança dos Lembretes:</span>
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 text-slate-600 pl-1">
+                      <li>
+                        <strong>Condição de Disparo:</strong> As notificações automáticas no topo só aparecem caso nenhum visitante tenha sido registrado hoje (<code className="bg-slate-200/80 px-1 py-0.5 rounded text-[11px] font-mono">hoje = 0</code>).
+                      </li>
+                      <li>
+                        <strong>Turno 1 (Intermediário):</strong> Alerta aos especialistas para registrarem visitas ao longo da jornada. Possui botão de confirmação simples (<em>Entendido</em>).
+                      </li>
+                      <li>
+                        <strong>Turno 2 (Encerramento):</strong> Alerta crítico de encerramento do dia com pergunta de dupla checagem (<em>SIM, TENHO CERTEZA</em> ou <em>NÃO, REGISTRAR AGORA</em>).
+                      </li>
+                      <li>
+                        <strong>Botões de Teste:</strong> Clique em <span className="font-semibold text-amber-700">▶️ Testar na Tela</span> para abrir a tarja de aviso imediatamente no showroom e simular os cliques como um usuário real.
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Grid de Configuração dos Turnos */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* CARD TURNO 1 */}
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-bold">
+                            T1
+                          </span>
+                          <div>
+                            <h4 className="text-sm font-bold text-slate-800">Turno 1: Aviso Intermediário</h4>
+                            <p className="text-[11px] text-slate-400">Notificação educativa padrão (13:00)</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDispararTesteLembrete('turno1')}
+                          className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+                          title="Simular exibição deste lembrete na tela principal"
+                        >
+                          <span>▶️ Testar na Tela</span>
+                        </button>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Horário de Disparo (HH:MM):
+                          </label>
+                          <input
+                            type="time"
+                            value={formLembretes.turno1.horario}
+                            onChange={(e) => setFormLembretes(prev => ({
+                              ...prev,
+                              turno1: { ...prev.turno1, horario: e.target.value }
+                            }))}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue/40"
+                          />
+                          <p className="text-[10.5px] text-slate-400 mt-1">
+                            Disparado a partir deste horário caso Hoje = 0. Padrão: 13:00.
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Título da Notificação:
+                          </label>
+                          <input
+                            type="text"
+                            value={formLembretes.turno1.titulo}
+                            onChange={(e) => setFormLembretes(prev => ({
+                              ...prev,
+                              turno1: { ...prev.turno1, titulo: e.target.value }
+                            }))}
+                            placeholder="⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 13:00"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue/40"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Subtítulo / Instrução aos Especialistas:
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={formLembretes.turno1.subtitulo}
+                            onChange={(e) => setFormLembretes(prev => ({
+                              ...prev,
+                              turno1: { ...prev.turno1, subtitulo: e.target.value }
+                            }))}
+                            placeholder="Lembrete das 13:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia."
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue/40 resize-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CARD TURNO 2 */}
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-lg bg-red-100 text-red-800 flex items-center justify-center text-xs font-bold">
+                            T2
+                          </span>
+                          <div>
+                            <h4 className="text-sm font-bold text-slate-800">Turno 2: Alerta de Encerramento</h4>
+                            <p className="text-[11px] text-slate-400">Cobrança crítica e checagem dupla (17:00)</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDispararTesteLembrete('turno2')}
+                          className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+                          title="Simular exibição deste lembrete na tela principal"
+                        >
+                          <span>▶️ Testar na Tela</span>
+                        </button>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Horário de Disparo (HH:MM):
+                          </label>
+                          <input
+                            type="time"
+                            value={formLembretes.turno2.horario}
+                            onChange={(e) => setFormLembretes(prev => ({
+                              ...prev,
+                              turno2: { ...prev.turno2, horario: e.target.value }
+                            }))}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue/40"
+                          />
+                          <p className="text-[10.5px] text-slate-400 mt-1">
+                            Disparado no final do expediente. Padrão: 17:00.
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Título da Notificação:
+                          </label>
+                          <input
+                            type="text"
+                            value={formLembretes.turno2.titulo}
+                            onChange={(e) => setFormLembretes(prev => ({
+                              ...prev,
+                              turno2: { ...prev.turno2, titulo: e.target.value }
+                            }))}
+                            placeholder="⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 17:00"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue/40"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Subtítulo / Instrução aos Especialistas:
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={formLembretes.turno2.subtitulo}
+                            onChange={(e) => setFormLembretes(prev => ({
+                              ...prev,
+                              turno2: { ...prev.turno2, subtitulo: e.target.value }
+                            }))}
+                            placeholder="Lembrete das 17:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia."
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue/40 resize-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Pergunta de Confirmação (Após Clicar em Responder):
+                          </label>
+                          <input
+                            type="text"
+                            value={formLembretes.turno2.pergunta_confirmacao}
+                            onChange={(e) => setFormLembretes(prev => ({
+                              ...prev,
+                              turno2: { ...prev.turno2, pergunta_confirmacao: e.target.value }
+                            }))}
+                            placeholder="Você tem certeza que não houve nenhum visitante?"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue/40"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Subtítulo da Pergunta de Confirmação:
+                          </label>
+                          <input
+                            type="text"
+                            value={formLembretes.turno2.subtitulo_confirmacao}
+                            onChange={(e) => setFormLembretes(prev => ({
+                              ...prev,
+                              turno2: { ...prev.turno2, subtitulo_confirmacao: e.target.value }
+                            }))}
+                            placeholder="Confirmação de encerramento do dia no Espaço Experiência."
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-blue/40"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CARD DE PRÉ-VISUALIZAÇÃO AO VIVO (LIVE PREVIEW) */}
+                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-extrabold text-slate-800">
+                          👁️ Pré-visualização em Tempo Real da Tarja
+                        </span>
+                        <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">
+                          Exibição fiel ao showroom
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewLembreteSubTab('t1')}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                            previewLembreteSubTab === 't1'
+                              ? 'bg-amber-500 text-slate-950 shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          Turno 1
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewLembreteSubTab('t2')}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                            previewLembreteSubTab === 't2'
+                              ? 'bg-amber-500 text-slate-950 shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          Turno 2 (Normal)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewLembreteSubTab('t2_perg')}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                            previewLembreteSubTab === 't2_perg'
+                              ? 'bg-amber-500 text-slate-950 shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          Turno 2 (Pergunta)
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="overflow-hidden rounded-xl border border-amber-300/80 shadow-md">
+                      <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 px-4 py-3">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                          {previewLembreteSubTab === 't1' && (
+                            <>
+                              <div className="flex items-center gap-2.5 text-center sm:text-left">
+                                <span className="w-7 h-7 rounded-xl bg-slate-950/20 text-slate-950 flex items-center justify-center shrink-0 font-bold text-xs shadow-inner">
+                                  <Icons.Clock />
+                                </span>
+                                <div>
+                                  <p className="text-xs sm:text-[13px] font-black text-slate-950 leading-tight">
+                                    {formLembretes.turno1.titulo || "⚠️ Atenção ! Você não registrou nenhum visitante até o momento !"}
+                                  </p>
+                                  <p className="text-[10.5px] font-medium text-slate-900/85">
+                                    {formLembretes.turno1.subtitulo || "Lembrete de registro de visitas."}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="bg-slate-950 text-white font-black text-xs px-3.5 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5">
+                                  <Icons.Check />
+                                  <span>Entendido</span>
+                                </span>
+                              </div>
+                            </>
+                          )}
+
+                          {previewLembreteSubTab === 't2' && (
+                            <>
+                              <div className="flex items-center gap-2.5 text-center sm:text-left">
+                                <span className="w-7 h-7 rounded-xl bg-slate-950/20 text-slate-950 flex items-center justify-center shrink-0 font-bold text-xs shadow-inner">
+                                  <Icons.Clock />
+                                </span>
+                                <div>
+                                  <p className="text-xs sm:text-[13px] font-black text-slate-950 leading-tight">
+                                    {formLembretes.turno2.titulo || "⚠️ Atenção ! Você não registrou nenhum visitante até o momento !"}
+                                  </p>
+                                  <p className="text-[10.5px] font-medium text-slate-900/85">
+                                    {formLembretes.turno2.subtitulo || "Lembrete de encerramento do dia."}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="bg-slate-950 text-white font-black text-xs px-3.5 py-1.5 rounded-lg shadow-sm">
+                                  Responder / Fechar
+                                </span>
+                              </div>
+                            </>
+                          )}
+
+                          {previewLembreteSubTab === 't2_perg' && (
+                            <>
+                              <div className="flex items-center gap-2.5 text-center sm:text-left">
+                                <span className="w-7 h-7 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center shrink-0 font-black text-sm shadow-inner">
+                                  ?
+                                </span>
+                                <div>
+                                  <p className="text-xs sm:text-[13px] font-black text-slate-950 leading-tight">
+                                    {formLembretes.turno2.pergunta_confirmacao || "Você tem certeza que não houve nenhum visitante?"}
+                                  </p>
+                                  <p className="text-[10.5px] font-medium text-slate-900/85">
+                                    {formLembretes.turno2.subtitulo_confirmacao || "Confirmação de encerramento do dia no Espaço Experiência."}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="bg-slate-950 text-white font-black text-xs px-3 py-1.5 rounded-lg shadow-sm">
+                                  SIM, TENHO CERTEZA
+                                </span>
+                                <span className="bg-blue-600 text-white font-black text-xs px-3 py-1.5 rounded-lg shadow-md">
+                                  NÃO, REGISTRAR AGORA
+                                </span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Barra de Ações e Rodapé da Configuração */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-200">
+                    <div className="text-[11px] text-slate-500">
+                      <span>Última modificação: </span>
+                      <strong className="text-slate-700">{configLembretes?.atualizado_em || 'Padrão original'}</strong>
+                      {configLembretes?.atualizado_por && (
+                        <span> por <strong className="text-slate-700">{configLembretes.atualizado_por}</strong></span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        type="button"
+                        onClick={handleRestaurarPadraoLembretes}
+                        className="px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5"
+                        title="Restaurar mensagens e horários originais da TOTVS"
+                      >
+                        <Icons.Refresh />
+                        <span>Restaurar Padrões</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleSalvarLembretes}
+                        disabled={salvandoLembretes}
+                        className={`px-5 py-2 rounded-xl font-black text-xs transition flex items-center gap-2 shadow-md cursor-pointer ${
+                          salvandoLembretes
+                            ? 'bg-slate-400 text-white cursor-not-allowed'
+                            : 'bg-totvs-blue hover:bg-blue-700 text-white'
+                        }`}
+                      >
+                        <Icons.Check />
+                        <span>{salvandoLembretes ? 'Gravando Alterações...' : 'Salvar Configurações'}</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
 

@@ -170,6 +170,39 @@ function setFormOpenedToday() {
   return statusData;
 }
 
+const DEFAULT_REMINDER_CONFIG = {
+  ativo: true,
+  turno1: {
+    horario: "13:00",
+    titulo: "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 13:00",
+    subtitulo: "Lembrete das 13:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia."
+  },
+  turno2: {
+    horario: "17:00",
+    titulo: "⚠️ Atenção ! Você não registrou nenhum visitante até o momento ! 17:00",
+    subtitulo: "Lembrete das 17:00 • Ajude a manter os dados de visitação do Espaço Experiência em dia.",
+    pergunta_confirmacao: "Você tem certeza que não houve nenhum visitante?",
+    subtitulo_confirmacao: "Confirmação de encerramento do dia no Espaço Experiência."
+  },
+  atualizado_em: "2026-10-25T19:40:00.000Z",
+  atualizado_por: "Sistema TOTVS"
+};
+
+function getReminderConfigFile() {
+  return path.join(DATA_DIR, 'config_lembretes.json');
+}
+
+function loadReminderConfig() {
+  const cfg = readJsonFile(getReminderConfigFile(), null);
+  if (!cfg) return DEFAULT_REMINDER_CONFIG;
+  return {
+    ...DEFAULT_REMINDER_CONFIG,
+    ...cfg,
+    turno1: { ...DEFAULT_REMINDER_CONFIG.turno1, ...(cfg.turno1 || {}) },
+    turno2: { ...DEFAULT_REMINDER_CONFIG.turno2, ...(cfg.turno2 || {}) }
+  };
+}
+
 function calculateVisitorMetrics(visitors) {
   if (!Array.isArray(visitors)) visitors = [];
   const dateInfo = getBrasiliaDateInfo();
@@ -590,6 +623,79 @@ const server = http.createServer(async (req, res) => {
         success: true,
         message: `Chave do Perfil Especialista alterada para ${novoModo ? 'Modo Estrito (Login Obrigatório)' : 'Modo Aberto (Sem Login Obrigatório)'} com sucesso!`,
         auth_especialista_obrigatoria: novoModo
+      });
+    }
+
+    // 5.4 GET /api/config/reminders (Consulta configurações dos Lembretes Diários de Visitação)
+    if (pathname === '/api/config/reminders' && method === 'GET') {
+      const config = loadReminderConfig();
+      return sendJson(res, { success: true, config });
+    }
+
+    // 5.5 POST /api/config/reminders (Salvar configurações dos Lembretes - Exclusivo Dono do Produto)
+    if (pathname === '/api/config/reminders' && method === 'POST') {
+      const body = await readBodyJson(req);
+      const user = body.usuario || body.user || {};
+      const autorEmail = (body.autorEmail || user.email || '').trim().toLowerCase();
+      const autorNome = body.autorNome || user.nome || 'André Gianotti (Dono do Produto)';
+      const isDono = autorEmail === 'andre.gianotti@totvs.com.br' || body.dono_produto === true || user.dono_produto === true;
+
+      if (!isDono) {
+        return sendJson(res, {
+          success: false,
+          message: 'Ação restrita: Somente o Dono do Produto (andre.gianotti@totvs.com.br) tem autorização para alterar os Lembretes Diários.'
+        }, 403);
+      }
+
+      const cfgInput = body.config || body;
+      const current = loadReminderConfig();
+      const updated = {
+        ativo: cfgInput.ativo !== undefined ? cfgInput.ativo === true : current.ativo,
+        turno1: {
+          horario: (cfgInput.turno1?.horario || current.turno1.horario || '13:00').trim(),
+          titulo: (cfgInput.turno1?.titulo !== undefined ? cfgInput.turno1.titulo : current.turno1.titulo).trim(),
+          subtitulo: (cfgInput.turno1?.subtitulo !== undefined ? cfgInput.turno1.subtitulo : current.turno1.subtitulo).trim()
+        },
+        turno2: {
+          horario: (cfgInput.turno2?.horario || current.turno2.horario || '17:00').trim(),
+          titulo: (cfgInput.turno2?.titulo !== undefined ? cfgInput.turno2.titulo : current.turno2.titulo).trim(),
+          subtitulo: (cfgInput.turno2?.subtitulo !== undefined ? cfgInput.turno2.subtitulo : current.turno2.subtitulo).trim(),
+          pergunta_confirmacao: (cfgInput.turno2?.pergunta_confirmacao !== undefined ? cfgInput.turno2.pergunta_confirmacao : current.turno2.pergunta_confirmacao).trim(),
+          subtitulo_confirmacao: (cfgInput.turno2?.subtitulo_confirmacao !== undefined ? cfgInput.turno2.subtitulo_confirmacao : current.turno2.subtitulo_confirmacao).trim()
+        },
+        atualizado_em: new Date().toISOString(),
+        atualizado_por: autorNome
+      };
+
+      writeJsonFile(getReminderConfigFile(), updated);
+
+      // Registrar em Auditoria
+      try {
+        const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+        let logs = readJsonFile(auditFile, []);
+        if (!Array.isArray(logs)) logs = [];
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: autorNome,
+          analista_email: autorEmail || 'andre.gianotti@totvs.com.br',
+          perfil: 'adm',
+          segmento_id: 'governanca',
+          segmento_nome: 'Governança de Visitação',
+          acao: 'Atualização de Regras de Lembretes Diários',
+          data_formatada: new Date().toLocaleDateString('pt-BR'),
+          horario_formatado: new Date().toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `Horários configurados: Turno 1 (${updated.turno1.horario}) e Turno 2 (${updated.turno2.horario}). Conteúdo das mensagens atualizado pelo Dono do Produto.`
+        });
+        writeJsonFile(auditFile, logs);
+      } catch (eAudit) {
+        console.warn('Erro ao registrar auditoria de lembretes:', eAudit);
+      }
+
+      return sendJson(res, {
+        success: true,
+        message: 'Configurações de lembretes diários salvas com sucesso!',
+        config: updated
       });
     }
 
