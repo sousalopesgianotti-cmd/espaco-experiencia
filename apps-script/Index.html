@@ -4757,6 +4757,402 @@
       });
     }
 
+    // =========================================================================
+    // HELPERS E COMPONENTES PARA PITCH SUGERIDO (EDITOR RICO & TELEPROMPTER)
+    // =========================================================================
+
+    function sanitizePitchHtml(html) {
+      if (!html || typeof html !== 'string') return '';
+      let clean = html
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+        .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+        .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
+        .replace(/\son\w+="[^"]*"/gi, '')
+        .replace(/\son\w+='[^']*'/gi, '')
+        .replace(/\son\w+=\w+/gi, '')
+        .replace(/javascript:/gi, '');
+      return clean;
+    }
+
+    function formatPlainPitchToHtml(str) {
+      if (!str || typeof str !== 'string') return '';
+      if (/<(p|b|i|u|strong|em|span|div|ul|ol|li|br)[^>]*>/i.test(str)) {
+        return sanitizePitchHtml(str);
+      }
+      return str
+        .trim()
+        .split(/\n\s*\n/)
+        .map(p => `<p class="mb-3">${p.replace(/\n/g, '<br/>')}</p>`)
+        .join('');
+    }
+
+    function renderPitchFormatted(content, extraClasses = '') {
+      if (!content || !content.trim()) {
+        return (
+          <span className="italic text-slate-400">
+            Nenhum pitch cadastrado ainda. Clique em "Editar Pitch" para registrar o discurso desta estação.
+          </span>
+        );
+      }
+
+      const hasHtml = /<(p|b|i|u|strong|em|span|div|ul|ol|li|br)[^>]*>/i.test(content);
+      if (hasHtml) {
+        return (
+          <div
+            className={`prose prose-slate max-w-none space-y-2 text-slate-800 leading-relaxed font-normal ${extraClasses}`}
+            dangerouslySetInnerHTML={{ __html: sanitizePitchHtml(content) }}
+          />
+        );
+      }
+
+      return (
+        <div className={`whitespace-pre-line leading-relaxed text-slate-800 font-normal space-y-2 ${extraClasses}`}>
+          {content}
+        </div>
+      );
+    }
+
+    // Componente: Editor Visual Rico (WYSIWYG) para o Pitch Sugerido
+    function PitchWysiwygEditor({ initialHtml = '', onChange, onSave, onCancel, salvando = false, showActions = true }) {
+      const editorRef = useRef(null);
+      const [colorDropdownOpen, setColorDropdownOpen] = useState(false);
+
+      const TOTVS_PALETTE = [
+        { label: 'Azul TOTVS', color: '#002554' },
+        { label: 'Azul Royal', color: '#0066FF' },
+        { label: 'Ciano TOTVS', color: '#0284c7' },
+        { label: 'Verde Destaque', color: '#16a34a' },
+        { label: 'Laranja/Âmbar', color: '#ea580c' },
+        { label: 'Vermelho Alerta', color: '#dc2626' },
+        { label: 'Grafite Padrão', color: '#1e293b' }
+      ];
+
+      useEffect(() => {
+        if (editorRef.current) {
+          const initial = formatPlainPitchToHtml(initialHtml);
+          editorRef.current.innerHTML = initial;
+        }
+      }, [initialHtml]);
+
+      const triggerChange = () => {
+        if (editorRef.current && onChange) {
+          onChange(editorRef.current.innerHTML);
+        }
+      };
+
+      const exec = (command, value = null) => {
+        document.execCommand(command, false, value);
+        if (editorRef.current) {
+          editorRef.current.focus();
+          triggerChange();
+        }
+      };
+
+      const handleApplyColor = (color) => {
+        exec('foreColor', color);
+        setColorDropdownOpen(false);
+      };
+
+      const handleSave = () => {
+        if (!editorRef.current) return;
+        const html = editorRef.current.innerHTML.trim();
+        if (!html || html === '<br>' || html === '<p></p>') {
+          alert('O discurso do pitch não pode ficar vazio.');
+          return;
+        }
+        if (onSave) onSave(html);
+      };
+
+      return (
+        <div className="space-y-3 pt-1 animate-in fade-in duration-200">
+          {/* Barra de Ferramentas Rica */}
+          <div className="bg-slate-100 p-2 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">
+            <div className="flex flex-wrap items-center gap-1">
+              <button
+                type="button"
+                onClick={() => exec('bold')}
+                className="w-8 h-8 rounded-lg bg-white hover:bg-slate-200 text-slate-800 font-black text-sm border border-slate-200 flex items-center justify-center transition shadow-2xs cursor-pointer"
+                title="Negrito (Ctrl+B)"
+              >
+                B
+              </button>
+              <button
+                type="button"
+                onClick={() => exec('italic')}
+                className="w-8 h-8 rounded-lg bg-white hover:bg-slate-200 text-slate-800 italic font-bold text-sm border border-slate-200 flex items-center justify-center transition shadow-2xs cursor-pointer"
+                title="Itálico (Ctrl+I)"
+              >
+                I
+              </button>
+              <button
+                type="button"
+                onClick={() => exec('underline')}
+                className="w-8 h-8 rounded-lg bg-white hover:bg-slate-200 text-slate-800 underline font-bold text-sm border border-slate-200 flex items-center justify-center transition shadow-2xs cursor-pointer"
+                title="Sublinhado (Ctrl+U)"
+              >
+                U
+              </button>
+
+              <div className="h-5 w-[1px] bg-slate-300 mx-1" />
+
+              {/* Seletor de Cores TOTVS */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setColorDropdownOpen(!colorDropdownOpen)}
+                  className="px-2.5 h-8 rounded-lg bg-white hover:bg-slate-200 text-slate-800 text-xs font-bold border border-slate-200 flex items-center gap-1.5 transition shadow-2xs cursor-pointer"
+                  title="Cor do Texto"
+                >
+                  <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-totvs-blue via-totvs-cyan to-amber-500 border border-slate-300" />
+                  <span>Cor</span>
+                </button>
+
+                {colorDropdownOpen && (
+                  <div className="absolute top-10 left-0 z-30 bg-white p-2 rounded-xl shadow-xl border border-slate-200 flex flex-col gap-1 min-w-[150px] animate-in fade-in duration-150">
+                    <span className="text-[10px] font-bold text-slate-400 px-1 uppercase tracking-wider">Cores de Destaque:</span>
+                    {TOTVS_PALETTE.map((pal, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleApplyColor(pal.color)}
+                        className="flex items-center gap-2 px-2 py-1 rounded-md text-xs font-bold hover:bg-slate-100 transition text-left cursor-pointer"
+                        style={{ color: pal.color }}
+                      >
+                        <span className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0" style={{ backgroundColor: pal.color }} />
+                        <span>{pal.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="h-5 w-[1px] bg-slate-300 mx-1" />
+
+              <button
+                type="button"
+                onClick={() => exec('insertUnorderedList')}
+                className="px-2.5 h-8 rounded-lg bg-white hover:bg-slate-200 text-slate-800 text-xs font-bold border border-slate-200 flex items-center gap-1 transition shadow-2xs cursor-pointer"
+                title="Lista com marcadores"
+              >
+                <span>• Lista</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => exec('removeFormat')}
+                className="px-2 h-8 rounded-lg bg-white hover:bg-slate-200 text-slate-500 hover:text-slate-800 text-xs font-semibold border border-slate-200 flex items-center gap-1 transition shadow-2xs cursor-pointer"
+                title="Limpar Formatação da Seleção"
+              >
+                <span>🧹 Limpar</span>
+              </button>
+            </div>
+
+            <span className="text-[10.5px] text-slate-400 font-medium hidden sm:inline">
+              Selecione o texto e clique no botão para formatar
+            </span>
+          </div>
+
+          {/* Área de Edição Rica */}
+          <div
+            ref={editorRef}
+            contentEditable={true}
+            spellCheck={true}
+            onInput={triggerChange}
+            onBlur={triggerChange}
+            className="w-full min-h-[180px] max-h-[360px] overflow-y-auto text-sm p-4 rounded-xl border-2 border-totvs-cyan/40 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-cyan leading-relaxed shadow-inner"
+            style={{ minHeight: '180px' }}
+          />
+
+          {/* Rodapé do Editor com Ações */}
+          {showActions && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1">
+              <span className="text-[11px] text-slate-500">
+                💡 Dica: Quebras de linha e parágrafos serão preservados exatamente como você digitar.
+              </span>
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                {onCancel && (
+                  <button
+                    type="button"
+                    onClick={onCancel}
+                    className="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-200 transition cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                )}
+                {onSave && (
+                  <button
+                    type="button"
+                    disabled={salvando}
+                    onClick={handleSave}
+                    className="px-4 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-totvs-blue to-totvs-vibrant hover:from-totvs-vibrant hover:to-totvs-accent text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Icons.Save />
+                    <span>{salvando ? 'Salvando...' : 'Salvar Pitch'}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Componente: Modal de Leitura Ampliada do Pitch (Modo Teleprompter)
+    function PitchReaderModal({ isOpen, onClose, segment, pitch, showToast }) {
+      const [fontSize, setFontSize] = useState(18); // 14px a 26px (padrão 18px)
+
+      useEffect(() => {
+        if (!isOpen) return;
+        const originalBodyOverflow = document.body.style.overflow;
+        const originalHtmlOverflow = document.documentElement.style.overflow;
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+          window.removeEventListener('keydown', handleKeyDown);
+          document.body.style.overflow = originalBodyOverflow || '';
+          document.documentElement.style.overflow = originalHtmlOverflow || '';
+        };
+      }, [isOpen, onClose]);
+
+      if (!isOpen) return null;
+
+      const handleCopyText = () => {
+        try {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = pitch || '';
+          const plainText = tmp.textContent || tmp.innerText || pitch || '';
+          navigator.clipboard.writeText(plainText.trim()).then(() => {
+            if (showToast) showToast('Pitch copiado para a área de transferência! 📋');
+          });
+        } catch (e) {
+          if (showToast) showToast('Texto copiado.');
+        }
+      };
+
+      const IconComp = Icons[segment?.icone] || Icons.Factory;
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Topo do Modal */}
+            <div className="p-4 sm:p-6 bg-gradient-to-r from-totvs-blue via-totvs-navy to-slate-900 text-white flex items-center justify-between flex-wrap gap-3 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 text-totvs-cyan border border-white/20 flex items-center justify-center shrink-0 shadow-inner">
+                  <IconComp />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-totvs-cyan/20 text-totvs-cyan border border-totvs-cyan/30">
+                      ESTAÇÃO {String(segment?.ordem || 1).padStart(2, '0')}
+                    </span>
+                    <h3 className="text-base sm:text-lg font-black text-white">
+                      {segment?.nome}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-0.5 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Pitch Sugerido de 1 Minuto para o Visitante (Modo Teleprompter)</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Controles de Zoom da Fonte e Ações */}
+              <div className="flex items-center gap-2">
+                {/* Controlador de Zoom */}
+                <div className="flex items-center gap-1 bg-white/10 p-1 rounded-xl border border-white/15">
+                  <button
+                    type="button"
+                    onClick={() => setFontSize(prev => Math.max(14, prev - 2))}
+                    disabled={fontSize <= 14}
+                    className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-black disabled:opacity-30 transition cursor-pointer flex items-center justify-center"
+                    title="Diminuir tamanho da fonte"
+                  >
+                    A-
+                  </button>
+                  <span className="text-[11px] font-bold text-slate-200 px-1 font-mono">
+                    {fontSize}px
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFontSize(prev => Math.min(26, prev + 2))}
+                    disabled={fontSize >= 26}
+                    className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-black disabled:opacity-30 transition cursor-pointer flex items-center justify-center"
+                    title="Aumentar tamanho da fonte"
+                  >
+                    A+
+                  </button>
+                  {fontSize !== 18 && (
+                    <button
+                      type="button"
+                      onClick={() => setFontSize(18)}
+                      className="text-[10px] text-totvs-cyan hover:underline px-1 cursor-pointer"
+                      title="Restaurar tamanho padrão (18px)"
+                    >
+                      Padrão
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCopyText}
+                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  title="Copiar texto do pitch"
+                >
+                  <Icons.Copy />
+                  <span className="hidden sm:inline">Copiar</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
+                  title="Fechar (ESC)"
+                >
+                  <Icons.X />
+                </button>
+              </div>
+            </div>
+
+            {/* Canvas de Leitura Confortável */}
+            <div className="p-6 sm:p-10 overflow-y-auto flex-1 bg-[#F8FAFC]">
+              <div
+                className="bg-white p-6 sm:p-8 rounded-2xl border-l-4 border-l-totvs-blue border border-slate-200 shadow-sm transition-all"
+                style={{ fontSize: `${fontSize}px`, lineHeight: 1.7 }}
+              >
+                {renderPitchFormatted(pitch)}
+              </div>
+            </div>
+
+            {/* Rodapé com Dicas de Oratória */}
+            <div className="p-4 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs shrink-0">
+                  ⏱️
+                </span>
+                <span>
+                  Tempo estimado de fala: <strong>~1 minuto</strong> (ritmo natural de tour corporativo).
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2 rounded-xl bg-totvs-blue hover:bg-blue-700 text-white font-bold text-xs transition cursor-pointer shadow-xs"
+              >
+                Concluir Leitura
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // --- COMPONENTE: NOVA GUIA DA ESTAÇÃO (2 ABAS: DISCURSO DO SEGMENTO & EQUIPAMENTOS) ---
     function SegmentDetailModal({ segment, admLogado, onClose, onSegmentChange, showToast }) {
       const [tab, setTab] = useState('discurso'); // 'discurso' ou 'equipamentos'
@@ -4766,6 +5162,7 @@
       // Estado Edição Pitch
       const [editandoPitch, setEditandoPitch] = useState(false);
       const [pitchTexto, setPitchTexto] = useState(segment.pitch || '');
+      const [showPitchReaderModal, setShowPitchReaderModal] = useState(false);
 
       // Estado Edição Vídeo
       const [editandoVideo, setEditandoVideo] = useState(false);
@@ -4799,12 +5196,13 @@
           if (e.key === 'Escape') {
             if (lightboxFoto) setLightboxFoto(null);
             else if (modalEquipamentoAberto) setModalEquipamentoAberto(false);
+            else if (showPitchReaderModal) setShowPitchReaderModal(false);
             else onClose();
           }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-      }, [onClose, lightboxFoto, modalEquipamentoAberto]);
+      }, [onClose, lightboxFoto, modalEquipamentoAberto, showPitchReaderModal]);
 
       const equipamentos = useMemo(() => {
         if (Array.isArray(localSegment.equipamentos) && localSegment.equipamentos.length > 0) {
@@ -4882,13 +5280,15 @@
         }
       };
 
-      const handleSavePitch = async () => {
-        if (!pitchTexto.trim()) {
+      const handleSavePitch = async (newHtml) => {
+        const textToSave = typeof newHtml === 'string' ? newHtml.trim() : (pitchTexto || '').trim();
+        if (!textToSave || textToSave === '<br>' || textToSave === '<p></p>') {
           alert('O Pitch Sugerido não pode ficar vazio.');
           return;
         }
-        const updated = { ...localSegment, pitch: pitchTexto.trim() };
+        const updated = { ...localSegment, pitch: textToSave };
         await handlePersistSegment(updated, 'Pitch Sugerido atualizado com sucesso! 🎙️');
+        setPitchTexto(textToSave);
         setEditandoPitch(false);
       };
 
@@ -5135,53 +5535,53 @@
                         </span>
                       </div>
 
-                      {canEdit && !editandoPitch && (
+                      <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          onClick={() => setEditandoPitch(true)}
-                          className="flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-totvs-cyan/10 text-totvs-blue hover:text-totvs-dark text-xs font-bold rounded-lg border border-totvs-cyan/40 shadow-2xs transition cursor-pointer"
+                          onClick={() => setShowPitchReaderModal(true)}
+                          className="flex items-center gap-1.5 px-3 py-1 bg-totvs-blue hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer"
+                          title="Abrir o pitch em tela ampla com ajuste de fonte para leitura ergonômica"
                         >
-                          <Icons.Edit />
-                          <span>Editar Pitch</span>
+                          <Icons.Search />
+                          <span>Visualização Ampla (Teleprompter)</span>
                         </button>
-                      )}
+
+                        {canEdit && !editandoPitch && (
+                          <button
+                            type="button"
+                            onClick={() => setEditandoPitch(true)}
+                            className="flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-totvs-cyan/10 text-totvs-blue hover:text-totvs-dark text-xs font-bold rounded-lg border border-totvs-cyan/40 shadow-2xs transition cursor-pointer"
+                          >
+                            <Icons.Edit />
+                            <span>Editar Pitch</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {editandoPitch ? (
-                      <div className="space-y-3 pt-1">
-                        <textarea
-                          rows={5}
-                          value={pitchTexto}
-                          onChange={(e) => setPitchTexto(e.target.value)}
-                          placeholder="Digite o discurso de impacto para a estação..."
-                          className="w-full text-xs sm:text-sm p-3.5 rounded-xl border border-totvs-cyan/40 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-totvs-cyan font-medium leading-relaxed shadow-inner"
-                        />
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPitchTexto(localSegment.pitch || '');
-                              setEditandoPitch(false);
-                            }}
-                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-200 transition cursor-pointer"
-                          >
-                            Cancelar
-                          </button>
-                          <button
-                            type="button"
-                            disabled={salvando}
-                            onClick={handleSavePitch}
-                            className="px-4 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-totvs-blue to-totvs-vibrant hover:from-totvs-vibrant hover:to-totvs-accent text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <Icons.Save />
-                            <span>{salvando ? 'Salvando...' : 'Salvar Pitch'}</span>
-                          </button>
+                      <PitchWysiwygEditor
+                        initialHtml={localSegment.pitch || ''}
+                        onSave={handleSavePitch}
+                        onCancel={() => setEditandoPitch(false)}
+                        salvando={salvando}
+                      />
+                    ) : (
+                      <div
+                        onClick={() => setShowPitchReaderModal(true)}
+                        className="group relative cursor-pointer text-xs sm:text-sm font-medium text-slate-800 leading-relaxed pl-3.5 pr-3 py-3 border-l-4 border-totvs-blue bg-white/95 rounded-r-xl border border-slate-200/80 shadow-2xs hover:border-totvs-cyan/70 hover:shadow-md transition-all duration-200 max-h-56 overflow-y-auto"
+                        title="Clique para abrir a Visualização Ampla (Modo Teleprompter)"
+                      >
+                        {renderPitchFormatted(localSegment.pitch)}
+                        <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 group-hover:text-totvs-blue transition-colors">
+                          <span className="flex items-center gap-1 font-medium">
+                            <Icons.Search /> Clique nesta caixa para abrir a leitura ampliada
+                          </span>
+                          <span className="font-bold text-[10px] bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full group-hover:bg-blue-50 group-hover:text-totvs-blue transition">
+                            🔍 Modo Teleprompter
+                          </span>
                         </div>
                       </div>
-                    ) : (
-                      <blockquote className="text-xs sm:text-sm font-medium text-slate-800 italic leading-relaxed pl-3 border-l-4 border-totvs-blue bg-white/80 py-2.5 px-3 rounded-r-xl border border-slate-200/60 shadow-2xs">
-                        "{localSegment.pitch || 'Nenhum pitch cadastrado ainda.'}"
-                      </blockquote>
                     )}
                   </div>
 
@@ -5580,6 +5980,17 @@
                 </button>
               </div>
             </div>
+          )}
+
+          {/* MODAL DE LEITURA AMPLIADA DO PITCH (MODO TELEPROMPTER) */}
+          {showPitchReaderModal && (
+            <PitchReaderModal
+              isOpen={showPitchReaderModal}
+              onClose={() => setShowPitchReaderModal(false)}
+              segment={localSegment}
+              pitch={localSegment.pitch}
+              showToast={showToast}
+            />
           )}
 
         </div>
@@ -5983,17 +6394,15 @@
                 />
               </div>
 
-              {/* Pitch Sugerido de 1 Minuto */}
+              {/* Pitch Sugerido de 1 Minuto com Editor Rico */}
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
                   Discurso Sugerido (Pitch de 1 Minuto para o Visitante):
                 </label>
-                <textarea
-                  rows={4}
-                  value={form.pitch || ''}
-                  onChange={e => setForm({ ...form, pitch: e.target.value })}
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-totvs-cyan leading-relaxed"
-                  required
+                <PitchWysiwygEditor
+                  initialHtml={form.pitch || ''}
+                  onChange={(newHtml) => setForm(prev => ({ ...prev, pitch: newHtml }))}
+                  showActions={false}
                 />
               </div>
 
