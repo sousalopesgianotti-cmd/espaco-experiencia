@@ -775,21 +775,22 @@
                   </span>
                 </div>
 
-                {/* Chips / Tags Interativas */}
-                <div className="flex flex-wrap gap-1.5 min-h-[38px] p-2 bg-white rounded-xl border border-slate-200 items-center">
+                {/* Chips / Tags Interativas com Distribuição Elástica Uniforme */}
+                <div className="flex flex-wrap gap-1.5 min-h-[42px] p-2 bg-slate-50/80 rounded-xl border border-slate-200 items-stretch">
                   {solucoes.length === 0 ? (
-                    <span className="text-[11px] text-slate-400 italic px-1">Nenhuma solução cadastrada. Digite abaixo para adicionar.</span>
+                    <span className="text-[11px] text-slate-400 italic px-1 self-center">Nenhuma solução cadastrada. Digite abaixo para adicionar.</span>
                   ) : (
                     solucoes.map((item, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-totvs-blue border border-blue-200 shadow-2xs group transition-all"
+                        className="flex-1 min-w-[45%] max-w-full grow inline-flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-blue-50 text-totvs-blue border border-blue-200 shadow-2xs group transition-all"
+                        style={{ wordBreak: 'keep-all' }}
                       >
-                        <span>{item}</span>
+                        <span className="truncate flex-1 text-left">{item}</span>
                         <button
                           type="button"
                           onClick={() => handleRemoveSolucao(idx)}
-                          className="w-4 h-4 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-rose-500 transition text-[11px] font-black cursor-pointer leading-none"
+                          className="w-4 h-4 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-rose-500 transition text-[11px] font-black cursor-pointer leading-none shrink-0"
                           title={`Remover "${item}"`}
                         >
                           ×
@@ -3318,16 +3319,18 @@
 
                       {/* Conteúdo Resumido do Card com Fundo Azul Gelo Soft Corporativo */}
                       <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between space-y-2 bg-[#F0F5FA] rounded-b-2xl">
-                        {/* Badges de Soluções do Segmento */}
-                        <div className="space-y-1 pt-0.5">
+                        {/* Badges de Soluções do Segmento com Distribuição Elástica Uniforme */}
+                        <div className="space-y-1.5 pt-0.5">
                           <span className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1">
                             <span>Soluções em Destaque:</span>
                           </span>
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap gap-1.5 items-stretch w-full">
                             {seg.badge_solucoes && seg.badge_solucoes.map((badge, bIdx) => (
                               <span
                                 key={bIdx}
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shadow-2xs ${theme.badgeBg}`}
+                                className={`flex-1 min-w-[45%] max-w-full grow text-center flex items-center justify-center text-[10px] sm:text-[10.5px] font-bold px-2.5 py-1 rounded-md border shadow-2xs leading-tight transition-all duration-200 ${theme.badgeBg}`}
+                                style={{ wordBreak: 'keep-all' }}
+                                title={badge}
                               >
                                 {badge}
                               </span>
@@ -6009,11 +6012,15 @@
               {/* Soluções em Exposição */}
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Soluções TOTVS em Exposição:</label>
-                <div className="flex flex-wrap gap-2 mb-2">
+                <div className="flex flex-wrap gap-2 mb-2 items-stretch">
                   {form.badge_solucoes && form.badge_solucoes.map((b, idx) => (
-                    <span key={idx} className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md border border-slate-300 flex items-center gap-1 font-semibold">
-                      {b}
-                      <button type="button" onClick={() => handleRemoveSolucao(idx)} className="text-red-500 hover:text-red-700 font-bold ml-1">×</button>
+                    <span
+                      key={idx}
+                      className="flex-1 min-w-[45%] max-w-full grow bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-300 flex items-center justify-between gap-1.5 font-semibold text-xs shadow-2xs"
+                      style={{ wordBreak: 'keep-all' }}
+                    >
+                      <span className="truncate flex-1 text-left">{b}</span>
+                      <button type="button" onClick={() => handleRemoveSolucao(idx)} className="text-red-500 hover:text-red-700 font-bold ml-1 shrink-0">×</button>
                     </span>
                   ))}
                 </div>
