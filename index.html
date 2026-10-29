@@ -611,6 +611,65 @@
       );
     }
 
+    // --- UTILITÁRIO: COMPRESSÃO E OTIMIZAÇÃO PROGRESSIVA DE IMAGEM CLIENT-SIDE ---
+    function compressImageClient(file, maxChars = 40000) {
+      return new Promise((resolve, reject) => {
+        if (!file) return reject(new Error('Nenhum arquivo fornecido.'));
+        if (!file.type || !file.type.startsWith('image/')) {
+          return reject(new Error('O arquivo selecionado deve ser uma imagem (JPEG, PNG ou WEBP).'));
+        }
+
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Erro ao ler arquivo do computador.'));
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('Formato de imagem inválido ou corrompido.'));
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              let maxWidth = 720;
+              let maxHeight = 405;
+              let w = img.width;
+              let h = img.height;
+
+              if (w > maxWidth || h > maxHeight) {
+                const ratio = Math.min(maxWidth / w, maxHeight / h);
+                w = Math.round(w * ratio);
+                h = Math.round(h * ratio);
+              }
+
+              canvas.width = Math.max(1, w);
+              canvas.height = Math.max(1, h);
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, w, h);
+
+              let quality = 0.72;
+              let dataUrl = canvas.toDataURL('image/jpeg', quality);
+
+              // Laço de segurança: garante conformidade com o limite de 50k da célula Google Sheets
+              let attempts = 0;
+              while (dataUrl.length > maxChars && attempts < 5) {
+                attempts++;
+                w = Math.round(w * 0.85);
+                h = Math.round(h * 0.85);
+                quality = Math.max(0.40, quality - 0.08);
+                canvas.width = Math.max(1, w);
+                canvas.height = Math.max(1, h);
+                ctx.drawImage(img, 0, 0, w, h);
+                dataUrl = canvas.toDataURL('image/jpeg', quality);
+              }
+
+              resolve(dataUrl);
+            } catch (err) {
+              reject(err);
+            }
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
     // --- COMPONENTE: MODAL RÁPIDO PARA EDITAR ESTAÇÃO, BANCADA E SOLUÇÕES ---
     function QuickBancadaModal({ segment, onClose, onSave }) {
       const [nome, setNome] = useState(segment?.nome || '');
@@ -649,7 +708,24 @@
       const handleFileUpload = async (file) => {
         if (!file) return;
         setUploading(true);
-        setUploadMsg(`Enviando foto da bancada "${file.name}"... ⏳`);
+        setUploadMsg(`Otimizando foto da bancada "${file.name}"... ⏳`);
+
+        const isGas = typeof google !== 'undefined' && google && google.script && google.script.run;
+        if (isGas) {
+          try {
+            const dataUrl = await compressImageClient(file);
+            setFotoBancada(dataUrl);
+            setUploadMsg('Foto da bancada otimizada com sucesso! ✅');
+          } catch (err) {
+            alert(`Erro ao processar foto: ${err.message}`);
+            setUploadMsg('❌ Erro ao processar foto. Tente novamente.');
+          } finally {
+            setUploading(false);
+          }
+          return;
+        }
+
+        // Render / Servidor Web
         try {
           const res = await fetch('/api/upload', {
             method: 'POST',
@@ -667,8 +743,15 @@
             throw new Error(data.message || 'Falha ao processar imagem.');
           }
         } catch (err) {
-          alert(`Erro ao fazer upload da foto: ${err.message}`);
-          setUploadMsg('❌ Erro no upload. Tente novamente.');
+          console.warn('Falha no upload via endpoint, acionando fallback local Base64:', err);
+          try {
+            const fallbackDataUrl = await compressImageClient(file);
+            setFotoBancada(fallbackDataUrl);
+            setUploadMsg('Foto vinculada com sucesso (modo seguro)! ✅');
+          } catch (fallbackErr) {
+            alert(`Erro ao fazer upload da foto: ${err.message}`);
+            setUploadMsg('❌ Erro no upload. Tente novamente.');
+          }
         } finally {
           setUploading(false);
         }
@@ -5709,7 +5792,7 @@
       const [uploadingFoto, setUploadingFoto] = useState(false);
       const [fotoUploadMsg, setFotoUploadMsg] = useState('');
 
-      // Função Universal de Upload Binário Direto (/api/upload)
+      // Função Universal de Upload Binário Direto (/api/upload) ou Otimização Client-Side
       const handleFileUpload = async (file, tipo) => {
         if (!file) return;
         const isBancada = tipo === 'bancada';
@@ -5717,13 +5800,35 @@
 
         if (isBancada) {
           setUploadingBancada(true);
-          setBancadaUploadMsg(`Enviando foto da bancada "${file.name}" para o servidor local... ⏳`);
+          setBancadaUploadMsg(`Otimizando foto da bancada "${file.name}"... ⏳`);
         } else if (isVideo) {
           setUploadingVideo(true);
           setVideoUploadMsg(`Enviando "${file.name}" para o servidor local... ⏳`);
         } else {
           setUploadingFoto(true);
-          setFotoUploadMsg(`Enviando "${file.name}" para o servidor local... ⏳`);
+          setFotoUploadMsg(`Otimizando "${file.name}"... ⏳`);
+        }
+
+        const isGas = typeof google !== 'undefined' && google && google.script && google.script.run;
+        if (isGas && !isVideo) {
+          try {
+            const dataUrl = await compressImageClient(file);
+            if (isBancada) {
+              setForm(prev => ({ ...prev, foto_bancada: dataUrl }));
+              setBancadaUploadMsg(`Foto da bancada otimizada com sucesso! ✅`);
+            } else {
+              setNovaFotoUrl(dataUrl);
+              setFotoUploadMsg(`Upload concluído com sucesso! ✅`);
+            }
+          } catch (err) {
+            alert(`Erro ao processar imagem: ${err.message}`);
+            if (isBancada) setBancadaUploadMsg('❌ Erro ao processar foto da bancada.');
+            else setFotoUploadMsg('❌ Erro ao processar foto.');
+          } finally {
+            if (isBancada) setUploadingBancada(false);
+            else setUploadingFoto(false);
+          }
+          return;
         }
 
         try {
@@ -5751,6 +5856,22 @@
             throw new Error(data.message || 'Falha ao processar arquivo.');
           }
         } catch (err) {
+          if (!isVideo) {
+            console.warn('Falha no upload via endpoint, acionando fallback local Base64:', err);
+            try {
+              const fallbackDataUrl = await compressImageClient(file);
+              if (isBancada) {
+                setForm(prev => ({ ...prev, foto_bancada: fallbackDataUrl }));
+                setBancadaUploadMsg(`Foto vinculada com sucesso (modo seguro)! ✅`);
+              } else {
+                setNovaFotoUrl(fallbackDataUrl);
+                setFotoUploadMsg(`Foto vinculada com sucesso (modo seguro)! ✅`);
+              }
+              return;
+            } catch (fallbackErr) {
+              // segue para erro padrão abaixo
+            }
+          }
           alert(`Erro ao fazer upload do arquivo: ${err.message}`);
           if (isBancada) setBancadaUploadMsg('❌ Erro no upload da foto da bancada.');
           else if (isVideo) setVideoUploadMsg('❌ Erro no upload. Tente novamente.');

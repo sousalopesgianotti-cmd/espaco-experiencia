@@ -629,7 +629,11 @@ function carregarSegmentos(ss) {
       try {
         var jsonStr = row[7];
         if (jsonStr && typeof jsonStr === 'string' && jsonStr.startsWith('{')) {
-          lista.push(JSON.parse(jsonStr));
+          var segItem = JSON.parse(jsonStr);
+          if (row[5]) {
+            segItem.foto_bancada = String(row[5]);
+          }
+          lista.push(segItem);
         } else {
           lista.push({
             id: String(row[0]),
@@ -1063,7 +1067,12 @@ function salvarEstacao(seg) {
       }
     }
 
-    var jsonStr = JSON.stringify(seg);
+    // Criar versão do JSON sem duplicar Base64 extenso na Coluna 8
+    var segJson = JSON.parse(JSON.stringify(seg));
+    if (segJson.foto_bancada && String(segJson.foto_bancada).startsWith('data:image/')) {
+      segJson.foto_bancada = ""; // O valor real fica com fidelidade total e isoladamente na Coluna 6 (F)
+    }
+    var jsonStr = JSON.stringify(segJson);
 
     if (linha > 0) {
       aba.getRange(linha, 2).setValue(seg.ordem);
