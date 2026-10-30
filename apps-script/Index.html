@@ -2941,6 +2941,23 @@
         carregarVideoGestao();
       };
 
+      // Zerar todos os contadores com sucesso (exclusivo Dono do Produto)
+      const handleResetVisitorMetricsSuccess = (newMetrics) => {
+        const clean = newMetrics || {
+          hoje: 0,
+          semana: 0,
+          mes: 0,
+          ano: 0,
+          ano_atual: new Date().getFullYear(),
+          total: 0,
+          formulario_aberto_hoje: false
+        };
+        setVisitorMetrics(clean);
+        setVisitorsList([]);
+        carregarVisitorMetrics();
+        carregarVisitantes();
+      };
+
       // Filtro de busca
       const filteredSegmentos = useMemo(() => {
         if (!searchTerm.trim()) return segmentos;
@@ -3537,6 +3554,8 @@
               onClose={() => setShowVisitorHistoryModal(false)}
               showToast={showToast}
               visitorsList={visitorsList}
+              admLogado={admLogado}
+              onResetSuccess={handleResetVisitorMetricsSuccess}
             />
           )}
 
@@ -7328,11 +7347,79 @@
     }
 
     // --- COMPONENTE: HISTÓRICO DE VISITANTES COM GESTÃO À VISTA & RELATÓRIO PDF ---
-    function VisitorHistoryModal({ onClose, currentYear = new Date().getFullYear(), showToast, visitorsList = [] }) {
+    function VisitorHistoryModal({ onClose, currentYear = new Date().getFullYear(), showToast, visitorsList = [], admLogado = null, onResetSuccess = null }) {
       const [selectedYear, setSelectedYear] = useState(currentYear);
       const [selectedMonth, setSelectedMonth] = useState(null);
       const [historyData, setHistoryData] = useState(null);
       const [loading, setLoading] = useState(true);
+
+      // Estados para Zerar Contadores (Exclusivo Dono do Produto)
+      const [modalZerarAberto, setModalZerarAberto] = useState(false);
+      const [textoConfirmacao, setTextoConfirmacao] = useState('');
+      const [zerando, setZerando] = useState(false);
+
+      const isDono = Boolean(
+        admLogado && (admLogado.dono_produto === true || admLogado.email?.toLowerCase().trim() === 'andre.gianotti@totvs.com.br')
+      );
+
+      const handleExecutarZerarContadores = async () => {
+        if (textoConfirmacao.trim().toUpperCase() !== 'ZERAR') return;
+        setZerando(true);
+
+        const autorEmail = admLogado?.email || 'andre.gianotti@totvs.com.br';
+        const autorNome = admLogado?.nome || 'André Gianotti';
+
+        // 1. Google Apps Script
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              setZerando(false);
+              setModalZerarAberto(false);
+              setTextoConfirmacao('');
+              if (res && res.success) {
+                setHistoryData(prev => prev ? ({ ...prev, visitantes_ano: [], visitantes_mes: [] }) : null);
+                if (onResetSuccess) onResetSuccess(res.metricas);
+                if (showToast) showToast(res.message || 'Todos os contadores foram zerados e arquivados com sucesso! 🔄');
+              } else {
+                alert(res?.message || 'Erro ao zerar contadores na planilha.');
+              }
+            })
+            .withFailureHandler((err) => {
+              setZerando(false);
+              alert('Falha na comunicação com o Google Apps Script: ' + (err?.message || err));
+            })
+            .zerarContadoresVisitantes(autorEmail, autorNome, 'ZERAR');
+          return;
+        }
+
+        // 2. Render / Servidor Local
+        try {
+          const res = await fetch('/api/visitors/reset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              autorEmail,
+              autorNome,
+              dono_produto: admLogado?.dono_produto,
+              palavraConfirmacao: 'ZERAR'
+            })
+          });
+          const data = await res.json();
+          if (data && data.success) {
+            setHistoryData(prev => prev ? ({ ...prev, visitantes_ano: [], visitantes_mes: [] }) : null);
+            if (onResetSuccess) onResetSuccess(data.metricas);
+            if (showToast) showToast(data.message || 'Todos os contadores foram zerados e arquivados com sucesso! 🔄');
+            setModalZerarAberto(false);
+            setTextoConfirmacao('');
+          } else {
+            alert(data?.message || 'Erro ao zerar contadores.');
+          }
+        } catch (err) {
+          alert('Erro de conexão ao zerar contadores: ' + err.message);
+        } finally {
+          setZerando(false);
+        }
+      };
 
       // Estados de Filtro Temporal da Gestão à Vista
       const [periodoFiltro, setPeriodoFiltro] = useState('ano'); // 'hoje', 'semana', 'mes', 'ano', 'custom'
@@ -8398,14 +8485,31 @@
 
             {/* Footer Fixo */}
             <div 
-              className="shrink-0 bg-slate-50 px-4 sm:px-6 py-3 border-t border-slate-200 flex items-center justify-end"
+              className="shrink-0 bg-slate-50 px-4 sm:px-6 py-3 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3"
               onTouchMove={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
             >
+              <div>
+                {isDono && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTextoConfirmacao('');
+                      setModalZerarAberto(true);
+                    }}
+                    className="w-full sm:w-auto px-4 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 hover:text-rose-900 rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                    title="Zerar todos os contadores de visitação com arquivamento de segurança (Exclusivo Dono do Produto)"
+                  >
+                    <Icons.Trash />
+                    <span>Zerar Todos os Contadores</span>
+                    <span className="text-[9px] bg-rose-200 text-rose-800 font-extrabold px-1.5 py-0.5 rounded">Dono</span>
+                  </button>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs px-5 py-2.5 rounded-xl border border-slate-200 transition cursor-pointer"
+                className="bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs px-5 py-2.5 rounded-xl border border-slate-200 transition cursor-pointer text-center"
               >
                 Fechar Consulta
               </button>
@@ -8429,6 +8533,93 @@
               onExportExcel={() => handleExportarExcel(categoriaDetalheModal)}
               onExportPDF={() => handleExportarPDFCategoria(categoriaDetalheModal)}
             />
+          )}
+
+          {/* SUBMODAL DE CONFIRMAÇÃO EM 2 ETAPAS: ZERAR CONTADORES (DONO DO PRODUTO) */}
+          {modalZerarAberto && (
+            <div 
+              className="fixed inset-0 z-60 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+              onClick={() => { if (!zerando) { setModalZerarAberto(false); setTextoConfirmacao(''); } }}
+            >
+              <div 
+                className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-rose-200 animate-in zoom-in-95 duration-150 p-6 space-y-4"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xl shrink-0 border border-rose-200">
+                    ⚠️
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">
+                      Ação Deliberada • Dono do Produto
+                    </span>
+                    <h4 className="text-base font-extrabold text-slate-900 mt-1">
+                      Zerar Todos os Contadores?
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      Esta ação reiniciará os contadores <strong>Hoje</strong>, <strong>Esta Semana</strong>, <strong>Este Mês</strong>, <strong>Este Ano</strong> e <strong>Total Geral</strong> para <strong>0</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 rounded-xl p-3 border border-amber-200 text-xs text-amber-900 space-y-1.5">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-800">
+                    <span>🛡️ Arquivamento Automático de Segurança:</span>
+                  </div>
+                  <p className="text-[11px] text-amber-900 leading-snug">
+                    Os <strong>{poolVisitantes.length}</strong> registro(s) ativos de visitantes serão arquivados com segurança na base histórica de governança antes da limpeza.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Para confirmar, digite exatamente <span className="font-mono text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 font-extrabold">ZERAR</span> abaixo:
+                  </label>
+                  <input
+                    type="text"
+                    value={textoConfirmacao}
+                    onChange={e => setTextoConfirmacao(e.target.value)}
+                    placeholder="Digite ZERAR para desbloquear"
+                    disabled={zerando}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 text-sm font-mono uppercase tracking-wider text-center font-bold"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => { setModalZerarAberto(false); setTextoConfirmacao(''); }}
+                    disabled={zerando}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExecutarZerarContadores}
+                    disabled={textoConfirmacao.trim().toUpperCase() !== 'ZERAR' || zerando}
+                    className={`px-4 py-2 rounded-xl text-xs font-black text-white flex items-center gap-1.5 transition cursor-pointer shadow-sm ${
+                      textoConfirmacao.trim().toUpperCase() === 'ZERAR' && !zerando
+                        ? 'bg-rose-600 hover:bg-rose-700'
+                        : 'bg-slate-300 cursor-not-allowed opacity-60'
+                    }`}
+                  >
+                    {zerando ? (
+                      <>
+                        <span className="animate-spin text-sm">⏳</span>
+                        <span>Zerando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icons.Trash />
+                        <span>Sim, Zerar Todos os Contadores</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       );

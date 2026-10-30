@@ -1525,6 +1525,77 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    // 18.1 POST /api/visitors/reset (Zerar Todos os Contadores - Exclusivo Dono do Produto)
+    if (pathname === '/api/visitors/reset' && method === 'POST') {
+      const body = await parseBody(req);
+      const email = String(body.autorEmail || '').toLowerCase().trim();
+      const isDono = email === 'andre.gianotti@totvs.com.br' || body.dono_produto === true;
+
+      if (!isDono) {
+        return sendJson(res, { success: false, message: 'Acesso negado: apenas o Dono do Produto pode zerar todos os contadores.' }, 403);
+      }
+
+      if (String(body.palavraConfirmacao || '').trim().toUpperCase() !== 'ZERAR') {
+        return sendJson(res, { success: false, message: 'Palavra de confirmação inválida. Digite exatamente "ZERAR".' }, 400);
+      }
+
+      const visitorsFile = path.join(DATA_DIR, 'registro_visitantes.json');
+      let visitors = readJsonFile(visitorsFile, []);
+      if (!Array.isArray(visitors)) visitors = [];
+
+      const qtdArquivados = visitors.length;
+
+      // Arquivamento de segurança
+      if (qtdArquivados > 0) {
+        const archiveFile = path.join(DATA_DIR, 'registro_visitantes_arquivo.json');
+        let archive = readJsonFile(archiveFile, []);
+        if (!Array.isArray(archive)) archive = [];
+
+        const nowIso = new Date().toISOString();
+        const arquivadosComMeta = visitors.map(v => ({
+          ...v,
+          arquivado_em: nowIso,
+          arquivado_por: body.autorNome || 'André Gianotti'
+        }));
+
+        archive.push(...arquivadosComMeta);
+        writeJsonFile(archiveFile, archive);
+      }
+
+      // Limpar visitantes ativos
+      writeJsonFile(visitorsFile, []);
+
+      // Registrar auditoria
+      try {
+        const auditFile = path.join(DATA_DIR, 'logs_auditoria.json');
+        let logs = readJsonFile(auditFile, []);
+        if (!Array.isArray(logs)) logs = [];
+        const agora = new Date();
+        logs.unshift({
+          id: `aud-${Date.now()}`,
+          analista_nome: body.autorNome || 'André Gianotti',
+          analista_email: email,
+          perfil: 'adm',
+          segmento_id: 'visitantes',
+          segmento_nome: 'Painel de Visitação',
+          acao: 'Zerar todos os contadores de visitação',
+          data_formatada: agora.toLocaleDateString('pt-BR'),
+          horario_formatado: agora.toLocaleTimeString('pt-BR'),
+          timestamp: Date.now(),
+          detalhes: `Todos os contadores de visitação (Hoje, Semana, Mês, Ano e Total) foram zerados pelo Dono do Produto. ${qtdArquivados} registro(s) arquivado(s) com segurança.`
+        });
+        writeJsonFile(auditFile, logs);
+      } catch (errAud) {}
+
+      const cleanMetrics = calculateVisitorMetrics([]);
+      return sendJson(res, {
+        success: true,
+        message: `Todos os contadores foram zerados com sucesso! ${qtdArquivados} registro(s) arquivado(s).`,
+        metricas: cleanMetrics,
+        arquivados: qtdArquivados
+      });
+    }
+
     // 19. GET /api/video/gestao (Consulta Pública do Vídeo da Gestão)
     if (pathname === '/api/video/gestao' && method === 'GET') {
       const videoConfig = readJsonFile(path.join(DATA_DIR, 'video_gestao.json'), {

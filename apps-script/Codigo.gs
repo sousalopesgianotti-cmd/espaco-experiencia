@@ -896,6 +896,108 @@ function salvarVisitante(dados) {
 }
 
 /**
+ * Zera todos os contadores de visitação com arquivamento de segurança (Exclusivo Dono do Produto)
+ */
+function zerarContadoresVisitantes(autorEmail, autorNome, palavraConfirmacao) {
+  try {
+    var emailLimpo = String(autorEmail || "").toLowerCase().trim();
+    var isDono = (emailLimpo === "andre.gianotti@totvs.com.br");
+
+    var ss = getSpreadsheet();
+    if (!isDono) {
+      // Verificar se é Dono na aba Usuarios
+      try {
+        var abaUsers = ss.getSheetByName("Usuarios");
+        if (abaUsers) {
+          var uData = abaUsers.getDataRange().getValues();
+          for (var u = 1; u < uData.length; u++) {
+            if (String(uData[u][1]).toLowerCase().trim() === emailLimpo && String(uData[u][5]) === "true") {
+              isDono = true;
+              break;
+            }
+          }
+        }
+      } catch (errUser) {}
+    }
+
+    if (!isDono) {
+      return { success: false, message: "Acesso negado: apenas o Dono do Produto pode zerar todos os contadores." };
+    }
+
+    if (String(palavraConfirmacao || "").trim().toUpperCase() !== "ZERAR") {
+      return { success: false, message: "Palavra de confirmação inválida. Digite exatamente \"ZERAR\"." };
+    }
+
+    var abaVis = ss.getSheetByName("Visitantes");
+    if (!abaVis) throw new Error("Aba 'Visitantes' não encontrada na planilha.");
+
+    var dadosVis = abaVis.getDataRange().getValues();
+    var qtdArquivados = 0;
+
+    if (dadosVis.length > 1) {
+      // 1. Criar/Obter aba de arquivamento Visitantes_Arquivo
+      var abaArq = ss.getSheetByName("Visitantes_Arquivo");
+      if (!abaArq) {
+        abaArq = ss.insertSheet("Visitantes_Arquivo");
+        abaArq.appendRow(["ID", "Data", "Empresa", "Tipo", "NumeroPessoas", "Responsavel", "CriadoEm", "Timestamp", "LinkForms", "ArquivadoEm", "ArquivadoPor"]);
+        abaArq.getRange("A1:K1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      }
+
+      var agoraStr = new Date().toLocaleString("pt-BR");
+      var nomeExecutor = autorNome || "André Gianotti";
+
+      for (var i = 1; i < dadosVis.length; i++) {
+        var r = dadosVis[i];
+        if (!r[0]) continue;
+        abaArq.appendRow([
+          r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8] || "",
+          agoraStr,
+          nomeExecutor
+        ]);
+        qtdArquivados++;
+      }
+
+      // 2. Limpar registros ativos (mantendo cabeçalho linha 1)
+      if (abaVis.getLastRow() > 1) {
+        abaVis.deleteRows(2, abaVis.getLastRow() - 1);
+      }
+    }
+
+    // 3. Registrar auditoria oficial
+    try {
+      var abaAud = ss.getSheetByName("LogsAuditoria");
+      if (!abaAud) {
+        abaAud = ss.insertSheet("LogsAuditoria");
+        abaAud.appendRow(["ID", "Data", "Horario", "Analista", "Email", "Perfil", "Estacao", "Acao", "Detalhes"]);
+        abaAud.getRange("A1:I1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      }
+      var agora = new Date();
+      abaAud.appendRow([
+        "aud-" + agora.getTime(),
+        agora.toLocaleDateString("pt-BR"),
+        agora.toLocaleTimeString("pt-BR"),
+        autorNome || "André Gianotti",
+        emailLimpo,
+        "adm",
+        "Painel de Visitação",
+        "Zerar todos os contadores de visitação",
+        "Todos os contadores de visitação (Hoje, Semana, Mês, Ano e Total) foram zerados pelo Dono do Produto. " + qtdArquivados + " registro(s) arquivado(s) em Visitantes_Arquivo."
+      ]);
+    } catch(eAud) {}
+
+    var limpo = calcularMetricasVisitantes([]);
+    return {
+      success: true,
+      message: "Todos os contadores foram zerados com sucesso! " + qtdArquivados + " registro(s) arquivado(s).",
+      metricas: limpo,
+      arquivados: qtdArquivados
+    };
+  } catch (err) {
+    return { success: false, message: "Erro ao zerar contadores na planilha: " + err.message };
+  }
+}
+
+/**
  * Salva a alteração de escala no calendário de plantonistas
  */
 function salvarEscalaPlantonista(dataStr, espId) {
