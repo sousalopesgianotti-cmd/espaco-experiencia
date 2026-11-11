@@ -4991,9 +4991,11 @@
       }, [onClose, lightboxFoto, modalEquipamentoAberto, showPitchReaderModal]);
 
       const equipamentos = useMemo(() => {
-        if (Array.isArray(localSegment.equipamentos) && localSegment.equipamentos.length > 0) {
+        // Se a estação já possui a lista de equipamentos definida (inclusive vazia []), respeita a lista
+        if (Array.isArray(localSegment.equipamentos)) {
           return localSegment.equipamentos;
         }
+        // Fallback apenas para dados legados onde equipamentos ainda for undefined
         if (localSegment.credenciais) {
           return [{
             id: `eq_${localSegment.id}_1`,
@@ -5675,17 +5677,30 @@
                         )}
                       </div>
                       <div className="flex-1 space-y-1">
-                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs cursor-pointer border border-slate-300 transition">
-                          <Icons.Upload />
-                          <span>{eqProcessandoFoto ? 'Otimizando...' : (eqFoto ? 'Trocar Foto' : 'Subir Foto')}</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleUploadEqFoto}
-                            disabled={eqProcessandoFoto}
-                            className="hidden"
-                          />
-                        </label>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs cursor-pointer border border-slate-300 transition shadow-2xs">
+                            <Icons.Upload />
+                            <span>{eqProcessandoFoto ? 'Otimizando...' : (eqFoto ? 'Trocar Foto' : 'Subir Foto')}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleUploadEqFoto}
+                              disabled={eqProcessandoFoto}
+                              className="hidden"
+                            />
+                          </label>
+                          {eqFoto && (
+                            <button
+                              type="button"
+                              onClick={() => setEqFoto('')}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-bold text-xs border border-rose-200 transition cursor-pointer shadow-2xs"
+                              title="Remover foto deste equipamento"
+                            >
+                              <Icons.Trash />
+                              <span>Remover Foto</span>
+                            </button>
+                          )}
+                        </div>
                         <p className="text-[10px] text-slate-500">
                           Redimensionamento e compressão automática via Canvas para máxima performance.
                         </p>

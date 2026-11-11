@@ -632,6 +632,8 @@ function carregarSegmentos(ss) {
           var segItem = JSON.parse(jsonStr);
           if (row[5]) {
             segItem.foto_bancada = String(row[5]);
+          } else {
+            segItem.foto_bancada = "";
           }
           lista.push(segItem);
         } else {
