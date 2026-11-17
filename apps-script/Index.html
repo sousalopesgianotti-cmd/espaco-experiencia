@@ -3377,10 +3377,10 @@
                   return (
                     <div
                       key={seg.id}
-                      className={`bg-white rounded-2xl border border-slate-200/90 shadow-2xs transition-all duration-300 flex flex-col relative group hover:-translate-y-1 hover:shadow-md hover:z-40 ${theme.glowBorder}`}
+                      className={`bg-white rounded-2xl border border-slate-200/90 shadow-2xs transition-all duration-300 flex flex-col justify-between h-full relative group hover:-translate-y-1 hover:shadow-md hover:z-40 ${theme.glowBorder}`}
                     >
                       {/* Topo do Card com Gradiente e Ícone Compacto */}
-                      <div className={`p-2.5 sm:p-3 relative overflow-hidden rounded-t-2xl bg-gradient-to-br ${theme.gradientHeader} text-white border-b border-white/10`}>
+                      <div className={`p-2.5 sm:p-3 relative overflow-hidden rounded-t-2xl bg-gradient-to-br ${theme.gradientHeader} text-white border-b border-white/10 shrink-0`}>
                         {/* Grafismo Geométrico Tech */}
                         <CardTechGraphic accentColor={theme.accentColor} />
 
@@ -3417,14 +3417,14 @@
                       {/* Capa com Foto da Bancada Física */}
                       <StationPhotoCover seg={seg} onOpenPhoto={setLightboxSegment} />
 
-                      {/* Conteúdo Resumido do Card com Fundo Azul Gelo Soft Corporativo */}
-                      <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between space-y-2 bg-[#F0F5FA] rounded-b-2xl">
-                        {/* Badges de Soluções do Segmento com Distribuição Elástica Uniforme */}
-                        <div className="space-y-1.5 pt-0.5">
-                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                      {/* Conteúdo Resumido do Card com Fundo Azul Gelo Soft Corporativo e Altura Padronizada */}
+                      <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between bg-[#F0F5FA] rounded-b-2xl">
+                        {/* Badges de Soluções do Segmento com Distribuição Elástica Uniforme e Altura Padronizada */}
+                        <div className="space-y-1.5 pt-0.5 flex-1 flex flex-col min-h-[195px] sm:min-h-[205px]">
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1 shrink-0">
                             <span>Soluções em Destaque:</span>
                           </span>
-                          <div className="flex flex-wrap gap-1.5 items-stretch w-full">
+                          <div className="flex flex-wrap gap-1.5 items-stretch w-full content-start">
                             {seg.badge_solucoes && seg.badge_solucoes.map((badge, bIdx) => (
                               <span
                                 key={bIdx}
@@ -3438,8 +3438,8 @@
                           </div>
                         </div>
 
-                        {/* Rodapé do Card com Ação */}
-                        <div className="pt-1.5 border-t border-slate-200/60">
+                        {/* Rodapé do Card com Ação e Autoria Ancoradas na Base */}
+                        <div className="pt-2 border-t border-slate-200/60 mt-auto shrink-0 space-y-1.5">
                           <button
                             onClick={() => setActiveSegment(seg)}
                             className="w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-totvs-blue via-totvs-vibrant to-totvs-cyan hover:from-totvs-vibrant hover:to-totvs-accent text-white text-xs font-bold py-1.5 sm:py-2 px-3 rounded-xl transition-all duration-300 shadow-xs hover:shadow-md transform active:scale-95 cursor-pointer"
@@ -3447,12 +3447,12 @@
                             <span>Abrir Guia</span>
                             <Icons.ChevronRight />
                           </button>
-                        </div>
 
-                        {/* Última atualização */}
-                        <div className="text-[9px] text-slate-400 flex items-center justify-between pt-0.5 font-mono">
-                          <span className="truncate max-w-[120px]">Por: {seg.ultima_atualizacao?.autor || 'Especialista'}</span>
-                          <span>{seg.ultima_atualizacao?.data?.split(' ')[0]}</span>
+                          {/* Última atualização */}
+                          <div className="text-[9px] text-slate-400 flex items-center justify-between pt-0.5 font-mono">
+                            <span className="truncate max-w-[120px]">Por: {seg.ultima_atualizacao?.autor || 'Especialista'}</span>
+                            <span>{seg.ultima_atualizacao?.data?.split(' ')[0]}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
