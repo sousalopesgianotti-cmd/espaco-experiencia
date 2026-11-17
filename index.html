@@ -7068,10 +7068,22 @@
         const autorEmail = admLogado?.email || 'andre.gianotti@totvs.com.br';
         const autorNome = admLogado?.nome || 'André Gianotti';
 
+        // Timer de salvaguarda (25s) para garantir que a UI nunca fique congelada
+        const safetyTimeout = setTimeout(() => {
+          setZerando(prev => {
+            if (prev) {
+              alert('A operação está demorando mais que o esperado na nuvem TOTVS. Por favor, verifique se o arquivo Codigo.gs foi atualizado no Google Apps Script ou tente novamente.');
+              return false;
+            }
+            return false;
+          });
+        }, 25000);
+
         // 1. Google Apps Script
         if (typeof google !== 'undefined' && google && google.script && google.script.run) {
           google.script.run
             .withSuccessHandler((res) => {
+              clearTimeout(safetyTimeout);
               setZerando(false);
               setModalZerarAberto(false);
               setTextoConfirmacao('');
@@ -7084,6 +7096,7 @@
               }
             })
             .withFailureHandler((err) => {
+              clearTimeout(safetyTimeout);
               setZerando(false);
               alert('Falha na comunicação com o Google Apps Script: ' + (err?.message || err));
             })
@@ -7104,6 +7117,7 @@
             })
           });
           const data = await res.json();
+          clearTimeout(safetyTimeout);
           if (data && data.success) {
             setHistoryData(prev => prev ? ({ ...prev, visitantes_ano: [], visitantes_mes: [] }) : null);
             if (onResetSuccess) onResetSuccess(data.metricas);
@@ -7114,6 +7128,7 @@
             alert(data?.message || 'Erro ao zerar contadores.');
           }
         } catch (err) {
+          clearTimeout(safetyTimeout);
           alert('Erro de conexão ao zerar contadores: ' + err.message);
         } finally {
           setZerando(false);
@@ -8237,11 +8252,13 @@
           {/* SUBMODAL DE CONFIRMAÇÃO EM 2 ETAPAS: ZERAR CONTADORES (DONO DO PRODUTO) */}
           {modalZerarAberto && (
             <div 
-              className="fixed inset-0 z-60 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+              className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+              style={{ zIndex: 99999 }}
               onClick={() => { if (!zerando) { setModalZerarAberto(false); setTextoConfirmacao(''); } }}
             >
               <div 
-                className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-rose-200 animate-in zoom-in-95 duration-150 p-6 space-y-4"
+                className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-rose-200 animate-in zoom-in-95 duration-150 p-6 space-y-4 relative"
+                style={{ zIndex: 100000 }}
                 onClick={e => e.stopPropagation()}
               >
                 <div className="flex items-start gap-3">

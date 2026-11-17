@@ -947,11 +947,12 @@ function zerarContadoresVisitantes(autorEmail, autorNome, palavraConfirmacao) {
 
       var agoraStr = new Date().toLocaleString("pt-BR");
       var nomeExecutor = autorNome || "André Gianotti";
+      var linhasParaArquivar = [];
 
       for (var i = 1; i < dadosVis.length; i++) {
         var r = dadosVis[i];
         if (!r[0]) continue;
-        abaArq.appendRow([
+        linhasParaArquivar.push([
           r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8] || "",
           agoraStr,
           nomeExecutor
@@ -959,9 +960,17 @@ function zerarContadoresVisitantes(autorEmail, autorNome, palavraConfirmacao) {
         qtdArquivados++;
       }
 
-      // 2. Limpar registros ativos (mantendo cabeçalho linha 1)
-      if (abaVis.getLastRow() > 1) {
-        abaVis.deleteRows(2, abaVis.getLastRow() - 1);
+      // 1. Gravação em Lote Único (Instantânea)
+      if (linhasParaArquivar.length > 0) {
+        var ultimaLinhaArq = abaArq.getLastRow();
+        abaArq.getRange(ultimaLinhaArq + 1, 1, linhasParaArquivar.length, 11).setValues(linhasParaArquivar);
+      }
+
+      // 2. Limpeza Instantânea de Conteúdo sem deletar linhas estruturais
+      var totalLinhasVis = abaVis.getLastRow();
+      var totalColsVis = abaVis.getLastColumn();
+      if (totalLinhasVis > 1) {
+        abaVis.getRange(2, 1, totalLinhasVis - 1, totalColsVis).clearContent();
       }
     }
 
