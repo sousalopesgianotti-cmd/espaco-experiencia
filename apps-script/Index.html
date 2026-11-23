@@ -9057,11 +9057,44 @@
       // Excluir Vídeo Atual (Apaga arquivo do disco e reseta URL)
       const handleExcluirVideo = async () => {
         const nomeAlvo = videoGestao?.nome_arquivo || (videoGestao?.tipo === 'link' ? 'link externo' : 'vídeo atual');
-        if (!confirm(`Deseja realmente excluir o vídeo (${nomeAlvo})? Esta ação removerá o arquivo do servidor e limpará a exibição.`)) {
+        if (!confirm(`Deseja realmente excluir o vídeo (${nomeAlvo})? Esta ação removerá a exibição do vídeo.`)) {
           return;
         }
 
         setExcluindoVideo(true);
+
+        // 1. Google Apps Script (Nuvem TOTVS)
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              setExcluindoVideo(false);
+              if (res && res.success) {
+                if (onVideoGestaoChange) onVideoGestaoChange();
+                if (showToast) showToast('Vídeo institucional removido com sucesso! 🗑️');
+                setUrlLink('');
+                setArquivoSelecionado(null);
+                setUploadMsg('');
+                setPreviewError(false);
+              } else {
+                alert(res?.error || res?.message || 'Erro ao remover vídeo na planilha.');
+              }
+            })
+            .withFailureHandler((err) => {
+              setExcluindoVideo(false);
+              alert('Falha na comunicação com o Google Apps Script: ' + (err?.message || err));
+            })
+            .salvarVideoGestao({
+              ativo: false,
+              tipo: 'link',
+              url: '',
+              titulo: 'Video discurso',
+              mensagem: 'Veja seu discurso aqui !!!',
+              subtitulo: 'Mensagem institucional da liderança aos visitantes do Espaço Experiência'
+            });
+          return;
+        }
+
+        // 2. Render / Servidor Local
         try {
           const res = await fetch('/api/admin/video', {
             method: 'DELETE',
@@ -9174,6 +9207,27 @@
             payload.url = urlLink.trim();
           }
 
+          // 1. Google Apps Script (Nuvem TOTVS)
+          if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+            google.script.run
+              .withSuccessHandler((res) => {
+                setSalvandoConfig(false);
+                if (res && res.success) {
+                  if (onVideoGestaoChange) onVideoGestaoChange();
+                  if (showToast) showToast('Configurações institucionais salvas com sucesso na planilha TOTVS! ✅');
+                } else {
+                  alert(res?.error || res?.message || 'Erro ao salvar configurações do vídeo na planilha.');
+                }
+              })
+              .withFailureHandler((err) => {
+                setSalvandoConfig(false);
+                alert('Falha na comunicação com o Google Apps Script: ' + (err?.message || err));
+              })
+              .salvarVideoGestao(payload);
+            return;
+          }
+
+          // 2. Render / Servidor Local
           const res = await fetch('/api/admin/video/config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -9187,9 +9241,11 @@
             alert(data.error || 'Erro ao salvar configurações do vídeo.');
           }
         } catch (err) {
-          alert('Erro de conexão ao salvar configurações.');
+          alert('Erro de conexão ao salvar configurações: ' + err.message);
         } finally {
-          setSalvandoConfig(false);
+          if (typeof google === 'undefined' || !google || !google.script || !google.script.run) {
+            setSalvandoConfig(false);
+          }
         }
       };
 

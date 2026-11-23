@@ -1237,7 +1237,12 @@ function salvarVideoGestao(dadosVideo) {
   try {
     var ss = getSpreadsheet();
     var aba = ss.getSheetByName("VideoGestao");
-    if (!aba) throw new Error("Aba 'VideoGestao' não encontrada.");
+    if (!aba) {
+      aba = ss.insertSheet("VideoGestao");
+      aba.appendRow(["Ativo", "Tipo", "Url", "Titulo", "Mensagem", "Subtitulo", "AtualizadoEm", "AtualizadoPor"]);
+      aba.getRange("A1:H1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      aba.appendRow([true, "link", "", "Video discurso", "Veja seu discurso aqui !!!", "", "", ""]);
+    }
 
     var usuario = obterUsuarioAtivo();
     var dataAgora = new Date().toLocaleString("pt-BR");
