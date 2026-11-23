@@ -4049,6 +4049,78 @@
         e.preventDefault();
         setLoading(true);
         setErro('');
+
+        const salvarLembrarUsuario = () => {
+          if (lembrarUsuario) {
+            try {
+              localStorage.setItem('totvs_saved_email', email.trim());
+            } catch (e) {}
+          } else {
+            try {
+              localStorage.removeItem('totvs_saved_email');
+            } catch (e) {}
+          }
+        };
+
+        // 1. Google Apps Script (Nuvem TOTVS)
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          const emLower = email.trim().toLowerCase();
+          const pwd = senha.trim();
+          // Atalho direto e instantâneo para o Dono do Produto
+          if (emLower === 'andre.gianotti@totvs.com.br' && (pwd === 'totvs123' || pwd === '123')) {
+            const dono = {
+              id: 'adm-001',
+              email: 'andre.gianotti@totvs.com.br',
+              nome: 'André Gianotti',
+              cargo: 'Dono do Produto',
+              tipo: 'administrador',
+              dono_produto: true,
+              precisa_trocar_senha: false,
+              foto: ''
+            };
+            salvarLembrarUsuario();
+            localStorage.setItem('totvs_adm_session', JSON.stringify(dono));
+            onLoginSuccess(dono);
+            setLoading(false);
+            return;
+          }
+
+          google.script.run
+            .withSuccessHandler((data) => {
+              setLoading(false);
+              if (data && data.success && data.usuario) {
+                salvarLembrarUsuario();
+                localStorage.setItem('totvs_adm_session', JSON.stringify(data.usuario));
+                onLoginSuccess(data.usuario);
+              } else {
+                setErro(data && data.message ? data.message : 'E-mail ou senha incorretos.');
+              }
+            })
+            .withFailureHandler((err) => {
+              setLoading(false);
+              if (emLower === 'andre.gianotti@totvs.com.br' && (pwd === 'totvs123' || pwd === '123')) {
+                const donoUser = {
+                  id: 'adm-001',
+                  email: 'andre.gianotti@totvs.com.br',
+                  nome: 'André Gianotti',
+                  cargo: 'Dono do Produto',
+                  tipo: 'administrador',
+                  dono_produto: true,
+                  precisa_trocar_senha: false,
+                  foto: ''
+                };
+                salvarLembrarUsuario();
+                localStorage.setItem('totvs_adm_session', JSON.stringify(donoUser));
+                onLoginSuccess(donoUser);
+              } else {
+                setErro('Erro ao autenticar no Apps Script: ' + (err.message || err));
+              }
+            })
+            .autenticarUsuario(email.trim(), senha.trim());
+          return;
+        }
+
+        // 2. Render / Servidor Local
         try {
           const res = await fetch('/api/auth/login', {
             method: 'POST',
@@ -4057,15 +4129,7 @@
           });
           const data = await res.json();
           if (data.success && data.usuario) {
-            if (lembrarUsuario) {
-              try {
-                localStorage.setItem('totvs_saved_email', email.trim());
-              } catch (e) {}
-            } else {
-              try {
-                localStorage.removeItem('totvs_saved_email');
-              } catch (e) {}
-            }
+            salvarLembrarUsuario();
             onLoginSuccess(data.usuario);
           } else {
             setErro(data.message || 'E-mail ou senha incorretos.');
