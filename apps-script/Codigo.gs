@@ -611,6 +611,180 @@ function obterDadosIniciais() {
   }
 }
 
+/**
+ * Localiza ou cria a pasta corporativa de mídias no Google Drive
+ */
+function obterOuCriarPastaMidias() {
+  try {
+    if (typeof DriveApp === 'undefined' || !DriveApp) return null;
+    var nomePasta = "TOTVS Espaço Experiência - Mídias";
+    var pastas = DriveApp.getFoldersByName(nomePasta);
+    if (pastas.hasNext()) {
+      return pastas.next();
+    }
+    var novaPasta = DriveApp.createFolder(nomePasta);
+    try {
+      novaPasta.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (eShare) {}
+    return novaPasta;
+  } catch (err) {
+    Logger.log("Aviso DriveApp (obterOuCriarPastaMidias): " + err.message);
+    return null;
+  }
+}
+
+/**
+ * Salva uma foto/arquivo Base64 diretamente no Google Drive e retorna URL direta permanente
+ */
+function salvarArquivoDrive(base64Data, nomeArquivo, mimeType) {
+  try {
+    if (!base64Data) throw new Error("Nenhum dado Base64 fornecido.");
+    var pasta = obterOuCriarPastaMidias();
+    if (!pasta) {
+      return { success: false, fallback: true, error: "DriveApp indisponível ou permissão não concedida." };
+    }
+
+    var cleanBase64 = String(base64Data);
+    var tipoMime = mimeType || "image/jpeg";
+
+    if (cleanBase64.indexOf(",") > -1) {
+      var partes = cleanBase64.split(",");
+      var cabecalho = partes[0];
+      cleanBase64 = partes[1];
+      var matchMime = cabecalho.match(/:(.*?);/);
+      if (matchMime && matchMime[1]) tipoMime = matchMime[1];
+    }
+
+    var bytes = Utilities.base64Decode(cleanBase64);
+    var extensao = ".jpg";
+    if (tipoMime.indexOf("png") > -1) extensao = ".png";
+    else if (tipoMime.indexOf("webp") > -1) extensao = ".webp";
+
+    var timestamp = new Date().getTime();
+    var nomeSeguro = (nomeArquivo || "equipamento").replace(/[^a-zA-Z0-9_\-]/g, "_").toLowerCase().slice(0, 30);
+    var nomeFinal = "equip_" + timestamp + "_" + nomeSeguro + extensao;
+
+    var blob = Utilities.newBlob(bytes, tipoMime, nomeFinal);
+    var arquivo = pasta.createFile(blob);
+    try {
+      arquivo.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (eShare) {}
+
+    var fileId = arquivo.getId();
+    var urlDireta = "https://lh3.googleusercontent.com/d/" + fileId;
+
+    return {
+      success: true,
+      url: urlDireta,
+      fileId: fileId,
+      nome: nomeFinal,
+      tamanhoBytes: bytes.length
+    };
+  } catch (err) {
+    Logger.log("Erro em salvarArquivoDrive: " + err.message);
+    return { success: false, fallback: true, error: err.message };
+  }
+}
+
+/**
+ * Obtém ou cria a aba dedicada 'Equipamentos' na planilha do Google
+ */
+function obterOuCriarAbaEquipamentos(ss) {
+  if (!ss) ss = getSpreadsheet();
+  var aba = ss.getSheetByName("Equipamentos");
+  if (!aba) {
+    aba = ss.insertSheet("Equipamentos");
+    aba.appendRow(["ID", "EstacaoID", "Ordem", "Titulo", "Descricao", "FotoUrlOuBase64", "AtualizadoEm", "AtualizadoPor"]);
+    aba.getRange("A1:H1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+  }
+  return aba;
+}
+
+/**
+ * Carrega todos os equipamentos agrupados por ID da estação
+ */
+function carregarTodosEquipamentosPorEstacao(ss) {
+  var mapa = {};
+  try {
+    if (!ss) ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Equipamentos");
+    if (!aba || aba.getLastRow() <= 1) return mapa;
+
+    var dados = aba.getDataRange().getValues();
+    for (var i = 1; i < dados.length; i++) {
+      var row = dados[i];
+      var eqId = String(row[0] || "");
+      var estacaoId = String(row[1] || "");
+      if (!eqId || !estacaoId) continue;
+
+      if (!mapa[estacaoId]) mapa[estacaoId] = [];
+      mapa[estacaoId].push({
+        id: eqId,
+        ordem: Number(row[2]) || (mapa[estacaoId].length + 1),
+        titulo: String(row[3] || ""),
+        descricao: String(row[4] || ""),
+        foto: String(row[5] || ""),
+        atualizado_em: String(row[6] || ""),
+        atualizado_por: String(row[7] || "")
+      });
+    }
+
+    for (var k in mapa) {
+      mapa[k].sort(function(a, b) { return (a.ordem || 0) - (b.ordem || 0); });
+    }
+  } catch (err) {
+    Logger.log("Aviso ao carregar aba Equipamentos: " + err.message);
+  }
+  return mapa;
+}
+
+/**
+ * Salva a lista de equipamentos de uma estação na aba dedicada 'Equipamentos'
+ */
+function salvarEquipamentosEstacao(ss, estacaoId, equipamentos, autor) {
+  try {
+    if (!ss) ss = getSpreadsheet();
+    var aba = obterOuCriarAbaEquipamentos(ss);
+    var dados = aba.getDataRange().getValues();
+    var linhasManter = [dados[0]]; // Mantém cabeçalho
+
+    for (var i = 1; i < dados.length; i++) {
+      if (String(dados[i][1]) !== estacaoId) {
+        linhasManter.push(dados[i]);
+      }
+    }
+
+    var agora = new Date().toLocaleString("pt-BR");
+    var autorNome = autor || "Administrador TOTVS";
+
+    if (Array.isArray(equipamentos) && equipamentos.length > 0) {
+      for (var j = 0; j < equipamentos.length; j++) {
+        var eq = equipamentos[j];
+        if (!eq) continue;
+        var eqId = eq.id || ("eq_" + estacaoId + "_" + (j + 1));
+        linhasManter.push([
+          eqId,
+          estacaoId,
+          j + 1,
+          eq.titulo || "",
+          eq.descricao || "",
+          eq.foto || "",
+          agora,
+          autorNome
+        ]);
+      }
+    }
+
+    aba.clearContents();
+    aba.getRange(1, 1, linhasManter.length, 8).setValues(linhasManter);
+    aba.getRange("A1:H1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+    return true;
+  } catch (err) {
+    Logger.log("Erro ao salvarEquipamentosEstacao: " + err.message);
+    return false;
+  }
+}
+
 function carregarSegmentos(ss) {
   try {
     var aba = ss.getSheetByName("Segmentos");
@@ -622,23 +796,26 @@ function carregarSegmentos(ss) {
     var dados = aba.getDataRange().getValues();
     if (dados.length <= 1) return getSegmentosPadrao();
 
+    var mapaEquipamentos = carregarTodosEquipamentosPorEstacao(ss);
+
     var lista = [];
     for (var i = 1; i < dados.length; i++) {
       var row = dados[i];
       if (!row[0]) continue;
       try {
+        var segId = String(row[0]);
         var jsonStr = row[7];
+        var segItem = null;
         if (jsonStr && typeof jsonStr === 'string' && jsonStr.startsWith('{')) {
-          var segItem = JSON.parse(jsonStr);
+          segItem = JSON.parse(jsonStr);
           if (row[5]) {
             segItem.foto_bancada = String(row[5]);
           } else {
             segItem.foto_bancada = "";
           }
-          lista.push(segItem);
         } else {
-          lista.push({
-            id: String(row[0]),
+          segItem = {
+            id: segId,
             ordem: Number(row[1]) || i,
             nome: String(row[2]),
             tagline: String(row[3] || ""),
@@ -647,10 +824,19 @@ function carregarSegmentos(ss) {
             icone: String(row[6] || "Factory"),
             credenciais: { ip: "", usuario: "", senha: "", porta: "" },
             badge_solucoes: []
-          });
+          };
         }
+
+        // Se houver equipamentos cadastrados na aba 'Equipamentos', eles prevalecem com fidelidade total
+        if (mapaEquipamentos[segId] && mapaEquipamentos[segId].length > 0) {
+          segItem.equipamentos = mapaEquipamentos[segId];
+        } else if (!segItem.equipamentos || !Array.isArray(segItem.equipamentos)) {
+          segItem.equipamentos = [];
+        }
+
+        lista.push(segItem);
       } catch (e) {
-        lista.push({ id: String(row[0]), ordem: Number(row[1]) || i, nome: String(row[2]) });
+        lista.push({ id: String(row[0]), ordem: Number(row[1]) || i, nome: String(row[2]), equipamentos: [] });
       }
     }
     return (lista.length > 0) ? lista.sort(function(a, b) { return (a.ordem || 0) - (b.ordem || 0); }) : getSegmentosPadrao();
@@ -1162,7 +1348,7 @@ function recarregarAbaPlantonistasDaBase() {
 }
 
 /**
- * Salva alterações de uma estação (pitch, foto, credenciais)
+ * Salva alterações de uma estação (pitch, foto, credenciais, equipamentos)
  */
 function salvarEstacao(seg) {
   try {
@@ -1180,11 +1366,46 @@ function salvarEstacao(seg) {
       }
     }
 
-    // Criar versão do JSON sem duplicar Base64 extenso na Coluna 8
+    var autorNome = (seg.autor && seg.autor.nome) || seg.autor_nome || "Administrador TOTVS";
+    var autorEmail = (seg.autor && seg.autor.email) || seg.autor_email || "";
+    var autorPerfil = String((seg.autor && seg.autor.perfil) || seg.autor_perfil || "").toLowerCase() === "pmm" ? "pmm" : "adm";
+
+    // 1. Processar fotos em Base64 dos equipamentos (salva no Google Drive se possível)
+    if (Array.isArray(seg.equipamentos)) {
+      for (var k = 0; k < seg.equipamentos.length; k++) {
+        var eqItem = seg.equipamentos[k];
+        if (eqItem && eqItem.foto && String(eqItem.foto).startsWith("data:image/")) {
+          var uploadRes = salvarArquivoDrive(eqItem.foto, eqItem.titulo || "equipamento");
+          if (uploadRes && uploadRes.success && uploadRes.url) {
+            eqItem.foto = uploadRes.url;
+          }
+        }
+      }
+    }
+
+    // 2. Persistir equipamentos na aba dedicada 'Equipamentos' (1 linha por equipamento, com foto isolada)
+    salvarEquipamentosEstacao(ss, seg.id, seg.equipamentos || [], autorNome);
+
+    // 3. Criar versão do JSON sem duplicar Base64 extenso na Coluna 8
     var segJson = JSON.parse(JSON.stringify(seg));
     if (segJson.foto_bancada && String(segJson.foto_bancada).startsWith('data:image/')) {
       segJson.foto_bancada = ""; // O valor real fica com fidelidade total e isoladamente na Coluna 6 (F)
     }
+
+    // Higienizar fotos de equipamentos no JSON resumido se ainda forem Base64 (para nunca estourar o limite de 50k da célula)
+    if (Array.isArray(segJson.equipamentos)) {
+      segJson.equipamentos = segJson.equipamentos.map(function(eq) {
+        var copyEq = { id: eq.id, titulo: eq.titulo, descricao: eq.descricao };
+        if (eq.foto && !String(eq.foto).startsWith("data:image/")) {
+          copyEq.foto = eq.foto;
+        } else {
+          // O Base64 real foi salvo com segurança na aba Equipamentos
+          copyEq.foto = "";
+        }
+        return copyEq;
+      });
+    }
+
     var jsonStr = JSON.stringify(segJson);
 
     if (linha > 0) {
@@ -1208,9 +1429,6 @@ function salvarEstacao(seg) {
         abaAud.getRange("A1:I1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
       }
       var agora = new Date();
-      var autorNome = (seg.autor && seg.autor.nome) || seg.autor_nome || "Especialista TOTVS";
-      var autorEmail = (seg.autor && seg.autor.email) || seg.autor_email || "";
-      var autorPerfil = String((seg.autor && seg.autor.perfil) || seg.autor_perfil || "").toLowerCase() === "pmm" ? "pmm" : "adm";
       abaAud.appendRow([
         "aud-" + agora.getTime(),
         agora.toLocaleDateString("pt-BR"),
@@ -1220,12 +1438,13 @@ function salvarEstacao(seg) {
         autorPerfil,
         seg.nome,
         autorPerfil === "pmm" ? "Edição de estação por PMM" : "Edição do card com validação manual",
-        "Atualização de conteúdo da estação " + seg.nome
+        "Atualização de conteúdo e equipamentos da estação " + seg.nome
       ]);
     } catch(eAud) {}
 
     return { success: true, segmentos: carregarSegmentos(ss) };
   } catch (err) {
+    Logger.log("Erro em salvarEstacao: " + err.message);
     return { success: false, error: err.message };
   }
 }
@@ -1349,6 +1568,9 @@ function inicializarPlanilha(ss) {
     abaLogs.getRange("A1:F1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
     abaLogs.appendRow(["log-init", new Date().toLocaleDateString("pt-BR"), new Date().toLocaleTimeString("pt-BR"), "Sistema TOTVS", "Inicialização", "Base de dados corporativa inicializada com sucesso"]);
   }
+
+  // 6. Aba Equipamentos (Garante aba dedicada com cabeçalhos padronizados)
+  obterOuCriarAbaEquipamentos(ss);
 
   // Remover 'Página1' se existir
   try {
