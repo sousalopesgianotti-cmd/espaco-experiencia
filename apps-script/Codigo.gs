@@ -829,6 +829,14 @@ function carregarSegmentos(ss) {
           };
         }
 
+        // Se houver valor explícito nas colunas dedicadas 9 (I) e 10 (J), prioriza
+        if (row.length > 8 && row[8]) {
+          segItem.personas = String(row[8]);
+        }
+        if (row.length > 9 && row[9]) {
+          segItem.principais_clientes = String(row[9]);
+        }
+
         if (typeof segItem.personas === 'undefined') segItem.personas = "";
         if (typeof segItem.principais_clientes === 'undefined') segItem.principais_clientes = "";
 
@@ -1413,6 +1421,16 @@ function salvarEstacao(seg) {
 
     var jsonStr = JSON.stringify(segJson);
 
+    // Garantir colunas de cabeçalho na aba Segmentos se necessário (I=Personas, J=PrincipaisClientes)
+    try {
+      if (aba.getLastColumn() < 10) {
+        if (aba.getLastColumn() < 9) {
+          aba.getRange(1, 9).setValue("Personas").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+        }
+        aba.getRange(1, 10).setValue("PrincipaisClientes").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      }
+    } catch(eH) {}
+
     if (linha > 0) {
       aba.getRange(linha, 2).setValue(seg.ordem);
       aba.getRange(linha, 3).setValue(seg.nome);
@@ -1421,9 +1439,25 @@ function salvarEstacao(seg) {
       aba.getRange(linha, 6).setValue(seg.foto_bancada || "");
       aba.getRange(linha, 7).setValue(seg.icone || "Factory");
       aba.getRange(linha, 8).setValue(jsonStr);
+      aba.getRange(linha, 9).setValue(seg.personas || "");
+      aba.getRange(linha, 10).setValue(seg.principais_clientes || "");
     } else {
-      aba.appendRow([seg.id, seg.ordem, seg.nome, seg.tagline || "", seg.pitch || "", seg.foto_bancada || "", seg.icone || "Factory", jsonStr]);
+      aba.appendRow([
+        seg.id,
+        seg.ordem,
+        seg.nome,
+        seg.tagline || "",
+        seg.pitch || "",
+        seg.foto_bancada || "",
+        seg.icone || "Factory",
+        jsonStr,
+        seg.personas || "",
+        seg.principais_clientes || ""
+      ]);
     }
+
+    // Forçar gravação imediata no Google Sheets para evitar leitura de cache desatualizado
+    SpreadsheetApp.flush();
 
     // Registrar log de auditoria na planilha corporativa
     try {
@@ -1498,8 +1532,8 @@ function inicializarPlanilha(ss) {
   var abaSeg = ss.getSheetByName("Segmentos");
   if (!abaSeg) abaSeg = ss.insertSheet("Segmentos");
   abaSeg.clear();
-  abaSeg.appendRow(["ID", "Ordem", "Nome", "Tagline", "Pitch", "Foto Bancada", "Icone", "DadosCompletosJSON"]);
-  abaSeg.getRange("A1:H1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+  abaSeg.appendRow(["ID", "Ordem", "Nome", "Tagline", "Pitch", "Foto Bancada", "Icone", "DadosCompletosJSON", "Personas", "PrincipaisClientes"]);
+  abaSeg.getRange("A1:J1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
   
   var listaSeg = getSegmentosPadrao();
   try {
@@ -1510,7 +1544,7 @@ function inicializarPlanilha(ss) {
 
   for (var i = 0; i < listaSeg.length; i++) {
     var s = listaSeg[i];
-    abaSeg.appendRow([s.id, s.ordem, s.nome, s.tagline || "", s.pitch || "", s.foto_bancada || "", s.icone || "Factory", JSON.stringify(s)]);
+    abaSeg.appendRow([s.id, s.ordem, s.nome, s.tagline || "", s.pitch || "", s.foto_bancada || "", s.icone || "Factory", JSON.stringify(s), s.personas || "", s.principais_clientes || ""]);
   }
 
   // 2. Aba Plantonistas

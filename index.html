@@ -2557,18 +2557,39 @@
         carregarConfigLembretes();
         carregarVideoGestao();
 
+        const rehydrateSegmentosWithLocalCache = (segsList) => {
+          if (!Array.isArray(segsList)) return segsList;
+          try {
+            return segsList.map(s => {
+              const localRaw = localStorage.getItem(`custom_seg_${s.id}`);
+              if (localRaw) {
+                const localData = JSON.parse(localRaw);
+                return {
+                  ...s,
+                  pitch: s.pitch || localData.pitch || '',
+                  personas: s.personas || localData.personas || '',
+                  principais_clientes: s.principais_clientes || localData.principais_clientes || ''
+                };
+              }
+              return s;
+            });
+          } catch(e) {
+            return segsList;
+          }
+        };
+
         // 5. Buscar segmentos
         fetch('/api/segmentos')
           .then(res => res.json())
           .then(data => {
-            setSegmentos(data);
+            setSegmentos(rehydrateSegmentosWithLocalCache(data));
             setLoading(false);
           })
           .catch(err => {
             fetch('./data/segmentos.json')
               .then(res => res.json())
               .then(data => {
-                setSegmentos(data);
+                setSegmentos(rehydrateSegmentosWithLocalCache(data));
                 setLoading(false);
               })
               .catch(() => setLoading(false));
@@ -4893,7 +4914,7 @@
     }
 
     // Componente: Editor Visual Rico (WYSIWYG) para o Pitch Sugerido
-    function PitchWysiwygEditor({ initialHtml = '', onChange, onSave, onCancel, salvando = false, showActions = true }) {
+    function PitchWysiwygEditor({ initialHtml = '', onChange, onSave, onCancel, salvando = false, showActions = true, saveLabel = 'Salvar Conteúdo' }) {
       const editorRef = useRef(null);
       const [colorDropdownOpen, setColorDropdownOpen] = useState(false);
 
@@ -5068,7 +5089,7 @@
                     className="px-4 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-totvs-blue to-totvs-vibrant hover:from-totvs-vibrant hover:to-totvs-accent text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
                     <Icons.Save />
-                    <span>{salvando ? 'Salvando...' : 'Salvar Pitch'}</span>
+                    <span>{salvando ? 'Salvando...' : saveLabel}</span>
                   </button>
                 )}
               </div>
@@ -5336,7 +5357,17 @@
                 alert('Erro ao salvar na nuvem TOTVS: ' + (res.error || 'A planilha rejeitou a gravação.'));
                 return;
               }
-              const segSalvo = (res && res.segmentos && res.segmentos.find(s => s.id === segToSave.id)) || segToSave;
+              const serverSeg = (res && res.segmentos && res.segmentos.find(s => s.id === segToSave.id)) || {};
+              const segSalvo = {
+                ...serverSeg,
+                ...segToSave,
+                pitch: segToSave.pitch || serverSeg.pitch || '',
+                personas: segToSave.personas || serverSeg.personas || '',
+                principais_clientes: segToSave.principais_clientes || serverSeg.principais_clientes || '',
+                equipamentos: (serverSeg.equipamentos && serverSeg.equipamentos.length > 0)
+                  ? serverSeg.equipamentos
+                  : (segToSave.equipamentos || [])
+              };
               setLocalSegment(segSalvo);
               if (onSegmentChange) onSegmentChange(segSalvo);
               if (showToast) showToast(mensagemSucesso || 'Estação atualizada com sucesso! ✨');
@@ -5385,25 +5416,52 @@
           return;
         }
         const updated = { ...localSegment, pitch: textToSave };
-        await handlePersistSegment(updated, 'Pitch Sugerido atualizado com sucesso! 🎙️');
+        setLocalSegment(updated);
+        if (onSegmentChange) onSegmentChange(updated);
         setPitchTexto(textToSave);
         setEditandoPitch(false);
+        try {
+          localStorage.setItem(`custom_seg_${updated.id}`, JSON.stringify({
+            pitch: textToSave,
+            personas: updated.personas || '',
+            principais_clientes: updated.principais_clientes || ''
+          }));
+        } catch(e) {}
+        await handlePersistSegment(updated, 'Pitch Sugerido atualizado com sucesso! 🎙️');
       };
 
       const handleSavePersonas = async (newHtml) => {
         const textToSave = typeof newHtml === 'string' ? newHtml.trim() : '';
         const clean = sanitizePitchHtml(textToSave);
         const updated = { ...localSegment, personas: clean };
-        await handlePersistSegment(updated, 'Personas atualizadas com sucesso! 👥');
+        setLocalSegment(updated);
+        if (onSegmentChange) onSegmentChange(updated);
         setEditandoPersonas(false);
+        try {
+          localStorage.setItem(`custom_seg_${updated.id}`, JSON.stringify({
+            pitch: updated.pitch || '',
+            personas: clean,
+            principais_clientes: updated.principais_clientes || ''
+          }));
+        } catch(e) {}
+        await handlePersistSegment(updated, 'Personas atualizadas com sucesso! 👥');
       };
 
       const handleSaveClientes = async (newHtml) => {
         const textToSave = typeof newHtml === 'string' ? newHtml.trim() : '';
         const clean = sanitizePitchHtml(textToSave);
         const updated = { ...localSegment, principais_clientes: clean };
-        await handlePersistSegment(updated, 'Principais Clientes atualizados com sucesso! 🏢');
+        setLocalSegment(updated);
+        if (onSegmentChange) onSegmentChange(updated);
         setEditandoClientes(false);
+        try {
+          localStorage.setItem(`custom_seg_${updated.id}`, JSON.stringify({
+            pitch: updated.pitch || '',
+            personas: updated.personas || '',
+            principais_clientes: clean
+          }));
+        } catch(e) {}
+        await handlePersistSegment(updated, 'Principais Clientes atualizados com sucesso! 🏢');
       };
 
       const handleSaveVideo = async () => {
@@ -5757,6 +5815,7 @@
                         onSave={handleSavePitch}
                         onCancel={() => setEditandoPitch(false)}
                         salvando={salvando}
+                        saveLabel="Salvar Pitch"
                       />
                     ) : (
                       <div
@@ -5937,6 +5996,7 @@
                         onSave={handleSavePersonas}
                         onCancel={() => setEditandoPersonas(false)}
                         salvando={salvando}
+                        saveLabel="Salvar Personas"
                       />
                     ) : localSegment.personas ? (
                       <div
@@ -6025,6 +6085,7 @@
                         onSave={handleSaveClientes}
                         onCancel={() => setEditandoClientes(false)}
                         salvando={salvando}
+                        saveLabel="Salvar Principais Clientes"
                       />
                     ) : localSegment.principais_clientes ? (
                       <div
