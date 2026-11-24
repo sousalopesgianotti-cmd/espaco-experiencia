@@ -4855,7 +4855,7 @@
 
     function formatPlainPitchToHtml(str) {
       if (!str || typeof str !== 'string') return '';
-      if (/<(p|b|i|u|strong|em|span|div|ul|ol|li|br)[^>]*>/i.test(str)) {
+      if (/<[a-z][a-z0-9]*[^>]*>/i.test(str)) {
         return sanitizePitchHtml(str);
       }
       return str
@@ -4866,28 +4866,29 @@
     }
 
     function renderPitchFormatted(content, extraClasses = '') {
-      if (!content || !content.trim()) {
+      if (!content || typeof content !== 'string') {
         return (
           <span className="italic text-slate-400">
-            Nenhum pitch cadastrado ainda. Clique em "Editar Pitch" para registrar o discurso desta estação.
+            Nenhum conteúdo cadastrado ainda.
           </span>
         );
       }
 
-      const hasHtml = /<(p|b|i|u|strong|em|span|div|ul|ol|li|br)[^>]*>/i.test(content);
-      if (hasHtml) {
+      const stripped = content.replace(/<[^>]+>/g, '').replace(/&nbsp;/gi, ' ').trim();
+      if (!stripped) {
         return (
-          <div
-            className={`prose prose-slate max-w-none space-y-2 text-slate-800 leading-relaxed font-normal ${extraClasses}`}
-            dangerouslySetInnerHTML={{ __html: sanitizePitchHtml(content) }}
-          />
+          <span className="italic text-slate-400">
+            Nenhum conteúdo cadastrado ainda.
+          </span>
         );
       }
 
+      const htmlToRender = formatPlainPitchToHtml(content);
       return (
-        <div className={`whitespace-pre-line leading-relaxed text-slate-800 font-normal space-y-2 ${extraClasses}`}>
-          {content}
-        </div>
+        <div
+          className={`prose prose-slate max-w-none space-y-2 text-slate-800 leading-relaxed font-normal ${extraClasses}`}
+          dangerouslySetInnerHTML={{ __html: htmlToRender }}
+        />
       );
     }
 
@@ -4935,8 +4936,9 @@
       const handleSave = () => {
         if (!editorRef.current) return;
         const html = editorRef.current.innerHTML.trim();
-        if (!html || html === '<br>' || html === '<p></p>') {
-          alert('O discurso do pitch não pode ficar vazio.');
+        const stripped = html.replace(/<[^>]+>/g, '').replace(/&nbsp;/gi, ' ').trim();
+        if (!stripped) {
+          alert('O conteúdo não pode ficar vazio.');
           return;
         }
         if (onSave) onSave(html);
