@@ -1361,6 +1361,21 @@ function recarregarAbaPlantonistasDaBase() {
 }
 
 /**
+ * Função utilitária para garantir que nenhuma célula exceda o limite de 50.000 caracteres do Google Sheets
+ */
+function safeCellValue(val) {
+  if (val === null || val === undefined) return "";
+  var str = String(val);
+  if (str.indexOf("data:image/") === 0) {
+    return "";
+  }
+  if (str.length > 49000) {
+    return str.substring(0, 49000);
+  }
+  return str;
+}
+
+/**
  * Salva alterações de uma estação (pitch, foto, credenciais, equipamentos)
  */
 function salvarEstacao(seg) {
@@ -1383,7 +1398,17 @@ function salvarEstacao(seg) {
     var autorEmail = (seg.autor && seg.autor.email) || seg.autor_email || "";
     var autorPerfil = String((seg.autor && seg.autor.perfil) || seg.autor_perfil || "").toLowerCase() === "pmm" ? "pmm" : "adm";
 
-    // 1. Processar fotos em Base64 dos equipamentos (salva no Google Drive se possível)
+    // 1. Processar foto da bancada em Base64 (salva no Drive e substitui por URL direta)
+    if (seg.foto_bancada && String(seg.foto_bancada).startsWith("data:image/")) {
+      var uploadBancada = salvarArquivoDrive(seg.foto_bancada, "bancada_" + seg.id);
+      if (uploadBancada && uploadBancada.success && uploadBancada.url) {
+        seg.foto_bancada = uploadBancada.url;
+      } else {
+        seg.foto_bancada = "";
+      }
+    }
+
+    // 2. Processar fotos em Base64 dos equipamentos (salva no Google Drive se possível)
     if (Array.isArray(seg.equipamentos)) {
       for (var k = 0; k < seg.equipamentos.length; k++) {
         var eqItem = seg.equipamentos[k];
@@ -1396,23 +1421,30 @@ function salvarEstacao(seg) {
       }
     }
 
-    // 2. Persistir equipamentos na aba dedicada 'Equipamentos' (1 linha por equipamento, com foto isolada)
+    // 3. Persistir equipamentos na aba dedicada 'Equipamentos' (1 linha por equipamento, com foto isolada)
     salvarEquipamentosEstacao(ss, seg.id, seg.equipamentos || [], autorNome);
 
-    // 3. Criar versão do JSON sem duplicar Base64 extenso na Coluna 8
+    // 4. Criar versão do JSON higienizada sem Base64 extenso para caber com folga na Coluna 8
     var segJson = JSON.parse(JSON.stringify(seg));
-    if (segJson.foto_bancada && String(segJson.foto_bancada).startsWith('data:image/')) {
-      segJson.foto_bancada = ""; // O valor real fica com fidelidade total e isoladamente na Coluna 6 (F)
+    segJson.foto_bancada = (seg.foto_bancada && !String(seg.foto_bancada).startsWith("data:image/")) ? seg.foto_bancada : "";
+
+    // Higienizar fotos de midias se forem Base64
+    if (segJson.midias && Array.isArray(segJson.midias.fotos)) {
+      segJson.midias.fotos = segJson.midias.fotos.map(function(f) {
+        if (f && f.url && String(f.url).startsWith("data:image/")) {
+          return { titulo: f.titulo || "Foto", url: "" };
+        }
+        return f;
+      });
     }
 
-    // Higienizar fotos de equipamentos no JSON resumido se ainda forem Base64 (para nunca estourar o limite de 50k da célula)
+    // Higienizar fotos de equipamentos no JSON resumido se ainda forem Base64
     if (Array.isArray(segJson.equipamentos)) {
       segJson.equipamentos = segJson.equipamentos.map(function(eq) {
         var copyEq = { id: eq.id, titulo: eq.titulo, descricao: eq.descricao };
         if (eq.foto && !String(eq.foto).startsWith("data:image/")) {
           copyEq.foto = eq.foto;
         } else {
-          // O Base64 real foi salvo com segurança na aba Equipamentos
           copyEq.foto = "";
         }
         return copyEq;
@@ -1420,6 +1452,14 @@ function salvarEstacao(seg) {
     }
 
     var jsonStr = JSON.stringify(segJson);
+    if (jsonStr.length > 49000) {
+      delete segJson.midias;
+      delete segJson.equipamentos;
+      jsonStr = JSON.stringify(segJson);
+      if (jsonStr.length > 49000) {
+        jsonStr = jsonStr.substring(0, 49000);
+      }
+    }
 
     // Garantir colunas de cabeçalho na aba Segmentos se necessário (I=Personas, J=PrincipaisClientes)
     try {
@@ -1432,27 +1472,27 @@ function salvarEstacao(seg) {
     } catch(eH) {}
 
     if (linha > 0) {
-      aba.getRange(linha, 2).setValue(seg.ordem);
-      aba.getRange(linha, 3).setValue(seg.nome);
-      aba.getRange(linha, 4).setValue(seg.tagline || "");
-      aba.getRange(linha, 5).setValue(seg.pitch || "");
-      aba.getRange(linha, 6).setValue(seg.foto_bancada || "");
-      aba.getRange(linha, 7).setValue(seg.icone || "Factory");
-      aba.getRange(linha, 8).setValue(jsonStr);
-      aba.getRange(linha, 9).setValue(seg.personas || "");
-      aba.getRange(linha, 10).setValue(seg.principais_clientes || "");
+      aba.getRange(linha, 2).setValue(safeCellValue(seg.ordem));
+      aba.getRange(linha, 3).setValue(safeCellValue(seg.nome));
+      aba.getRange(linha, 4).setValue(safeCellValue(seg.tagline || ""));
+      aba.getRange(linha, 5).setValue(safeCellValue(seg.pitch || ""));
+      aba.getRange(linha, 6).setValue(safeCellValue(seg.foto_bancada || ""));
+      aba.getRange(linha, 7).setValue(safeCellValue(seg.icone || "Factory"));
+      aba.getRange(linha, 8).setValue(safeCellValue(jsonStr));
+      aba.getRange(linha, 9).setValue(safeCellValue(seg.personas || ""));
+      aba.getRange(linha, 10).setValue(safeCellValue(seg.principais_clientes || ""));
     } else {
       aba.appendRow([
-        seg.id,
-        seg.ordem,
-        seg.nome,
-        seg.tagline || "",
-        seg.pitch || "",
-        seg.foto_bancada || "",
-        seg.icone || "Factory",
-        jsonStr,
-        seg.personas || "",
-        seg.principais_clientes || ""
+        safeCellValue(seg.id),
+        safeCellValue(seg.ordem),
+        safeCellValue(seg.nome),
+        safeCellValue(seg.tagline || ""),
+        safeCellValue(seg.pitch || ""),
+        safeCellValue(seg.foto_bancada || ""),
+        safeCellValue(seg.icone || "Factory"),
+        safeCellValue(jsonStr),
+        safeCellValue(seg.personas || ""),
+        safeCellValue(seg.principais_clientes || "")
       ]);
     }
 

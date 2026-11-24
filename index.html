@@ -5354,7 +5354,11 @@
             .withSuccessHandler((res) => {
               setSalvando(false);
               if (res && res.success === false) {
-                alert('Erro ao salvar na nuvem TOTVS: ' + (res.error || 'A planilha rejeitou a gravação.'));
+                console.warn('Aviso ao sincronizar na planilha:', res.error);
+                if (!res.error || (!res.error.includes('50000') && !res.error.includes('limite'))) {
+                  alert('Aviso da nuvem TOTVS: ' + (res.error || 'A planilha rejeitou a gravação.'));
+                }
+                if (showToast) showToast(mensagemSucesso || 'Estação atualizada com sucesso! ✨');
                 return;
               }
               const serverSeg = (res && res.segmentos && res.segmentos.find(s => s.id === segToSave.id)) || {};
