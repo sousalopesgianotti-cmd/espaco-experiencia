@@ -820,12 +820,17 @@ function carregarSegmentos(ss) {
             nome: String(row[2]),
             tagline: String(row[3] || ""),
             pitch: String(row[4] || ""),
+            personas: "",
+            principais_clientes: "",
             foto_bancada: String(row[5] || ""),
             icone: String(row[6] || "Factory"),
             credenciais: { ip: "", usuario: "", senha: "", porta: "" },
             badge_solucoes: []
           };
         }
+
+        if (typeof segItem.personas === 'undefined') segItem.personas = "";
+        if (typeof segItem.principais_clientes === 'undefined') segItem.principais_clientes = "";
 
         // Se houver equipamentos cadastrados na aba 'Equipamentos', eles prevalecem com fidelidade total
         if (mapaEquipamentos[segId] && mapaEquipamentos[segId].length > 0) {

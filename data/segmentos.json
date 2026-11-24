@@ -68,7 +68,9 @@
       "email": "auditoria.pmm.1792064095524@totvs.com.br",
       "perfil": "pmm"
     },
-    "detalhes": "Edição de discurso realizada por PMM para validação de auditoria."
+    "detalhes": "Edição de discurso realizada por PMM para validação de auditoria.",
+    "personas": "",
+    "principais_clientes": ""
   },
   {
     "id": "totvs_manufatura",
@@ -136,7 +138,9 @@
       "tipo": "local",
       "url": "/Video Espaço Experiência.mp4",
       "titulo": "Simulação de Chão de Fábrica - TOTVS MES"
-    }
+    },
+    "personas": "",
+    "principais_clientes": ""
   },
   {
     "id": "backoffice",
@@ -200,7 +204,9 @@
       "tipo": "local",
       "url": "/Video Espaço Experiência.mp4",
       "titulo": "Vídeo do Tour no Espaço Experiência"
-    }
+    },
+    "personas": "",
+    "principais_clientes": ""
   },
   {
     "id": "totvs_mes_ppi",
@@ -264,7 +270,9 @@
       "tipo": "local",
       "url": "/Video Espaço Experiência.mp4",
       "titulo": "Simulação de Chão de Fábrica - TOTVS MES"
-    }
+    },
+    "personas": "",
+    "principais_clientes": ""
   },
   {
     "id": "totvs_logistica",
@@ -332,7 +340,9 @@
       "tipo": "local",
       "url": "/Video Espaço Experiência.mp4",
       "titulo": "Operação Logística no Espaço Experiência"
-    }
+    },
+    "personas": "",
+    "principais_clientes": ""
   },
   {
     "id": "totvs_moda",
@@ -405,7 +415,9 @@
       "tipo": "local",
       "url": "/Video Espaço Experiência.mp4",
       "titulo": "Espaço TOTVS Moda no Laboratório"
-    }
+    },
+    "personas": "",
+    "principais_clientes": ""
   },
   {
     "id": "totvs_consinco",
@@ -474,7 +486,9 @@
       "tipo": "local",
       "url": "/Video Espaço Experiência.mp4",
       "titulo": "Demonstração de Supermercado e RFID"
-    }
+    },
+    "personas": "",
+    "principais_clientes": ""
   },
   {
     "id": "totvs_varejo_online",
@@ -542,7 +556,9 @@
       "tipo": "url",
       "url": "https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160329_varejo_on_line.mp4",
       "titulo": "Vídeo Demonstrativo de TOTVS Varejo On-line"
-    }
+    },
+    "personas": "",
+    "principais_clientes": ""
   },
   {
     "id": "totvs_rm_clinicas",
@@ -611,7 +627,9 @@
       "tipo": "local",
       "url": "/Video Espaço Experiência.mp4",
       "titulo": "Estação Clínica no Espaço Experiência"
-    }
+    },
+    "personas": "",
+    "principais_clientes": ""
   },
   {
     "id": "mesa_interativa",
@@ -679,7 +697,9 @@
       "tipo": "local",
       "url": "/Video Espaço Experiência.mp4",
       "titulo": "Apresentação e Telões da Mesa Central"
-    }
+    },
+    "personas": "",
+    "principais_clientes": ""
   },
   {
     "id": "solucoes_cross",
@@ -737,6 +757,8 @@
       "tipo": "url",
       "url": "",
       "titulo": "Vídeo do Discurso - SOLUÇÕES CROSS"
-    }
+    },
+    "personas": "",
+    "principais_clientes": ""
   }
 ]

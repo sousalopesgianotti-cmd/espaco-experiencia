@@ -5393,7 +5393,7 @@
     }
 
     // Componente: Modal de Leitura Ampliada do Pitch (Modo Teleprompter)
-    function PitchReaderModal({ isOpen, onClose, segment, pitch, showToast }) {
+    function PitchReaderModal({ isOpen, onClose, segment, pitch, subtitle, showToast }) {
       const [fontSize, setFontSize] = useState(18); // 14px a 26px (padrão 18px)
 
       useEffect(() => {
@@ -5422,7 +5422,7 @@
           tmp.innerHTML = pitch || '';
           const plainText = tmp.textContent || tmp.innerText || pitch || '';
           navigator.clipboard.writeText(plainText.trim()).then(() => {
-            if (showToast) showToast('Pitch copiado para a área de transferência! 📋');
+            if (showToast) showToast('Texto copiado para a área de transferência! 📋');
           });
         } catch (e) {
           if (showToast) showToast('Texto copiado.');
@@ -5451,7 +5451,7 @@
                   </div>
                   <p className="text-xs text-slate-300 mt-0.5 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>Pitch Sugerido de 1 Minuto para o Visitante (Modo Teleprompter)</span>
+                    <span>{subtitle || 'Pitch Sugerido de 1 Minuto para o Visitante (Modo Teleprompter)'}</span>
                   </p>
                 </div>
               </div>
@@ -5547,9 +5547,9 @@
       );
     }
 
-    // --- COMPONENTE: NOVA GUIA DA ESTAÇÃO (2 ABAS: DISCURSO DO SEGMENTO & EQUIPAMENTOS) ---
+    // --- COMPONENTE: GUIA DA ESTAÇÃO (4 ABAS: DISCURSO, PERSONAS, PRINCIPAIS CLIENTES, EQUIPAMENTOS) ---
     function SegmentDetailModal({ segment, admLogado, onClose, onSegmentChange, showToast }) {
-      const [tab, setTab] = useState('discurso'); // 'discurso' ou 'equipamentos'
+      const [tab, setTab] = useState('discurso'); // 'discurso', 'personas', 'clientes', 'equipamentos'
       const [localSegment, setLocalSegment] = useState(segment);
       const [salvando, setSalvando] = useState(false);
 
@@ -5557,6 +5557,14 @@
       const [editandoPitch, setEditandoPitch] = useState(false);
       const [pitchTexto, setPitchTexto] = useState(segment.pitch || '');
       const [showPitchReaderModal, setShowPitchReaderModal] = useState(false);
+
+      // Estado Edição Personas
+      const [editandoPersonas, setEditandoPersonas] = useState(false);
+      const [showPersonasReaderModal, setShowPersonasReaderModal] = useState(false);
+
+      // Estado Edição Principais Clientes
+      const [editandoClientes, setEditandoClientes] = useState(false);
+      const [showClientesReaderModal, setShowClientesReaderModal] = useState(false);
 
       // Estado Edição Vídeo
       const [editandoVideo, setEditandoVideo] = useState(false);
@@ -5592,12 +5600,14 @@
             if (lightboxFoto) setLightboxFoto(null);
             else if (modalEquipamentoAberto) setModalEquipamentoAberto(false);
             else if (showPitchReaderModal) setShowPitchReaderModal(false);
+            else if (showPersonasReaderModal) setShowPersonasReaderModal(false);
+            else if (showClientesReaderModal) setShowClientesReaderModal(false);
             else onClose();
           }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-      }, [onClose, lightboxFoto, modalEquipamentoAberto, showPitchReaderModal]);
+      }, [onClose, lightboxFoto, modalEquipamentoAberto, showPitchReaderModal, showPersonasReaderModal, showClientesReaderModal]);
 
       const equipamentos = useMemo(() => {
         // Se a estação já possui a lista de equipamentos definida (inclusive vazia []), respeita a lista
@@ -5692,6 +5702,22 @@
         await handlePersistSegment(updated, 'Pitch Sugerido atualizado com sucesso! 🎙️');
         setPitchTexto(textToSave);
         setEditandoPitch(false);
+      };
+
+      const handleSavePersonas = async (newHtml) => {
+        const textToSave = typeof newHtml === 'string' ? newHtml.trim() : '';
+        const clean = sanitizePitchHtml(textToSave);
+        const updated = { ...localSegment, personas: clean };
+        await handlePersistSegment(updated, 'Personas atualizadas com sucesso! 👥');
+        setEditandoPersonas(false);
+      };
+
+      const handleSaveClientes = async (newHtml) => {
+        const textToSave = typeof newHtml === 'string' ? newHtml.trim() : '';
+        const clean = sanitizePitchHtml(textToSave);
+        const updated = { ...localSegment, principais_clientes: clean };
+        await handlePersistSegment(updated, 'Principais Clientes atualizados com sucesso! 🏢');
+        setEditandoClientes(false);
       };
 
       const handleSaveVideo = async () => {
@@ -5937,12 +5963,12 @@
               </div>
             </div>
 
-            {/* Navegação por Abas Simplificada (2 Abas) */}
-            <div className="flex border-b border-slate-200 bg-slate-50 px-4 sm:px-6 shrink-0">
+            {/* Navegação por Abas (4 Abas: Discurso, Personas, Principais Clientes, Equipamentos) */}
+            <div className="flex border-b border-slate-200 bg-slate-50 px-4 sm:px-6 shrink-0 overflow-x-auto scrollbar-none gap-1 sm:gap-2">
               <button
                 type="button"
                 onClick={() => setTab('discurso')}
-                className={`py-3.5 px-4 font-bold text-xs border-b-2 transition flex items-center gap-2 cursor-pointer ${
+                className={`py-3 px-3 sm:px-4 font-bold text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                   tab === 'discurso'
                     ? 'border-totvs-cyan text-totvs-blue bg-white shadow-2xs font-extrabold'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -5950,17 +5976,46 @@
               >
                 <span>🎙️ Discurso do Segmento</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setTab('personas')}
+                className={`py-3 px-3 sm:px-4 font-bold text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                  tab === 'personas'
+                    ? 'border-totvs-cyan text-totvs-blue bg-white shadow-2xs font-extrabold'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Icons.Users />
+                <span>Personas</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTab('clientes')}
+                className={`py-3 px-3 sm:px-4 font-bold text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                  tab === 'clientes'
+                    ? 'border-totvs-cyan text-totvs-blue bg-white shadow-2xs font-extrabold'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Icons.Building />
+                <span>Principais Clientes</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setTab('equipamentos')}
-                className={`py-3.5 px-4 font-bold text-xs border-b-2 transition flex items-center gap-2 cursor-pointer ${
+                className={`py-3 px-3 sm:px-4 font-bold text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                   tab === 'equipamentos'
                     ? 'border-totvs-cyan text-totvs-blue bg-white shadow-2xs font-extrabold'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <span>🖥️ Equipamentos e dados de acesso</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 font-extrabold">
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                  tab === 'equipamentos' ? 'bg-totvs-blue text-white' : 'bg-slate-200 text-slate-700'
+                }`}>
                   {equipamentos.length}
                 </span>
               </button>
@@ -6149,7 +6204,183 @@
                 </div>
               )}
 
-              {/* ABA 2: EQUIPAMENTOS E DADOS DE ACESSO */}
+              {/* ABA 2: PERSONAS */}
+              {tab === 'personas' && (
+                <div className="space-y-6 animate-in fade-in duration-150">
+                  <div className="bg-gradient-to-br from-[#F0F5FA] via-white to-slate-50 p-5 sm:p-6 rounded-2xl border-l-4 border-l-totvs-cyan border border-slate-200/90 shadow-2xs relative">
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-totvs-blue flex items-center gap-1.5">
+                          <Icons.Users />
+                          <span>Personas do Segmento:</span>
+                        </span>
+                        <span className="text-[10px] font-black bg-gradient-to-r from-totvs-blue to-totvs-vibrant text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                          Perfis & Decisores
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {localSegment.personas && (
+                          <button
+                            type="button"
+                            onClick={() => setShowPersonasReaderModal(true)}
+                            className="flex items-center gap-1.5 px-3 py-1 bg-totvs-blue hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer"
+                            title="Abrir as personas em tela ampla com ajuste de fonte para leitura ergonômica"
+                          >
+                            <Icons.Search />
+                            <span>Visualização Ampla (Teleprompter)</span>
+                          </button>
+                        )}
+
+                        {canEdit && !editandoPersonas && (
+                          <button
+                            type="button"
+                            onClick={() => setEditandoPersonas(true)}
+                            className="flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-totvs-cyan/10 text-totvs-blue hover:text-totvs-dark text-xs font-bold rounded-lg border border-totvs-cyan/40 shadow-2xs transition cursor-pointer"
+                          >
+                            <Icons.Edit />
+                            <span>Editar Personas</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {editandoPersonas ? (
+                      <PitchWysiwygEditor
+                        initialHtml={localSegment.personas || ''}
+                        onSave={handleSavePersonas}
+                        onCancel={() => setEditandoPersonas(false)}
+                        salvando={salvando}
+                      />
+                    ) : localSegment.personas ? (
+                      <div
+                        onClick={() => setShowPersonasReaderModal(true)}
+                        className="group relative cursor-pointer text-xs sm:text-sm font-medium text-slate-800 leading-relaxed pl-3.5 pr-3 py-3 border-l-4 border-totvs-blue bg-white/95 rounded-r-xl border border-slate-200/80 shadow-2xs hover:border-totvs-cyan/70 hover:shadow-md transition-all duration-200 max-h-80 overflow-y-auto"
+                        title="Clique para abrir a Visualização Ampla"
+                      >
+                        {renderPitchFormatted(localSegment.personas)}
+                        <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 group-hover:text-totvs-blue transition-colors">
+                          <span className="flex items-center gap-1 font-medium">
+                            <Icons.Search /> Clique nesta caixa para abrir a leitura ampliada
+                          </span>
+                          <span className="font-bold text-[10px] bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full group-hover:bg-blue-50 group-hover:text-totvs-blue transition">
+                            🔍 Leitura Ampla
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-8 rounded-2xl bg-white/80 border border-dashed border-slate-300 text-center space-y-2">
+                        <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl">
+                          👥
+                        </div>
+                        <h4 className="text-xs font-bold text-slate-700">Nenhuma persona cadastrada</h4>
+                        <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                          Cadastre os perfis decisores, influenciadores e dores de negócio atendidas por esta estação.
+                        </p>
+                        {canEdit && (
+                          <button
+                            type="button"
+                            onClick={() => setEditandoPersonas(true)}
+                            className="mt-2 px-3.5 py-1.5 bg-gradient-to-r from-totvs-blue to-totvs-vibrant text-white rounded-xl text-xs font-bold cursor-pointer shadow-2xs"
+                          >
+                            + Cadastrar Personas
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ABA 3: PRINCIPAIS CLIENTES */}
+              {tab === 'clientes' && (
+                <div className="space-y-6 animate-in fade-in duration-150">
+                  <div className="bg-gradient-to-br from-[#F0F5FA] via-white to-slate-50 p-5 sm:p-6 rounded-2xl border-l-4 border-l-totvs-cyan border border-slate-200/90 shadow-2xs relative">
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-totvs-blue flex items-center gap-1.5">
+                          <Icons.Building />
+                          <span>Principais Clientes:</span>
+                        </span>
+                        <span className="text-[10px] font-black bg-gradient-to-r from-totvs-blue to-totvs-vibrant text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                          Casos de Sucesso & Referências
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {localSegment.principais_clientes && (
+                          <button
+                            type="button"
+                            onClick={() => setShowClientesReaderModal(true)}
+                            className="flex items-center gap-1.5 px-3 py-1 bg-totvs-blue hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer"
+                            title="Abrir os principais clientes em tela ampla com ajuste de fonte para leitura ergonômica"
+                          >
+                            <Icons.Search />
+                            <span>Visualização Ampla (Teleprompter)</span>
+                          </button>
+                        )}
+
+                        {canEdit && !editandoClientes && (
+                          <button
+                            type="button"
+                            onClick={() => setEditandoClientes(true)}
+                            className="flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-totvs-cyan/10 text-totvs-blue hover:text-totvs-dark text-xs font-bold rounded-lg border border-totvs-cyan/40 shadow-2xs transition cursor-pointer"
+                          >
+                            <Icons.Edit />
+                            <span>Editar Principais Clientes</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {editandoClientes ? (
+                      <PitchWysiwygEditor
+                        initialHtml={localSegment.principais_clientes || ''}
+                        onSave={handleSaveClientes}
+                        onCancel={() => setEditandoClientes(false)}
+                        salvando={salvando}
+                      />
+                    ) : localSegment.principais_clientes ? (
+                      <div
+                        onClick={() => setShowClientesReaderModal(true)}
+                        className="group relative cursor-pointer text-xs sm:text-sm font-medium text-slate-800 leading-relaxed pl-3.5 pr-3 py-3 border-l-4 border-totvs-blue bg-white/95 rounded-r-xl border border-slate-200/80 shadow-2xs hover:border-totvs-cyan/70 hover:shadow-md transition-all duration-200 max-h-80 overflow-y-auto"
+                        title="Clique para abrir a Visualização Ampla"
+                      >
+                        {renderPitchFormatted(localSegment.principais_clientes)}
+                        <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 group-hover:text-totvs-blue transition-colors">
+                          <span className="flex items-center gap-1 font-medium">
+                            <Icons.Search /> Clique nesta caixa para abrir a leitura ampliada
+                          </span>
+                          <span className="font-bold text-[10px] bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full group-hover:bg-blue-50 group-hover:text-totvs-blue transition">
+                            🔍 Leitura Ampla
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-8 rounded-2xl bg-white/80 border border-dashed border-slate-300 text-center space-y-2">
+                        <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl">
+                          🏢
+                        </div>
+                        <h4 className="text-xs font-bold text-slate-700">Nenhum cliente cadastrado</h4>
+                        <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                          Cadastre os clientes de referência, histórias de sucesso e portes de empresas atendidas neste segmento.
+                        </p>
+                        {canEdit && (
+                          <button
+                            type="button"
+                            onClick={() => setEditandoClientes(true)}
+                            className="mt-2 px-3.5 py-1.5 bg-gradient-to-r from-totvs-blue to-totvs-vibrant text-white rounded-xl text-xs font-bold cursor-pointer shadow-2xs"
+                          >
+                            + Cadastrar Principais Clientes
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ABA 4: EQUIPAMENTOS E DADOS DE ACESSO */}
               {tab === 'equipamentos' && (
                 <div className="space-y-5 animate-in fade-in duration-150">
                   <div className="flex items-center justify-between flex-wrap gap-3">
@@ -6459,6 +6690,31 @@
               onClose={() => setShowPitchReaderModal(false)}
               segment={localSegment}
               pitch={localSegment.pitch}
+              subtitle="Pitch Sugerido de 1 Minuto para o Visitante (Modo Teleprompter)"
+              showToast={showToast}
+            />
+          )}
+
+          {/* MODAL DE LEITURA AMPLIADA DE PERSONAS */}
+          {showPersonasReaderModal && (
+            <PitchReaderModal
+              isOpen={showPersonasReaderModal}
+              onClose={() => setShowPersonasReaderModal(false)}
+              segment={localSegment}
+              pitch={localSegment.personas}
+              subtitle="Personas do Segmento (Modo Leitura Ampliada)"
+              showToast={showToast}
+            />
+          )}
+
+          {/* MODAL DE LEITURA AMPLIADA DE PRINCIPAIS CLIENTES */}
+          {showClientesReaderModal && (
+            <PitchReaderModal
+              isOpen={showClientesReaderModal}
+              onClose={() => setShowClientesReaderModal(false)}
+              segment={localSegment}
+              pitch={localSegment.principais_clientes}
+              subtitle="Principais Clientes do Segmento (Modo Leitura Ampliada)"
               showToast={showToast}
             />
           )}
