@@ -2640,18 +2640,42 @@
         const rehydrateSegmentosWithLocalCache = (segsList) => {
           if (!Array.isArray(segsList)) return segsList;
           try {
+            const fallbackMap = {};
+            if (typeof FALLBACK_SEGMENTOS_APPS_SCRIPT !== 'undefined' && Array.isArray(FALLBACK_SEGMENTOS_APPS_SCRIPT)) {
+              FALLBACK_SEGMENTOS_APPS_SCRIPT.forEach(f => { fallbackMap[f.id] = f; });
+            }
             return segsList.map(s => {
+              const fb = fallbackMap[s.id] || {};
+              let merged = {
+                ...fb,
+                ...s,
+                foto_bancada: (s.foto_bancada && String(s.foto_bancada).trim() && String(s.foto_bancada).trim() !== 'null' && String(s.foto_bancada).trim() !== 'undefined')
+                  ? s.foto_bancada
+                  : (fb.foto_bancada || ''),
+                video_discurso: (s.video_discurso && s.video_discurso.url)
+                  ? s.video_discurso
+                  : (fb.video_discurso || null),
+                midias: (s.midias && s.midias.videos && s.midias.videos.length > 0)
+                  ? s.midias
+                  : (fb.midias || { fotos: [], videos: [] }),
+                equipamentos: (Array.isArray(s.equipamentos) && s.equipamentos.length > 0)
+                  ? s.equipamentos
+                  : (fb.equipamentos || [])
+              };
+
               const localRaw = localStorage.getItem(`custom_seg_${s.id}`);
               if (localRaw) {
-                const localData = JSON.parse(localRaw);
-                return {
-                  ...s,
-                  pitch: s.pitch || localData.pitch || '',
-                  personas: s.personas || localData.personas || '',
-                  principais_clientes: s.principais_clientes || localData.principais_clientes || ''
-                };
+                try {
+                  const localData = JSON.parse(localRaw);
+                  merged = {
+                    ...merged,
+                    pitch: s.pitch || localData.pitch || merged.pitch || '',
+                    personas: s.personas || localData.personas || merged.personas || '',
+                    principais_clientes: s.principais_clientes || localData.principais_clientes || merged.principais_clientes || ''
+                  };
+                } catch(eLocal) {}
               }
-              return s;
+              return merged;
             });
           } catch(e) {
             return segsList;
@@ -2801,7 +2825,7 @@
           google.script.run
             .withSuccessHandler((res) => {
               if (res && res.success && res.segmentos) {
-                setSegmentos(res.segmentos);
+                setSegmentos(rehydrateSegmentosWithLocalCache(res.segmentos));
               } else {
                 setSegmentos(prev => prev.map(s => s.id === segToSave.id ? segToSave : s));
               }
@@ -5684,6 +5708,11 @@
                 pitch: segToSave.pitch || serverSeg.pitch || '',
                 personas: segToSave.personas || serverSeg.personas || '',
                 principais_clientes: segToSave.principais_clientes || serverSeg.principais_clientes || '',
+                foto_bancada: segToSave.foto_bancada || serverSeg.foto_bancada || '',
+                video_discurso: segToSave.video_discurso || serverSeg.video_discurso || null,
+                midias: (segToSave.midias && segToSave.midias.videos && segToSave.midias.videos.length > 0)
+                  ? segToSave.midias
+                  : (serverSeg.midias || { fotos: [], videos: [] }),
                 equipamentos: (serverSeg.equipamentos && serverSeg.equipamentos.length > 0)
                   ? serverSeg.equipamentos
                   : (segToSave.equipamentos || [])
