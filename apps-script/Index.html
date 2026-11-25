@@ -2645,10 +2645,18 @@
               FALLBACK_SEGMENTOS_APPS_SCRIPT.forEach(f => { fallbackMap[f.id] = f; });
             }
             return segsList.map(s => {
+              if (!s || typeof s !== 'object') return s;
               const fb = fallbackMap[s.id] || {};
+              const sOrdem = (s.ordem !== undefined && s.ordem !== null && !isNaN(s.ordem))
+                ? Number(s.ordem)
+                : (fb.ordem || 1);
               let merged = {
                 ...fb,
                 ...s,
+                ordem: sOrdem,
+                nome: s.nome || fb.nome || s.id || 'Estação',
+                icone: s.icone || fb.icone || 'Factory',
+                badge_solucoes: Array.isArray(s.badge_solucoes) ? s.badge_solucoes : (Array.isArray(fb.badge_solucoes) ? fb.badge_solucoes : []),
                 foto_bancada: (s.foto_bancada && String(s.foto_bancada).trim() && String(s.foto_bancada).trim() !== 'null' && String(s.foto_bancada).trim() !== 'undefined')
                   ? s.foto_bancada
                   : (fb.foto_bancada || ''),
@@ -3458,7 +3466,7 @@
                             </div>
                             <div className="min-w-0">
                               <span className={`inline-block text-[8.5px] font-extrabold uppercase tracking-wider px-1.5 py-0.2 rounded-full mb-0.5 ${theme.tagBg}`}>
-                                Estação {seg.ordem.toString().padStart(2, '0')}
+                                Estação {Number(seg.ordem || 1).toString().padStart(2, '0')}
                               </span>
                               <h3 className="font-black text-xs sm:text-sm text-white leading-tight tracking-tight drop-shadow-sm truncate" title={seg.nome}>
                                 {seg.nome}
@@ -3472,7 +3480,7 @@
                               type="button"
                               onClick={() => setQuickBancadaSegment(seg)}
                               className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/20 hover:bg-white/35 text-white text-[9.5px] font-extrabold border border-white/30 shadow-2xs transition backdrop-blur-md cursor-pointer shrink-0"
-                              title={`Editar dados e configurações da Estação ${seg.ordem.toString().padStart(2, '0')}`}
+                              title={`Editar dados e configurações da Estação ${Number(seg.ordem || 1).toString().padStart(2, '0')}`}
                             >
                               <Icons.Edit />
                               <span>Editar</span>
@@ -3492,7 +3500,7 @@
                             <span>Soluções em Destaque:</span>
                           </span>
                           <div className="flex flex-wrap gap-1.5 items-stretch w-full content-start">
-                            {seg.badge_solucoes && seg.badge_solucoes.map((badge, bIdx) => (
+                            {Array.isArray(seg.badge_solucoes) && seg.badge_solucoes.map((badge, bIdx) => (
                               <span
                                 key={bIdx}
                                 className={`flex-1 min-w-[45%] max-w-full grow text-center flex items-center justify-center text-[10px] sm:text-[10.5px] font-bold px-2.5 py-1 rounded-md border shadow-2xs leading-tight transition-all duration-200 ${theme.badgeBg}`}
@@ -13345,9 +13353,14 @@
                 ⚠️
               </div>
               <h2 className="text-xl font-bold mb-2">Instabilidade visual isolada</h2>
-              <p className="text-xs text-slate-400 max-w-md mb-6 leading-relaxed">
+              <p className="text-xs text-slate-400 max-w-md mb-2 leading-relaxed">
                 Um erro visual foi contido com sucesso para proteger seus dados e navegação.
               </p>
+              {this.state.error && (
+                <div className="bg-slate-800/80 p-3 rounded-lg text-[10px] text-rose-300 font-mono mb-4 max-w-lg max-h-32 overflow-auto text-left">
+                  {String(this.state.error.message || this.state.error)}
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => window.location.reload()}

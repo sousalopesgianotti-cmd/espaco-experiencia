@@ -904,7 +904,25 @@ function carregarSegmentos(ss) {
           };
         }
 
-        // 6. Colunas Dedicadas: Pitch (Col 5), Personas (Col 9) e PrincipaisClientes (Col 10)
+        // 6. Garantir atributos vitais para renderização impecável (ordem, nome, icone, badges)
+        segItem.id = segId;
+        segItem.ordem = (typeof segItem.ordem === 'number' && !isNaN(segItem.ordem))
+          ? segItem.ordem
+          : (Number(row[1]) || (padrao && padrao.ordem) || i);
+        segItem.nome = (segItem.nome && String(segItem.nome).trim())
+          ? String(segItem.nome)
+          : (String(row[2]) || (padrao && padrao.nome) || segId);
+        segItem.tagline = (segItem.tagline !== undefined)
+          ? String(segItem.tagline)
+          : (String(row[3] || (padrao && padrao.tagline) || ""));
+        segItem.icone = (segItem.icone && String(segItem.icone).trim())
+          ? String(segItem.icone)
+          : (String(row[6]) || (padrao && padrao.icone) || "Factory");
+        segItem.badge_solucoes = (Array.isArray(segItem.badge_solucoes) && segItem.badge_solucoes.length > 0)
+          ? segItem.badge_solucoes
+          : ((padrao && Array.isArray(padrao.badge_solucoes)) ? padrao.badge_solucoes : []);
+
+        // 7. Colunas Dedicadas: Pitch (Col 5), Personas (Col 9) e PrincipaisClientes (Col 10)
         if (row.length > 4 && row[4]) {
           segItem.pitch = String(row[4]);
         }
