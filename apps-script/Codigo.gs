@@ -1,4 +1,1440 @@
 /**
+ * Adiciona menu de administração diretamente na barra do Google Planilhas
+ */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Espaço Experiência')
+    .addItem('🔄 Recarregar Escala 2026 na Planilha', 'recarregarAbaPlantonistasDaBase')
+    .addToUi();
+}
+
+
+/**
+ * ============================================================================
+ * AUTENTICAÇÃO E GOVERNANÇA DE ADMINISTRADORES NA NUVEM TOTVS
+ * ============================================================================
+ */
+function autenticarUsuario(email, senha) {
+  var emailLimpo = String(email || "").toLowerCase().trim();
+  var senhaLimpa = String(senha || "").trim();
+
+  // 1. Dono do Produto Oficial (André Gianotti)
+  if (emailLimpo === "andre.gianotti@totvs.com.br" && (senhaLimpa === "totvs123" || senhaLimpa === "123")) {
+    var usuarioDono = {
+      id: "adm-001",
+      email: "andre.gianotti@totvs.com.br",
+      nome: "André Gianotti",
+      cargo: "Dono do Produto",
+      perfil: "adm",
+      tipo: "administrador",
+      dono_produto: true,
+      precisa_trocar_senha: false,
+      foto: ""
+    };
+    registrarLogAcesso(usuarioDono.nome, "Login efetuado com sucesso (Dono do Produto)", usuarioDono.email, "adm");
+    return { success: true, usuario: usuarioDono };
+  }
+
+  // 2. Consulta à aba "Usuarios" da Planilha Google corporativa (se existir)
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Usuarios");
+    if (aba) {
+      var dados = aba.getDataRange().getValues();
+      for (var i = 1; i < dados.length; i++) {
+        var row = dados[i];
+        if (String(row[1]).toLowerCase().trim() === emailLimpo && String(row[4]).trim() === senhaLimpa) {
+          var cargoStr = String(row[3] || "Administrador");
+          var isDono = String(row[5]) === "true";
+          var perfilVal = String(row[9] || (isDono ? "adm" : (cargoStr.toLowerCase().indexOf("especialista") >= 0 ? "especialista" : (cargoStr.toLowerCase().indexOf("pmm") >= 0 ? "pmm" : "adm"))));
+          var isAtivo = row[10] === undefined || row[10] === "" || String(row[10]).toLowerCase() === "true";
+          if (!isAtivo) {
+            return { success: false, message: "Acesso temporariamente desativado. Entre em contato com um Administrador do Espaço Experiência TOTVS." };
+          }
+          var u = {
+            id: String(row[0]),
+            email: String(row[1]),
+            nome: String(row[2]),
+            cargo: cargoStr,
+            perfil: perfilVal,
+            tipo: "administrador",
+            dono_produto: isDono,
+            ativo: isAtivo,
+            precisa_trocar_senha: String(row[6]) === "true",
+            foto: String(row[7] || "")
+          };
+          registrarLogAcesso(u.nome, "Login efetuado com sucesso (" + u.cargo + ")", u.email, u.perfil);
+          return { success: true, usuario: u };
+        }
+      }
+    }
+  } catch(e) {}
+
+  // 3. Fallback corporativo para especialistas com senha padrão
+  if (senhaLimpa === "totvs123" || senhaLimpa === "123") {
+    var parte = emailLimpo.split('@')[0].replace(/[._-]/g, ' ');
+    var nomeFmt = parte.split(' ').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+    var uEspec = {
+      id: "usr-" + new Date().getTime(),
+      email: emailLimpo,
+      nome: nomeFmt || "Especialista TOTVS",
+      cargo: "Administrador",
+      perfil: "adm",
+      tipo: "administrador",
+      dono_produto: false,
+      precisa_trocar_senha: false,
+      foto: ""
+    };
+    registrarLogAcesso(uEspec.nome, "Login efetuado com sucesso", uEspec.email, "adm");
+    return { success: true, usuario: uEspec };
+  }
+
+  return { success: false, message: "E-mail ou senha incorretos." };
+}
+
+function registrarLogAcesso(usuarioNome, acao, email, perfil) {
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Logs");
+    if (aba) {
+      var agora = new Date();
+      var perfilFmt = String(perfil || "").toLowerCase() === "pmm" ? "pmm" : "adm";
+      aba.appendRow([
+        "log-" + agora.getTime(),
+        agora.toLocaleDateString("pt-BR"),
+        agora.toLocaleTimeString("pt-BR"),
+        usuarioNome || "Usuário",
+        acao || "Acesso",
+        perfilFmt,
+        email || ""
+      ]);
+    }
+  } catch(e) {}
+}
+
+function carregarUsuarios(ss) {
+  var usuarios = [
+    {
+      id: "adm-001",
+      email: "andre.gianotti@totvs.com.br",
+      nome: "André Gianotti",
+      cargo: "Dono do Produto",
+      dono_produto: true,
+      tipo: "administrador",
+      ativo: true,
+      foto: "",
+      criado_em: "16/09/2026 15:30"
+    }
+  ];
+  try {
+    var aba = ss.getSheetByName("Usuarios");
+    if (!aba) return usuarios;
+    var dados = aba.getDataRange().getValues();
+    if (dados.length <= 1) return usuarios;
+    for (var i = 1; i < dados.length; i++) {
+      var r = dados[i];
+      if (!r[0]) continue;
+      if (String(r[1]).toLowerCase().trim() === "andre.gianotti@totvs.com.br") continue;
+      var isAtivo = r[10] === undefined || r[10] === "" || String(r[10]).toLowerCase() === "true";
+      usuarios.push({
+        id: String(r[0]),
+        email: String(r[1]),
+        nome: String(r[2]),
+        cargo: String(r[3] || "Administrador"),
+        dono_produto: String(r[5]) === "true",
+        tipo: "administrador",
+        ativo: isAtivo,
+        precisa_trocar_senha: String(r[6]) === "true",
+        foto: String(r[7] || ""),
+        criado_em: String(r[8] || ""),
+        perfil: String(r[9] || "adm")
+      });
+    }
+  } catch(e) {}
+  return usuarios;
+}
+
+function obterDadosAdmin() {
+  try {
+    var ss = getSpreadsheet();
+    var usuarios = carregarUsuarios(ss);
+    var convites = carregarConvites(ss);
+    var visitantes = carregarVisitantes(ss);
+    var metricas = calcularMetricasVisitantes(visitantes);
+    var logsAcesso = carregarLogsAcesso(ss);
+    var logsAuditoria = carregarLogsAuditoria(ss);
+
+    return {
+      success: true,
+      usuarios: usuarios,
+      convites: convites,
+      metricas: metricas,
+      logsAcesso: logsAcesso,
+      logsAuditoria: logsAuditoria
+    };
+  } catch(e) {
+    return {
+      success: true,
+      usuarios: [
+        {
+          id: "adm-001",
+          email: "andre.gianotti@totvs.com.br",
+          nome: "André Gianotti",
+          cargo: "Dono do Produto",
+          dono_produto: true,
+          tipo: "administrador",
+          ativo: true,
+          foto: "",
+          criado_em: "16/09/2026 15:30"
+        }
+      ],
+      convites: [],
+      metricas: { hoje: 0, semana: 0, mes: 0, ano: 0, total: 0 },
+      logsAcesso: [],
+      logsAuditoria: []
+    };
+  }
+}
+
+function carregarConvites(ss) {
+  try {
+    var aba = ss.getSheetByName("Convites");
+    if (!aba) return [];
+    var dados = aba.getDataRange().getValues();
+    if (dados.length <= 1) return [];
+    var lista = [];
+    for (var i = 1; i < dados.length; i++) {
+      var r = dados[i];
+      if (!r[0]) continue;
+      var tokenVal = String(r[1] || "");
+      lista.push({
+        id: String(r[0]),
+        token: tokenVal,
+        email: String(r[2] || ""),
+        nome: String(r[3] || ""),
+        criado_por: String(r[4] || "André Gianotti"),
+        criado_em: String(r[5] || ""),
+        utilizado: String(r[6]) === "true",
+        perfil: String(r[7] || (tokenVal.startsWith("pmm_") ? "pmm" : "adm"))
+      });
+    }
+    return lista;
+  } catch(e) {
+    return [];
+  }
+}
+
+function salvarConviteAdmin(dados) {
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Convites");
+    if (!aba) {
+      aba = ss.insertSheet("Convites");
+      aba.appendRow(["ID", "Token", "Email", "Nome", "CriadoPor", "CriadoEm", "Utilizado", "Perfil"]);
+      aba.getRange("A1:H1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+    }
+    var perfil = String(dados.perfil || "especialista").toLowerCase().trim();
+    if (perfil !== "adm" && perfil !== "pmm" && perfil !== "especialista") {
+      perfil = "especialista";
+    }
+    var prefix = perfil === "adm" ? "adm_" : (perfil === "especialista" ? "esp_" : "pmm_");
+    var token = prefix + Math.random().toString(36).substring(2, 10) + new Date().getTime().toString(36);
+    var id = "conv-" + new Date().getTime();
+    var agora = new Date().toLocaleString("pt-BR");
+    var convite = {
+      id: id,
+      token: token,
+      email: dados.email,
+      nome: dados.nome,
+      perfil: perfil,
+      criado_por: dados.criado_por || "André Gianotti",
+      criado_em: agora,
+      utilizado: false
+    };
+    aba.appendRow([convite.id, convite.token, convite.email, convite.nome, convite.criado_por, convite.criado_em, false, convite.perfil]);
+    return { success: true, convite: convite };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Exclui um convite individual (pendente ou utilizado) e revoga o link imediatamente
+ */
+function excluirConviteAdmin(tokenOrId) {
+  var idOuToken = String(tokenOrId || "").trim();
+  if (!idOuToken) return { success: false, message: "Identificador do convite não informado." };
+
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Convites");
+    if (!aba) return { success: false, message: "Aba de convites não encontrada." };
+
+    var dados = aba.getDataRange().getValues();
+    for (var i = 1; i < dados.length; i++) {
+      var r = dados[i];
+      if (String(r[0]).trim() === idOuToken || String(r[1]).trim() === idOuToken) {
+        var token = String(r[1] || "");
+        var email = String(r[2] || "");
+        var nome = String(r[3] || "Convidado");
+        var util = String(r[6]) === "true";
+        var perfil = String(r[7] || (token.startsWith("pmm_") ? "pmm" : "adm"));
+
+        aba.deleteRow(i + 1);
+
+        // Auditoria
+        try {
+          var abaAud = ss.getSheetByName("LogsAuditoria");
+          if (!abaAud) {
+            abaAud = ss.insertSheet("LogsAuditoria");
+            abaAud.appendRow(["ID", "Data", "Horario", "Analista", "Email", "Perfil", "Estacao", "Acao", "Detalhes"]);
+            abaAud.getRange("A1:I1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+          }
+          var agora = new Date();
+          abaAud.appendRow([
+            "aud-" + agora.getTime(),
+            agora.toLocaleDateString("pt-BR"),
+            agora.toLocaleTimeString("pt-BR"),
+            "Administrador TOTVS",
+            "adm@totvs.com.br",
+            "adm",
+            "Gestão de Convites",
+            util ? "Remoção de convite concluído do histórico" : "Cancelamento e revogação de link de convite",
+            "Convite de \"" + nome + "\" (" + (email || "sem e-mail") + ") com perfil " + perfil + " foi excluído."
+          ]);
+        } catch(eAud) {}
+
+        return { success: true, message: "Convite excluído e link cancelado com sucesso.", convites: carregarConvites(ss) };
+      }
+    }
+    return { success: false, message: "Convite não encontrado." };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Limpa o histórico de convites em lote: 'used' (apenas utilizados) ou 'all' (revogação de todos)
+ */
+function limparHistoricoConvites(scope) {
+  var modo = String(scope || "used").toLowerCase().trim();
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Convites");
+    if (!aba) return { success: true, removedCount: 0, convites: [] };
+
+    var dados = aba.getDataRange().getValues();
+    if (dados.length <= 1) return { success: true, removedCount: 0, convites: [] };
+
+    var removidos = 0;
+    // Percorrer de trás para frente para manter integridade dos índices
+    for (var i = dados.length - 1; i >= 1; i--) {
+      var r = dados[i];
+      var util = String(r[6]) === "true";
+      if (modo === "all" || (modo === "used" && util)) {
+        aba.deleteRow(i + 1);
+        removidos++;
+      }
+    }
+
+    // Auditoria
+    try {
+      var abaAud = ss.getSheetByName("LogsAuditoria");
+      if (!abaAud) {
+        abaAud = ss.insertSheet("LogsAuditoria");
+        abaAud.appendRow(["ID", "Data", "Horario", "Analista", "Email", "Perfil", "Estacao", "Acao", "Detalhes"]);
+        abaAud.getRange("A1:I1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      }
+      var agora = new Date();
+      var acaoAud = modo === "all" ? "Limpeza total do histórico de convites" : "Limpeza de convites concluídos";
+      var detAud = modo === "all"
+        ? "Todos os " + removidos + " convites foram removidos e links pendentes revogados."
+        : removidos + " convite(s) concluído(s) removido(s) do histórico.";
+
+      abaAud.appendRow([
+        "aud-" + agora.getTime(),
+        agora.toLocaleDateString("pt-BR"),
+        agora.toLocaleTimeString("pt-BR"),
+        "Administrador TOTVS",
+        "adm@totvs.com.br",
+        "adm",
+        "Gestão de Convites",
+        acaoAud,
+        detAud
+      ]);
+    } catch(eAud) {}
+
+    return { success: true, removedCount: removidos, convites: carregarConvites(ss) };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function removerUsuarioAdmin(id) {
+  try {
+    if (id === "adm-001" || id === "usr-dono") {
+      return { success: false, message: "O Dono do Produto não pode ser removido!" };
+    }
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Usuarios");
+    if (!aba) return { success: true };
+    var dados = aba.getDataRange().getValues();
+    for (var i = 1; i < dados.length; i++) {
+      if (String(dados[i][0]) === String(id)) {
+        aba.deleteRow(i + 1);
+        break;
+      }
+    }
+    return { success: true, usuarios: carregarUsuarios(ss) };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function carregarLogsAcesso(ss) {
+  try {
+    var aba = ss.getSheetByName("Logs");
+    if (!aba) return [];
+    var dados = aba.getDataRange().getValues();
+    if (dados.length <= 1) return [];
+    var lista = [];
+    for (var i = dados.length - 1; i >= 1 && lista.length < 100; i--) {
+      var r = dados[i];
+      if (!r[0]) continue;
+      var acaoStr = String(r[4] || "");
+      var perfilStr = String(r[5] || (acaoStr.toLowerCase().indexOf("pmm") >= 0 ? "pmm" : (acaoStr.toLowerCase().indexOf("admin") >= 0 || String(r[3]) ? "adm" : "visitante")));
+      lista.push({
+        id: String(r[0]),
+        data: String(r[1]),
+        data_formatada: String(r[1]),
+        hora: String(r[2]),
+        horario_formatado: String(r[2]),
+        usuario: String(r[3]),
+        acao: acaoStr,
+        perfil: perfilStr,
+        email: String(r[6] || ""),
+        detalhes: String(r[5] || "")
+      });
+    }
+    return lista;
+  } catch(e) {
+    return [];
+  }
+}
+
+function carregarLogsAuditoria(ss) {
+  try {
+    var aba = ss.getSheetByName("LogsAuditoria");
+    if (!aba) return carregarLogsAcesso(ss);
+    var dados = aba.getDataRange().getValues();
+    if (dados.length <= 1) return carregarLogsAcesso(ss);
+    var lista = [];
+    for (var i = dados.length - 1; i >= 1 && lista.length < 100; i--) {
+      var r = dados[i];
+      if (!r[0]) continue;
+      lista.push({
+        id: String(r[0]),
+        data: String(r[1]),
+        data_formatada: String(r[1]),
+        hora: String(r[2]),
+        horario_formatado: String(r[2]),
+        usuario: String(r[3]),
+        analista_nome: String(r[3]),
+        email: String(r[4] || ""),
+        analista_email: String(r[4] || ""),
+        perfil: String(r[5] || "adm"),
+        segmento: String(r[6] || ""),
+        segmento_nome: String(r[6] || ""),
+        acao: String(r[7] || "Edição de estação"),
+        detalhes: String(r[8] || "")
+      });
+    }
+    return lista.length > 0 ? lista : carregarLogsAcesso(ss);
+  } catch(e) {
+    return carregarLogsAcesso(ss);
+  }
+}
+
+/**
+ * ============================================================================
+ * TOTVS ESPAÇO EXPERIÊNCIA - GOOGLE APPS SCRIPT BACKEND
+ * ============================================================================
+ * Governança e Nuvem TOTVS (Google Workspace)
+ * 
+ * INSTRUÇÃO:
+ * Cole o ID da sua Planilha Google corporativa na variável SPREADSHEET_ID abaixo.
+ * Exemplo: se a URL for:
+ * https://docs.google.com/spreadsheets/d/1A2B3C4D5E6F7G8H9I/edit
+ * Então SPREADSHEET_ID = "1A2B3C4D5E6F7G8H9I";
+ * ============================================================================
+ */
+
+var SPREADSHEET_ID = "COLE_O_ID_DA_SUA_PLANILHA_AQUI";
+
+/**
+ * Ponto de entrada HTTP do Web App
+ */
+function doGet(e) {
+  var template = HtmlService.createTemplateFromFile('Index');
+  var conviteParam = (e && e.parameter && e.parameter.convite) ? String(e.parameter.convite).trim() : "";
+  var webAppUrl = "";
+  try {
+    webAppUrl = ScriptApp.getService().getUrl();
+  } catch(err) {}
+  
+  if (!webAppUrl || webAppUrl === "") {
+    webAppUrl = "https://script.google.com/a/macros/totvs.com.br/s/AKfycbw1MxTh0_1-PMbw-GqL7vsBVA6IzLA_4HkYv5BdxcGIaA70MKZK5UuFwAouIFS3bVrq/exec";
+  }
+
+  template.CONVITE_PARAM = conviteParam;
+  template.WEB_APP_URL = webAppUrl;
+
+  return template.evaluate()
+    .setTitle('TOTVS - Espaço Experiência')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1');
+}
+
+/**
+ * Conexão com a Planilha Google (ou criação 100% automática no Drive da TOTVS!)
+ */
+function getSpreadsheet() {
+  // 1. Se foi salva previamente nas propriedades do projeto
+  var propId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+  if (propId && propId.trim() !== "") {
+    try { return SpreadsheetApp.openById(propId.trim()); } catch (e) {}
+  }
+
+  // 2. Se você colou o ID manualmente na linha 15
+  if (SPREADSHEET_ID && SPREADSHEET_ID !== "COLE_O_ID_DA_SUA_PLANILHA_AQUI" && SPREADSHEET_ID.trim() !== "") {
+    try { return SpreadsheetApp.openById(SPREADSHEET_ID.trim()); } catch (e) {}
+  }
+
+  // 3. Se não tiver ID nenhum: cria a planilha automaticamente no seu Google Drive da TOTVS!
+  var novaPlanilha = SpreadsheetApp.create("TOTVS Espaço Experiência - Banco de Dados");
+  var novoId = novaPlanilha.getId();
+  PropertiesService.getScriptProperties().setProperty("SPREADSHEET_ID", novoId);
+  Logger.log("Planilha criada automaticamente no seu Google Drive!");
+  Logger.log("ID: " + novoId);
+  Logger.log("Link: " + novaPlanilha.getUrl());
+  return novaPlanilha;
+}
+
+/**
+ * Função utilitária para consultar o link e ID da sua planilha criada
+ */
+function verLinkDaMinhaPlanilha() {
+  var ss = getSpreadsheet();
+  var msg = "Sua planilha está pronta!\nLink: " + ss.getUrl() + "\nID: " + ss.getId();
+  Logger.log(msg);
+  return msg;
+}
+
+/**
+ * Captura dados do usuário corporativo TOTVS autenticado
+ */
+function obterUsuarioAtivo() {
+  var email = "";
+  try {
+    email = Session.getActiveUser().getEmail();
+  } catch (e) {}
+  
+  if (!email || email === "") {
+    email = "andre.gianotti@totvs.com.br";
+  }
+  
+  var emailLower = email.toLowerCase().trim();
+  var isDono = emailLower === "andre.gianotti@totvs.com.br";
+  
+  var parteNome = email.split('@')[0].replace(/[._-]/g, ' ');
+  var nomeFormatado = parteNome.split(' ').map(function(palavra) {
+    return palavra.charAt(0).toUpperCase() + palavra.slice(1).toLowerCase();
+  }).join(' ');
+
+  return {
+    email: email,
+    nome: isDono ? "André Gianotti" : (nomeFormatado || "Especialista TOTVS"),
+    cargo: isDono ? "Dono do Produto" : "Colaborador TOTVS",
+    tipo: "administrador",
+    dono_produto: isDono,
+    foto: ""
+  };
+}
+
+/**
+ * Carga inicial consolidada de todos os dados do showroom
+ */
+function obterDadosIniciais() {
+  try {
+    var ss = getSpreadsheet();
+    var usuario = obterUsuarioAtivo();
+    
+    var segmentos = carregarSegmentos(ss);
+    var plantonistas = carregarPlantonistas(ss);
+    var videoGestao = carregarVideoGestao(ss);
+    var visitantes = carregarVisitantes(ss);
+    var metricas = calcularMetricasVisitantes(visitantes);
+    var authObrigatoria = PropertiesService.getScriptProperties().getProperty("AUTH_ESPECIALISTA_OBRIGATORIA") === "true";
+    var configLembretes = obterConfigLembretes();
+    
+    return {
+      success: true,
+      usuario: usuario,
+      segmentos: segmentos,
+      plantonistas: plantonistas,
+      videoGestao: videoGestao,
+      visitantes: visitantes,
+      metricas: metricas,
+      auth_especialista_obrigatoria: authObrigatoria,
+      configLembretes: configLembretes
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err.message,
+      usuario: obterUsuarioAtivo(),
+      segmentos: getSegmentosPadrao(),
+      plantonistas: getPlantonistasPadrao(),
+      videoGestao: {
+        ativo: true,
+        tipo: "link",
+        url: "https://drive.google.com/file/d/1VOUtlK5WR5rn6T0LwbAffw3K-GWUDK3M/view?usp=sharing",
+        titulo: "Video discurso",
+        mensagem: "Veja seu discurso aqui !!!",
+        subtitulo: "Mensagem institucional da liderança aos visitantes do Espaço Experiência"
+      },
+      visitantes: [],
+      metricas: { hoje: 0, semana: 0, mes: 0, ano: 0, total: 0 },
+      auth_especialista_obrigatoria: false,
+      configLembretes: getLembretesPadrao()
+    };
+  }
+}
+
+/**
+ * Localiza ou cria a pasta corporativa de mídias no Google Drive
+ */
+function obterOuCriarPastaMidias() {
+  try {
+    if (typeof DriveApp === 'undefined' || !DriveApp) return null;
+    var nomePasta = "TOTVS Espaço Experiência - Mídias";
+    var pastas = DriveApp.getFoldersByName(nomePasta);
+    if (pastas.hasNext()) {
+      return pastas.next();
+    }
+    var novaPasta = DriveApp.createFolder(nomePasta);
+    try {
+      novaPasta.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (eShare) {}
+    return novaPasta;
+  } catch (err) {
+    Logger.log("Aviso DriveApp (obterOuCriarPastaMidias): " + err.message);
+    return null;
+  }
+}
+
+/**
+ * Salva uma foto/arquivo Base64 diretamente no Google Drive e retorna URL direta permanente
+ */
+function salvarArquivoDrive(base64Data, nomeArquivo, mimeType) {
+  try {
+    if (!base64Data) throw new Error("Nenhum dado Base64 fornecido.");
+    var pasta = obterOuCriarPastaMidias();
+    if (!pasta) {
+      return { success: false, fallback: true, error: "DriveApp indisponível ou permissão não concedida." };
+    }
+
+    var cleanBase64 = String(base64Data);
+    var tipoMime = mimeType || "image/jpeg";
+
+    if (cleanBase64.indexOf(",") > -1) {
+      var partes = cleanBase64.split(",");
+      var cabecalho = partes[0];
+      cleanBase64 = partes[1];
+      var matchMime = cabecalho.match(/:(.*?);/);
+      if (matchMime && matchMime[1]) tipoMime = matchMime[1];
+    }
+
+    var bytes = Utilities.base64Decode(cleanBase64);
+    var extensao = ".jpg";
+    if (tipoMime.indexOf("png") > -1) extensao = ".png";
+    else if (tipoMime.indexOf("webp") > -1) extensao = ".webp";
+
+    var timestamp = new Date().getTime();
+    var nomeSeguro = (nomeArquivo || "equipamento").replace(/[^a-zA-Z0-9_\-]/g, "_").toLowerCase().slice(0, 30);
+    var nomeFinal = "equip_" + timestamp + "_" + nomeSeguro + extensao;
+
+    var blob = Utilities.newBlob(bytes, tipoMime, nomeFinal);
+    var arquivo = pasta.createFile(blob);
+    try {
+      arquivo.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (eShare) {}
+
+    var fileId = arquivo.getId();
+    var urlDireta = "https://lh3.googleusercontent.com/d/" + fileId;
+
+    return {
+      success: true,
+      url: urlDireta,
+      fileId: fileId,
+      nome: nomeFinal,
+      tamanhoBytes: bytes.length
+    };
+  } catch (err) {
+    Logger.log("Erro em salvarArquivoDrive: " + err.message);
+    return { success: false, fallback: true, error: err.message };
+  }
+}
+
+/**
+ * Obtém ou cria a aba dedicada 'Equipamentos' na planilha do Google
+ */
+function obterOuCriarAbaEquipamentos(ss) {
+  if (!ss) ss = getSpreadsheet();
+  var aba = ss.getSheetByName("Equipamentos");
+  if (!aba) {
+    aba = ss.insertSheet("Equipamentos");
+    aba.appendRow(["ID", "EstacaoID", "Ordem", "Titulo", "Descricao", "FotoUrlOuBase64", "AtualizadoEm", "AtualizadoPor"]);
+    aba.getRange("A1:H1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+  }
+  return aba;
+}
+
+/**
+ * Carrega todos os equipamentos agrupados por ID da estação
+ */
+function carregarTodosEquipamentosPorEstacao(ss) {
+  var mapa = {};
+  try {
+    if (!ss) ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Equipamentos");
+    if (!aba || aba.getLastRow() <= 1) return mapa;
+
+    var dados = aba.getDataRange().getValues();
+    for (var i = 1; i < dados.length; i++) {
+      var row = dados[i];
+      var eqId = String(row[0] || "");
+      var estacaoId = String(row[1] || "");
+      if (!eqId || !estacaoId) continue;
+
+      if (!mapa[estacaoId]) mapa[estacaoId] = [];
+      mapa[estacaoId].push({
+        id: eqId,
+        ordem: Number(row[2]) || (mapa[estacaoId].length + 1),
+        titulo: String(row[3] || ""),
+        descricao: String(row[4] || ""),
+        foto: String(row[5] || ""),
+        atualizado_em: String(row[6] || ""),
+        atualizado_por: String(row[7] || "")
+      });
+    }
+
+    for (var k in mapa) {
+      mapa[k].sort(function(a, b) { return (a.ordem || 0) - (b.ordem || 0); });
+    }
+  } catch (err) {
+    Logger.log("Aviso ao carregar aba Equipamentos: " + err.message);
+  }
+  return mapa;
+}
+
+/**
+ * Salva a lista de equipamentos de uma estação na aba dedicada 'Equipamentos'
+ */
+function salvarEquipamentosEstacao(ss, estacaoId, equipamentos, autor) {
+  try {
+    if (!ss) ss = getSpreadsheet();
+    var aba = obterOuCriarAbaEquipamentos(ss);
+    var dados = aba.getDataRange().getValues();
+    var linhasManter = [dados[0]]; // Mantém cabeçalho
+
+    for (var i = 1; i < dados.length; i++) {
+      if (String(dados[i][1]) !== estacaoId) {
+        linhasManter.push(dados[i]);
+      }
+    }
+
+    var agora = new Date().toLocaleString("pt-BR");
+    var autorNome = autor || "Administrador TOTVS";
+
+    if (Array.isArray(equipamentos) && equipamentos.length > 0) {
+      for (var j = 0; j < equipamentos.length; j++) {
+        var eq = equipamentos[j];
+        if (!eq) continue;
+        var eqId = eq.id || ("eq_" + estacaoId + "_" + (j + 1));
+        var eqFoto = String(eq.foto || "");
+        if (eqFoto.length > 48000) {
+          eqFoto = ""; // Evita estourar o limite de 50.000 caracteres do Google Sheets
+        }
+        linhasManter.push([
+          safeCellValue(eqId),
+          safeCellValue(estacaoId),
+          j + 1,
+          safeCellValue(eq.titulo || ""),
+          safeCellValue(eq.descricao || ""),
+          safeCellValue(eqFoto),
+          agora,
+          autorNome
+        ]);
+      }
+    }
+
+    // Gravação transacional segura: não chama aba.clearContents() previamente
+    if (dados.length > 1) {
+      aba.getRange(2, 1, dados.length - 1, 8).clearContent();
+    }
+    aba.getRange(1, 1, linhasManter.length, 8).setValues(linhasManter);
+    aba.getRange("A1:H1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+    return true;
+  } catch (err) {
+    Logger.log("Erro ao salvarEquipamentosEstacao: " + err.message);
+    return false;
+  }
+}
+
+function carregarSegmentos(ss) {
+  try {
+    var aba = ss.getSheetByName("Segmentos");
+    if (!aba || aba.getLastRow() <= 1) {
+      inicializarPlanilha(ss);
+      aba = ss.getSheetByName("Segmentos");
+    }
+    if (!aba) return getSegmentosPadrao();
+    var dados = aba.getDataRange().getValues();
+    if (dados.length <= 1) return getSegmentosPadrao();
+
+    var mapaEquipamentos = carregarTodosEquipamentosPorEstacao(ss);
+    var padroes = getSegmentosPadrao();
+    var mapaPadroes = {};
+    for (var p = 0; p < padroes.length; p++) {
+      mapaPadroes[padroes[p].id] = padroes[p];
+    }
+
+    var lista = [];
+    for (var i = 1; i < dados.length; i++) {
+      var row = dados[i];
+      if (!row[0]) continue;
+      try {
+        var segId = String(row[0]);
+        var padrao = mapaPadroes[segId] || null;
+        var jsonStr = row[7];
+        var segItem = null;
+
+        if (jsonStr && typeof jsonStr === 'string' && jsonStr.startsWith('{')) {
+          try {
+            segItem = JSON.parse(jsonStr);
+          } catch(eParse) {
+            segItem = null;
+          }
+        }
+
+        // Se o JSON não pôde ser parseado ou estava corrompido, inicializa a partir do padrão de fábrica
+        if (!segItem) {
+          if (padrao) {
+            segItem = JSON.parse(JSON.stringify(padrao));
+            segItem.id = segId;
+            segItem.ordem = Number(row[1]) || padrao.ordem || i;
+            segItem.nome = String(row[2]) || padrao.nome;
+            segItem.tagline = String(row[3] || padrao.tagline || "");
+            segItem.pitch = String(row[4] || padrao.pitch || "");
+          } else {
+            segItem = {
+              id: segId,
+              ordem: Number(row[1]) || i,
+              nome: String(row[2]),
+              tagline: String(row[3] || ""),
+              pitch: String(row[4] || ""),
+              personas: "",
+              principais_clientes: "",
+              foto_bancada: String(row[5] || ""),
+              icone: String(row[6] || "Factory"),
+              credenciais: { ip: "", usuario: "", senha: "", porta: "" },
+              badge_solucoes: []
+            };
+          }
+        }
+
+        // --- MERGE DEFENSIVO E RESTAURAÇÃO DE MÍDIAS/EQUIPAMENTOS ---
+        // 1. Foto da bancada: prioriza Coluna 6 (F) válida; se vazia, recupera do padrão
+        var fotoCol = (row.length > 5 && row[5]) ? String(row[5]).trim() : "";
+        if (fotoCol && fotoCol !== "undefined" && fotoCol !== "null") {
+          segItem.foto_bancada = fotoCol;
+        } else if (!segItem.foto_bancada && padrao && padrao.foto_bancada) {
+          segItem.foto_bancada = padrao.foto_bancada;
+        }
+
+        // 2. Vídeo do Discurso & Mídias: se ausentes ou vazios, recupera do padrão oficial
+        if (!segItem.video_discurso || !segItem.video_discurso.url) {
+          if (padrao && padrao.video_discurso && padrao.video_discurso.url) {
+            segItem.video_discurso = JSON.parse(JSON.stringify(padrao.video_discurso));
+          }
+        }
+        if (!segItem.midias || !segItem.midias.videos || segItem.midias.videos.length === 0) {
+          if (padrao && padrao.midias && padrao.midias.videos && padrao.midias.videos.length > 0) {
+            segItem.midias = JSON.parse(JSON.stringify(padrao.midias));
+          }
+        }
+
+        // 3. Equipamentos: prioriza aba dedicada 'Equipamentos'; se vazia, recupera do padrão
+        if (mapaEquipamentos[segId] && mapaEquipamentos[segId].length > 0) {
+          segItem.equipamentos = mapaEquipamentos[segId];
+        } else if (!segItem.equipamentos || !Array.isArray(segItem.equipamentos) || segItem.equipamentos.length === 0) {
+          if (padrao && padrao.equipamentos && padrao.equipamentos.length > 0) {
+            segItem.equipamentos = JSON.parse(JSON.stringify(padrao.equipamentos));
+          } else {
+            segItem.equipamentos = [];
+          }
+        }
+
+        // 4. Cenário, Roteiro, Dores, Perguntas, Badge e Credenciais
+        if (padrao) {
+          if (!segItem.cenario_fisico && padrao.cenario_fisico) segItem.cenario_fisico = padrao.cenario_fisico;
+          if ((!segItem.dores_setor || segItem.dores_setor.length === 0) && padrao.dores_setor) segItem.dores_setor = padrao.dores_setor;
+          if ((!segItem.roteiro_bancada || segItem.roteiro_bancada.length === 0) && padrao.roteiro_bancada) segItem.roteiro_bancada = padrao.roteiro_bancada;
+          if ((!segItem.perguntas_visitante || segItem.perguntas_visitante.length === 0) && padrao.perguntas_visitante) segItem.perguntas_visitante = padrao.perguntas_visitante;
+          if ((!segItem.badge_solucoes || segItem.badge_solucoes.length === 0) && padrao.badge_solucoes) segItem.badge_solucoes = padrao.badge_solucoes;
+          if (!segItem.credenciais && padrao.credenciais) segItem.credenciais = padrao.credenciais;
+        }
+
+        // 5. Metadados de Última Atualização
+        if (!segItem.ultima_atualizacao || !segItem.ultima_atualizacao.autor) {
+          segItem.ultima_atualizacao = {
+            data: new Date().toLocaleDateString("pt-BR"),
+            autor: "Especialista TOTVS"
+          };
+        }
+
+        // 6. Colunas Dedicadas: Pitch (Col 5), Personas (Col 9) e PrincipaisClientes (Col 10)
+        if (row.length > 4 && row[4]) {
+          segItem.pitch = String(row[4]);
+        }
+        if (row.length > 8 && row[8]) {
+          segItem.personas = String(row[8]);
+        }
+        if (row.length > 9 && row[9]) {
+          segItem.principais_clientes = String(row[9]);
+        }
+
+        if (typeof segItem.personas === 'undefined') segItem.personas = "";
+        if (typeof segItem.principais_clientes === 'undefined') segItem.principais_clientes = "";
+
+        lista.push(segItem);
+      } catch (eRow) {
+        Logger.log("Aviso ao processar linha " + (i + 1) + ": " + eRow.message);
+        if (mapaPadroes[String(row[0])]) {
+          lista.push(mapaPadroes[String(row[0])]);
+        }
+      }
+    }
+    return (lista.length > 0) ? lista.sort(function(a, b) { return (a.ordem || 0) - (b.ordem || 0); }) : getSegmentosPadrao();
+  } catch (err) {
+    Logger.log("Aviso ao ler segmentos: " + err.message);
+    return getSegmentosPadrao();
+  }
+}
+
+function formatarDataIso(val) {
+  if (!val) return "";
+  if (val instanceof Date) {
+    var y = val.getFullYear();
+    var m = String(val.getMonth() + 1);
+    if (m.length === 1) m = "0" + m;
+    var d = String(val.getDate());
+    if (d.length === 1) d = "0" + d;
+    return y + "-" + m + "-" + d;
+  }
+  var s = String(val).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var dt = new Date(s);
+  if (!isNaN(dt.getTime())) {
+    var y = dt.getFullYear();
+    var m = String(dt.getMonth() + 1);
+    if (m.length === 1) m = "0" + m;
+    var d = String(dt.getDate());
+    if (d.length === 1) d = "0" + d;
+    return y + "-" + m + "-" + d;
+  }
+  return s;
+}
+
+function carregarPlantonistas(ss) {
+  try {
+    var aba = ss.getSheetByName("Plantonistas");
+    if (!aba || aba.getLastRow() <= 1) {
+      inicializarPlanilha(ss);
+      aba = ss.getSheetByName("Plantonistas");
+    }
+    if (!aba) return getPlantonistasPadrao();
+    var dados = aba.getDataRange().getValues();
+    if (dados.length <= 1) return getPlantonistasPadrao();
+
+    var especialistas = [];
+    var escalas = {};
+
+    for (var i = 1; i < dados.length; i++) {
+      var row = dados[i];
+      var tipo = String(row[0]);
+      if (tipo === "ESPECIALISTA") {
+        especialistas.push({
+          id: String(row[1]),
+          nome: String(row[2]),
+          cargo: String(row[3]),
+          email: String(row[4]),
+          ramal: String(row[5]),
+          avatar_cor: String(row[6]) || "bg-totvs-blue",
+          estacao_foco: String(row[7]) || ""
+        });
+      } else if (tipo === "ESCALA") {
+        var dataStr = formatarDataIso(row[1]);
+        if (dataStr) {
+          var turnoStr = String(row[4]) || "08:00 as 17:30";
+          var nomeStr = String(row[3]);
+          var tipoStr = String(row[6]);
+          var isFeriado = tipoStr === "feriado" || turnoStr === "Feriado" || /feriado|fechado|ponte|recesso/i.test(nomeStr);
+          escalas[dataStr] = {
+            especialista_id: String(row[2]) || null,
+            nome: nomeStr,
+            turno: isFeriado ? "Feriado" : turnoStr,
+            observacoes: String(row[5]) || "",
+            tipo: isFeriado ? "feriado" : "normal",
+            status_rotulo: isFeriado ? (String(row[7]) || nomeStr) : ""
+          };
+        }
+      }
+    }
+
+    // Se a aba da planilha possuir menos de 50 escalas, recarrega automaticamente da base oficial
+    if (Object.keys(escalas).length < 50) {
+      try {
+        recarregarAbaPlantonistasDaBase();
+      } catch(e) {}
+      return getPlantonistasPadrao();
+    }
+
+    return { especialistas: especialistas, escalas: escalas };
+  } catch (err) {
+    return getPlantonistasPadrao();
+  }
+}
+
+function carregarVideoGestao(ss) {
+  var aba = ss.getSheetByName("VideoGestao");
+  var defaultVideo = {
+    ativo: true,
+    tipo: "link",
+    url: "https://drive.google.com/file/d/1VOUtlK5WR5rn6T0LwbAffw3K-GWUDK3M/view?usp=sharing",
+    titulo: "Video discurso",
+    mensagem: "Veja seu discurso aqui !!!",
+    subtitulo: "Mensagem institucional da liderança aos visitantes do Espaço Experiência",
+    atualizado_em: "06/10/2026, 17:20:00",
+    atualizado_por: "Administrador"
+  };
+  if (!aba) return defaultVideo;
+  var dados = aba.getDataRange().getValues();
+  if (dados.length <= 1) return defaultVideo;
+
+  return {
+    ativo: dados[1][0] === true || String(dados[1][0]).toLowerCase() === "true",
+    tipo: String(dados[1][1] || "link"),
+    url: String(dados[1][2] || defaultVideo.url),
+    titulo: String(dados[1][3] || defaultVideo.titulo),
+    mensagem: String(dados[1][4] || defaultVideo.mensagem),
+    subtitulo: String(dados[1][5] || defaultVideo.subtitulo),
+    atualizado_em: String(dados[1][6] || ""),
+    atualizado_por: String(dados[1][7] || "Administrador")
+  };
+}
+
+function carregarVisitantes(ss) {
+  var aba = ss.getSheetByName("Visitantes");
+  if (!aba) return [];
+  var dados = aba.getDataRange().getValues();
+  if (dados.length <= 1) return [];
+
+  var lista = [];
+  for (var i = 1; i < dados.length; i++) {
+    var r = dados[i];
+    if (!r[0]) continue;
+    
+    var dataFormatada = r[1];
+    if (dataFormatada instanceof Date) {
+      var y = dataFormatada.getFullYear();
+      var m = String(dataFormatada.getMonth() + 1);
+      var d = String(dataFormatada.getDate());
+      dataFormatada = y + "-" + (m.length === 1 ? "0" + m : m) + "-" + (d.length === 1 ? "0" + d : d);
+    } else {
+      dataFormatada = String(dataFormatada);
+    }
+
+    lista.push({
+      id: String(r[0]),
+      data: dataFormatada,
+      empresa: String(r[2]),
+      nome: String(r[2]),
+      tipo_visitante: String(r[3] || "cliente").toLowerCase(),
+      numero_pessoas: Number(r[4]) || 1,
+      responsavel: String(r[5]),
+      criado_em: String(r[6] || ""),
+      timestamp: Number(r[7]) || (new Date().getTime())
+    });
+  }
+  return lista;
+}
+
+function calcularMetricasVisitantes(visitantes) {
+  var agora = new Date();
+  var anoAtual = agora.getFullYear();
+  var mesAtual = agora.getMonth() + 1;
+  var diaAtual = agora.getDate();
+  
+  var pad = function(n) { return (n < 10 ? '0' : '') + n; };
+  var hojeStr = anoAtual + '-' + pad(mesAtual) + '-' + pad(diaAtual);
+  var mesPrefix = anoAtual + '-' + pad(mesAtual);
+  var anoPrefix = String(anoAtual);
+
+  var dayOfWeek = agora.getDay();
+  var diffMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  var diffFriday = dayOfWeek === 0 ? -2 : 5 - dayOfWeek;
+  
+  var monday = new Date(agora);
+  monday.setDate(agora.getDate() + diffMonday);
+  var friday = new Date(agora);
+  friday.setDate(agora.getDate() + diffFriday);
+  
+  var weekMonday = monday.getFullYear() + '-' + pad(monday.getMonth() + 1) + '-' + pad(monday.getDate());
+  var weekFriday = friday.getFullYear() + '-' + pad(friday.getMonth() + 1) + '-' + pad(friday.getDate());
+
+  var hoje = 0, semana = 0, mes = 0, ano = 0, total = 0;
+
+  for (var i = 0; i < visitantes.length; i++) {
+    var v = visitantes[i];
+    var qtd = Number(v.numero_pessoas) || 1;
+    total += qtd;
+    var d = String(v.data).slice(0, 10);
+
+    if (d === hojeStr) hoje += qtd;
+    if (d >= weekMonday && d <= weekFriday) semana += qtd;
+    if (d.indexOf(mesPrefix) === 0) mes += qtd;
+    if (d.indexOf(anoPrefix) === 0) ano += qtd;
+  }
+
+  return {
+    hoje: hoje,
+    semana: semana,
+    mes: mes,
+    ano: ano,
+    ano_atual: anoAtual,
+    total: total
+  };
+}
+
+/**
+ * Salva um novo visitante presencial na planilha Google
+ */
+function salvarVisitante(dados) {
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Visitantes");
+    if (!aba) throw new Error("Aba 'Visitantes' não encontrada na planilha.");
+
+    var id = "vis-" + new Date().getTime() + "-" + Math.random().toString(36).substring(2, 6);
+    var dataVisita = String(dados.data || "").trim();
+    var empresa = String(dados.empresa || dados.nome || "").trim();
+    var tipoVisitante = String(dados.tipo_visitante || "cliente").trim().toLowerCase();
+    var numeroPessoas = Number(dados.numero_pessoas) || 1;
+    var responsavel = String(dados.responsavel || "").trim();
+    var criadoEm = new Date().toLocaleString("pt-BR");
+    var timestamp = new Date().getTime();
+
+    aba.appendRow([id, dataVisita, empresa, tipoVisitante, numeroPessoas, responsavel, criadoEm, timestamp]);
+
+    var visitantes = carregarVisitantes(ss);
+    var metricas = calcularMetricasVisitantes(visitantes);
+
+    return {
+      success: true,
+      message: "Visita registrada com sucesso na planilha TOTVS!",
+      metricas: metricas,
+      visitante: {
+        id: id,
+        data: dataVisita,
+        empresa: empresa,
+        tipo_visitante: tipoVisitante,
+        numero_pessoas: numeroPessoas,
+        responsavel: responsavel,
+        criado_em: criadoEm
+      }
+    };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Zera todos os contadores de visitação com arquivamento de segurança (Exclusivo Dono do Produto)
+ */
+function zerarContadoresVisitantes(autorEmail, autorNome, palavraConfirmacao) {
+  try {
+    var emailLimpo = String(autorEmail || "").toLowerCase().trim();
+    var isDono = (emailLimpo === "andre.gianotti@totvs.com.br");
+
+    var ss = getSpreadsheet();
+    if (!isDono) {
+      // Verificar se é Dono na aba Usuarios
+      try {
+        var abaUsers = ss.getSheetByName("Usuarios");
+        if (abaUsers) {
+          var uData = abaUsers.getDataRange().getValues();
+          for (var u = 1; u < uData.length; u++) {
+            if (String(uData[u][1]).toLowerCase().trim() === emailLimpo && String(uData[u][5]) === "true") {
+              isDono = true;
+              break;
+            }
+          }
+        }
+      } catch (errUser) {}
+    }
+
+    if (!isDono) {
+      return { success: false, message: "Acesso negado: apenas o Dono do Produto pode zerar todos os contadores." };
+    }
+
+    if (String(palavraConfirmacao || "").trim().toUpperCase() !== "ZERAR") {
+      return { success: false, message: "Palavra de confirmação inválida. Digite exatamente \"ZERAR\"." };
+    }
+
+    var abaVis = ss.getSheetByName("Visitantes");
+    if (!abaVis) throw new Error("Aba 'Visitantes' não encontrada na planilha.");
+
+    var dadosVis = abaVis.getDataRange().getValues();
+    var qtdArquivados = 0;
+
+    if (dadosVis.length > 1) {
+      // 1. Criar/Obter aba de arquivamento Visitantes_Arquivo
+      var abaArq = ss.getSheetByName("Visitantes_Arquivo");
+      if (!abaArq) {
+        abaArq = ss.insertSheet("Visitantes_Arquivo");
+        abaArq.appendRow(["ID", "Data", "Empresa", "Tipo", "NumeroPessoas", "Responsavel", "CriadoEm", "Timestamp", "LinkForms", "ArquivadoEm", "ArquivadoPor"]);
+        abaArq.getRange("A1:K1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      }
+
+      var agoraStr = new Date().toLocaleString("pt-BR");
+      var nomeExecutor = autorNome || "André Gianotti";
+      var linhasParaArquivar = [];
+
+      for (var i = 1; i < dadosVis.length; i++) {
+        var r = dadosVis[i];
+        if (!r[0]) continue;
+        linhasParaArquivar.push([
+          r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8] || "",
+          agoraStr,
+          nomeExecutor
+        ]);
+        qtdArquivados++;
+      }
+
+      // 1. Gravação em Lote Único (Instantânea)
+      if (linhasParaArquivar.length > 0) {
+        var ultimaLinhaArq = abaArq.getLastRow();
+        abaArq.getRange(ultimaLinhaArq + 1, 1, linhasParaArquivar.length, 11).setValues(linhasParaArquivar);
+      }
+
+      // 2. Limpeza Instantânea de Conteúdo sem deletar linhas estruturais
+      var totalLinhasVis = abaVis.getLastRow();
+      var totalColsVis = abaVis.getLastColumn();
+      if (totalLinhasVis > 1) {
+        abaVis.getRange(2, 1, totalLinhasVis - 1, totalColsVis).clearContent();
+      }
+    }
+
+    // 3. Registrar auditoria oficial
+    try {
+      var abaAud = ss.getSheetByName("LogsAuditoria");
+      if (!abaAud) {
+        abaAud = ss.insertSheet("LogsAuditoria");
+        abaAud.appendRow(["ID", "Data", "Horario", "Analista", "Email", "Perfil", "Estacao", "Acao", "Detalhes"]);
+        abaAud.getRange("A1:I1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+      }
+      var agora = new Date();
+      abaAud.appendRow([
+        "aud-" + agora.getTime(),
+        agora.toLocaleDateString("pt-BR"),
+        agora.toLocaleTimeString("pt-BR"),
+        autorNome || "André Gianotti",
+        emailLimpo,
+        "adm",
+        "Painel de Visitação",
+        "Zerar todos os contadores de visitação",
+        "Todos os contadores de visitação (Hoje, Semana, Mês, Ano e Total) foram zerados pelo Dono do Produto. " + qtdArquivados + " registro(s) arquivado(s) em Visitantes_Arquivo."
+      ]);
+    } catch(eAud) {}
+
+    var limpo = calcularMetricasVisitantes([]);
+    return {
+      success: true,
+      message: "Todos os contadores foram zerados com sucesso! " + qtdArquivados + " registro(s) arquivado(s).",
+      metricas: limpo,
+      arquivados: qtdArquivados
+    };
+  } catch (err) {
+    return { success: false, message: "Erro ao zerar contadores na planilha: " + err.message };
+  }
+}
+
+/**
+ * Salva a alteração de escala no calendário de plantonistas
+ */
+function salvarEscalaPlantonista(dataStr, espId) {
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Plantonistas");
+    if (!aba) throw new Error("Aba 'Plantonistas' não encontrada.");
+
+    var dados = aba.getDataRange().getValues();
+    var linhaExistente = -1;
+    var nomeEsp = "";
+
+    for (var i = 1; i < dados.length; i++) {
+      if (String(dados[i][0]) === "ESPECIALISTA" && String(dados[i][1]) === espId) {
+        nomeEsp = String(dados[i][2]);
+        break;
+      }
+    }
+
+    for (var j = 1; j < dados.length; j++) {
+      if (String(dados[j][0]) === "ESCALA" && String(dados[j][1]) === dataStr) {
+        linhaExistente = j + 1;
+        break;
+      }
+    }
+
+    if (linhaExistente > 0) {
+      aba.getRange(linhaExistente, 3).setValue(espId);
+      aba.getRange(linhaExistente, 4).setValue(nomeEsp);
+      aba.getRange(linhaExistente, 5).setValue("09:00 - 18:00");
+    } else {
+      aba.appendRow(["ESCALA", dataStr, espId, nomeEsp, "09:00 - 18:00", "Plantão Presencial", "", ""]);
+    }
+
+    return { success: true, plantonistas: carregarPlantonistas(ss) };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Salva a escala em lote a partir da importação de planilha Excel (.xlsx)
+ */
+function salvarEscalaLote(payload) {
+  try {
+    var ss = getSpreadsheet();
+    var aba = ss.getSheetByName("Plantonistas");
+    if (!aba) {
+      inicializarPlanilha(ss);
+      aba = ss.getSheetByName("Plantonistas");
+    }
+    if (!aba) throw new Error("Aba 'Plantonistas' não encontrada.");
+
+    var ano = payload.ano;
+    var escalasNovas = payload.escalasNovas || {};
+    var novosEspecialistas = payload.novosEspecialistas || [];
+
+    // 1. Cadastrar novos especialistas se houver
+    if (novosEspecialistas.length > 0) {
+      var dadosExistentes = aba.getDataRange().getValues();
+      for (var k = 0; k < novosEspecialistas.length; k++) {
+        var esp = novosEspecialistas[k];
+        var jaExiste = false;
+        for (var eIdx = 1; eIdx < dadosExistentes.length; eIdx++) {
+          if (String(dadosExistentes[eIdx][0]) === "ESPECIALISTA" && 
+             (String(dadosExistentes[eIdx][1]) === esp.id || String(dadosExistentes[eIdx][2]).toLowerCase() === esp.nome.toLowerCase())) {
+            jaExiste = true;
+            break;
+          }
+        }
+        if (!jaExiste) {
+          aba.appendRow(["ESPECIALISTA", esp.id, esp.nome, esp.cargo || "Especialista", esp.email || "", esp.ramal || "", esp.avatar_cor || "bg-totvs-blue", esp.estacao_foco || ""]);
+        }
+      }
+    }
+
+    // 2. Limpar escalas antigas do ano
+    var dados = aba.getDataRange().getValues();
+    var anoPrefix = String(ano) + "-";
+    for (var i = dados.length - 1; i >= 1; i--) {
+      if (String(dados[i][0]) === "ESCALA" && String(dados[i][1]).indexOf(anoPrefix) === 0) {
+        aba.deleteRow(i + 1);
+      }
+    }
+
+    // 3. Adicionar as novas escalas em lote
+    var rowsToAdd = [];
+    for (var dateKey in escalasNovas) {
+      if (escalasNovas.hasOwnProperty(dateKey)) {
+        var item = escalasNovas[dateKey];
+        rowsToAdd.push([
+          "ESCALA",
+          dateKey,
+          item.especialista_id || "",
+          item.nome || "",
+          item.turno || "08:00 as 17:30",
+          item.observacoes || "",
+          item.tipo || "normal",
+          item.status_rotulo || ""
+        ]);
+      }
+    }
+
+    if (rowsToAdd.length > 0) {
+      var lastRow = aba.getLastRow();
+      aba.getRange(lastRow + 1, 1, rowsToAdd.length, 8).setValues(rowsToAdd);
+    }
+
+    return { success: true, plantonistas: carregarPlantonistas(ss) };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Função utilitária para recarregar a aba Plantonistas com a carga oficial da base 2026
+ */
+function recarregarAbaPlantonistasDaBase() {
+  var ss = getSpreadsheet();
+  var abaPlan = ss.getSheetByName("Plantonistas");
+  if (!abaPlan) abaPlan = ss.insertSheet("Plantonistas");
+  abaPlan.clear();
+  abaPlan.appendRow(["RegistroTipo", "ChaveOuData", "NomeOuIdEsp", "CargoOuNomeEsp", "EmailOuTurno", "RamalOuObs", "AvatarCor", "EstacaoFoco"]);
+  abaPlan.getRange("A1:H1").setFontWeight("bold").setBackground("#002554").setFontColor("#FFFFFF");
+
+  var dadosPlan = getPlantonistasPadrao();
+  try {
+    var resPlan = UrlFetchApp.fetch("https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/data/plantonistas.json");
+    var parsedPlan = JSON.parse(resPlan.getContentText());
+    if (parsedPlan && parsedPlan.especialistas) dadosPlan = parsedPlan;
+  } catch(e) {}
+
+  var esps = dadosPlan.especialistas || [];
+  for (var j = 0; j < esps.length; j++) {
+    var esp = esps[j];
+    abaPlan.appendRow(["ESPECIALISTA", esp.id, esp.nome, esp.cargo, esp.email, esp.ramal, esp.avatar_cor, esp.estacao_foco]);
+  }
+  var esc = dadosPlan.escalas || {};
+  var datas = Object.keys(esc);
+  var rowsEsc = [];
+  for (var k = 0; k < datas.length; k++) {
+    var dStr = datas[k];
+    var item = esc[dStr];
+    rowsEsc.push(["ESCALA", "'" + dStr, item.especialista_id || "", item.nome || "", item.turno || "08:00 as 17:30", item.observacoes || "", item.tipo || "normal", item.status_rotulo || ""]);
+  }
+  if (rowsEsc.length > 0) {
+    var lastRow = abaPlan.getLastRow();
+    abaPlan.getRange(lastRow + 1, 1, rowsEsc.length, 8).setValues(rowsEsc);
+  }
+  return { success: true, totalEspecialistas: esps.length, totalEscalas: datas.length };
+}
+
+/**
  * Função utilitária para garantir que nenhuma célula exceda o limite de 50.000 caracteres do Google Sheets
  */
 function safeCellValue(val) {
