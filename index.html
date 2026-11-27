@@ -4226,7 +4226,7 @@
           {/* Logotipo Padrão Oficial TOTVS Branco no Canto Superior Esquerdo da Tela */}
           <div className="absolute top-6 left-6 sm:top-8 sm:left-8 z-20 flex items-center gap-3 select-none">
             <img
-              src="/uploads/identidade/logo-totvs-branco.svg"
+              src={resolveMediaUrl('uploads/identidade/logo-totvs-branco.svg')}
               alt="TOTVS"
               className="h-7 sm:h-8 w-auto"
               onError={(e) => {
@@ -4247,16 +4247,36 @@
 
           {/* Hexágonos 3D Oficiais TOTVS Decorativos Flutuantes nas Extremidades */}
           <div className="absolute -top-12 -left-12 w-40 sm:w-52 lg:w-60 opacity-60 pointer-events-none animate-float-slow">
-            <img src="/uploads/identidade/hexagono-1.png" alt="Hexágono 3D TOTVS" className="w-full h-auto drop-shadow-2xl" />
+            <img
+              src={resolveMediaUrl('uploads/identidade/hexagono-1.png')}
+              alt="Hexágono 3D TOTVS"
+              className="w-full h-auto drop-shadow-2xl"
+              onError={(e) => handleMediaError(e, 'uploads/identidade/hexagono-1.png')}
+            />
           </div>
           <div className="absolute top-1/4 -right-12 w-36 sm:w-48 lg:w-56 opacity-50 pointer-events-none animate-float-medium">
-            <img src="/uploads/identidade/hexagono-7.png" alt="Hexágono 3D TOTVS" className="w-full h-auto drop-shadow-2xl" />
+            <img
+              src={resolveMediaUrl('uploads/identidade/hexagono-7.png')}
+              alt="Hexágono 3D TOTVS"
+              className="w-full h-auto drop-shadow-2xl"
+              onError={(e) => handleMediaError(e, 'uploads/identidade/hexagono-7.png')}
+            />
           </div>
           <div className="absolute -bottom-16 -left-10 w-36 sm:w-44 lg:w-52 opacity-40 pointer-events-none animate-float-medium">
-            <img src="/uploads/identidade/hexagono-2.png" alt="Hexágono 3D TOTVS" className="w-full h-auto drop-shadow-xl" />
+            <img
+              src={resolveMediaUrl('uploads/identidade/hexagono-2.png')}
+              alt="Hexágono 3D TOTVS"
+              className="w-full h-auto drop-shadow-xl"
+              onError={(e) => handleMediaError(e, 'uploads/identidade/hexagono-2.png')}
+            />
           </div>
           <div className="absolute -bottom-14 right-10 w-36 sm:w-48 lg:w-56 opacity-50 pointer-events-none animate-float-slow">
-            <img src="/uploads/identidade/hexagono-11.png" alt="Hexágono 3D TOTVS" className="w-full h-auto drop-shadow-xl" />
+            <img
+              src={resolveMediaUrl('uploads/identidade/hexagono-11.png')}
+              alt="Hexágono 3D TOTVS"
+              className="w-full h-auto drop-shadow-xl"
+              onError={(e) => handleMediaError(e, 'uploads/identidade/hexagono-11.png')}
+            />
           </div>
 
           {/* Card Central de Login em Dark Tech Fosco Suave (#001B2B / #002538) */}

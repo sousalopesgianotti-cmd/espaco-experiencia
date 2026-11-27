@@ -42,6 +42,32 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
+    @font-face {
+      font-family: 'TOTVS';
+      src: url('https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/fonts/TOTVS-Bold.ttf') format('truetype'),
+           url('https://espaco-experiencia.onrender.com/uploads/fonts/TOTVS-Bold.ttf') format('truetype'),
+           url('/uploads/fonts/TOTVS-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    .font-totvs {
+      font-family: 'TOTVS', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(1.2deg); }
+    }
+    @keyframes floatMedium {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(8px) rotate(-1.5deg); }
+    }
+    .animate-float-slow {
+      animation: floatSlow 8s ease-in-out infinite;
+    }
+    .animate-float-medium {
+      animation: floatMedium 6s ease-in-out infinite;
+    }
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     body {
       font-family: 'Inter', sans-serif;
@@ -111,6 +137,7 @@
 
     // Ícones SVG inline para máxima compatibilidade e confiabilidade
     const RawIcons = {
+      Lock: (props) => <svg className={props?.className || "w-4 h-4"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>,
       Sprout: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2a9 9 0 019 9c0 4.97-4.03 9-9 9S3 15.97 3 11a9 9 0 019-9zm0 0v18m0-10a4 4 0 00-4-4m4 4a4 4 0 014-4" /></svg>,
       Factory: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
       Truck: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>,
@@ -4443,7 +4470,7 @@
           return;
         }
 
-        // 2. Render / Servidor Local
+        // 2. Servidor Local / Nuvem Interna
         try {
           const res = await fetch('/api/auth/login', {
             method: 'POST',
@@ -4465,44 +4492,94 @@
       };
 
       return (
-        <div className="min-h-screen bg-gradient-to-br from-[#001738] via-[#002554] to-[#0A192F] flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden font-sans select-none">
-          {/* Efeitos de Fundo Tech e Brilho Corporativo */}
-          <div className="absolute -top-32 -left-32 w-96 h-96 bg-totvs-blue/20 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-totvs-cyan/15 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(#00B4D8_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none"></div>
+        <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-[#002233] relative overflow-hidden select-none font-sans">
+          {/* Logotipo Padrão Oficial TOTVS Branco no Canto Superior Esquerdo da Tela */}
+          <div className="absolute top-6 left-6 sm:top-8 sm:left-8 z-20 flex items-center gap-3 select-none">
+            <img
+              src={resolveMediaUrl('uploads/identidade/logo-totvs-branco.svg')}
+              alt="TOTVS"
+              className="h-7 sm:h-8 w-auto"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+            <div style={{ display: 'none' }} className="items-center">
+              <TotvsLogo light={true} textClassName="font-black text-xl tracking-wider text-white leading-none font-totvs" />
+            </div>
+          </div>
 
-          {/* Card Central de Login */}
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 border border-white/20 relative z-10 animate-in zoom-in-95 duration-200">
-            {/* Topo do Card com Identidade Visual TOTVS */}
+          {/* Efeitos de Fundo Tech e Brilho Corporativo */}
+          <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#00dbff]/15 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#a44dff]/12 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#00ffd4]/5 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(#00dbff_1px,transparent_1px)] [background-size:28px_28px] opacity-10 pointer-events-none"></div>
+
+          {/* Hexágonos 3D Oficiais TOTVS Decorativos Flutuantes nas Extremidades */}
+          <div className="absolute -top-12 -left-12 w-40 sm:w-52 lg:w-60 opacity-60 pointer-events-none animate-float-slow">
+            <img
+              src={resolveMediaUrl('uploads/identidade/hexagono-1.png')}
+              alt="Hexágono 3D TOTVS"
+              className="w-full h-auto drop-shadow-2xl"
+              onError={(e) => handleMediaError(e, 'uploads/identidade/hexagono-1.png')}
+            />
+          </div>
+          <div className="absolute top-1/4 -right-12 w-36 sm:w-48 lg:w-56 opacity-50 pointer-events-none animate-float-medium">
+            <img
+              src={resolveMediaUrl('uploads/identidade/hexagono-7.png')}
+              alt="Hexágono 3D TOTVS"
+              className="w-full h-auto drop-shadow-2xl"
+              onError={(e) => handleMediaError(e, 'uploads/identidade/hexagono-7.png')}
+            />
+          </div>
+          <div className="absolute -bottom-16 -left-10 w-36 sm:w-44 lg:w-52 opacity-40 pointer-events-none animate-float-medium">
+            <img
+              src={resolveMediaUrl('uploads/identidade/hexagono-2.png')}
+              alt="Hexágono 3D TOTVS"
+              className="w-full h-auto drop-shadow-xl"
+              onError={(e) => handleMediaError(e, 'uploads/identidade/hexagono-2.png')}
+            />
+          </div>
+          <div className="absolute -bottom-14 right-10 w-36 sm:w-48 lg:w-56 opacity-50 pointer-events-none animate-float-slow">
+            <img
+              src={resolveMediaUrl('uploads/identidade/hexagono-11.png')}
+              alt="Hexágono 3D TOTVS"
+              className="w-full h-auto drop-shadow-xl"
+              onError={(e) => handleMediaError(e, 'uploads/identidade/hexagono-11.png')}
+            />
+          </div>
+
+          {/* Card Central de Login em Dark Tech Fosco Suave (#001B2B / #002538) */}
+          <div className="bg-[#001B2B]/90 backdrop-blur-xl rounded-3xl shadow-2xl max-w-md w-full p-7 sm:p-9 border border-white/10 relative z-10 animate-in zoom-in-95 duration-200">
+            {/* Topo do Card: Badge e Título Portal Espaço Experiência */}
             <div className="text-center mb-6">
-              <div className="flex justify-center mb-3">
-                <TotvsLogo light={false} textClassName="font-black text-2xl tracking-wider text-slate-900 leading-none" />
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-black uppercase tracking-wider mb-2">
-                <span>🔒 Modo Estrito Ativo</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#a44dff]/15 text-[#c788ff] border border-[#a44dff]/40 text-[10px] font-black uppercase tracking-wider mb-3">
+                <Icons.Lock className="w-3.5 h-3.5 shrink-0" />
+                <span>Modo Estrito Ativo</span>
                 <span>•</span>
                 <span>Acesso Restrito</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Espaço Experiência
+
+              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight font-totvs">
+                PORTAL ESPAÇO EXPERIÊNCIA
               </h2>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              <p className="text-xs text-slate-300 mt-1 leading-relaxed font-normal">
                 Identifique-se com suas credenciais corporativas para liberar o showroom e as ferramentas operacionais.
               </p>
             </div>
 
             {/* Alerta de Erro */}
             {erro && (
-              <div className="mb-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3 rounded-xl flex items-center gap-2 animate-in fade-in">
-                <Icons.AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                <span>{erro}</span>
+              <div className="mb-4 bg-rose-950/60 border border-rose-500/50 text-rose-200 text-xs p-3.5 rounded-xl flex items-center gap-2.5 animate-in fade-in">
+                <Icons.AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                <span className="font-medium">{erro}</span>
               </div>
             )}
 
             {/* Formulário de Identificação */}
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                <label className="block text-[11px] font-bold text-slate-200 mb-1.5">
                   E-mail Corporativo:
                 </label>
                 <div className="relative">
@@ -4511,7 +4588,7 @@
                     placeholder="seu.email@totvs.com.br"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className="w-full p-3 border border-slate-300 rounded-xl bg-slate-50/50 font-medium text-slate-800 focus:bg-white focus:border-totvs-cyan focus:ring-2 focus:ring-totvs-cyan/20 transition-all text-xs"
+                    className="w-full p-3.5 border border-white/15 rounded-xl bg-[#001422]/70 font-medium text-white placeholder-slate-400 focus:bg-[#001422] focus:border-[#00dbff] focus:ring-4 focus:ring-[#00dbff]/20 transition-all text-xs outline-none"
                     required
                     autoFocus={!email}
                   />
@@ -4519,7 +4596,7 @@
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                <label className="block text-[11px] font-bold text-slate-200 mb-1.5">
                   Senha de Acesso:
                 </label>
                 <div className="relative">
@@ -4528,7 +4605,7 @@
                     placeholder="••••••••"
                     value={senha}
                     onChange={e => setSenha(e.target.value)}
-                    className="w-full p-3 pr-10 border border-slate-300 rounded-xl bg-slate-50/50 font-medium text-slate-800 focus:bg-white focus:border-totvs-cyan focus:ring-2 focus:ring-totvs-cyan/20 transition-all text-xs"
+                    className="w-full p-3.5 pr-11 border border-white/15 rounded-xl bg-[#001422]/70 font-medium text-white placeholder-slate-400 focus:bg-[#001422] focus:border-[#00dbff] focus:ring-4 focus:ring-[#00dbff]/20 transition-all text-xs outline-none"
                     required
                     autoFocus={!!email}
                   />
@@ -4536,34 +4613,34 @@
                     type="button"
                     onClick={() => setShowSenha(!showSenha)}
                     title={showSenha ? 'Ocultar senha' : 'Exibir senha'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-1 rounded-lg cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#00dbff] transition p-1.5 rounded-lg cursor-pointer"
                   >
-                    {showSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                    {showSenha ? <Icons.EyeOff className="w-4 h-4" /> : <Icons.Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
-              {/* Opção para Salvar Nome/Perfil no Dispositivo */}
+              {/* Opção Lembrar Usuário */}
               <div className="flex items-center justify-between pt-1">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={lembrarUsuario}
                     onChange={e => setLembrarUsuario(e.target.checked)}
-                    className="w-4 h-4 rounded text-totvs-blue focus:ring-totvs-cyan border-slate-300 cursor-pointer"
+                    className="w-4 h-4 rounded text-[#00dbff] focus:ring-[#00dbff] border-white/20 cursor-pointer accent-[#00dbff]"
                   />
-                  <span className="text-[11px] font-bold text-slate-600 hover:text-slate-900 transition-colors">
+                  <span className="text-[11px] font-bold text-slate-300 hover:text-white transition-colors">
                     Lembrar meu usuário neste dispositivo
                   </span>
                 </label>
               </div>
 
-              {/* Botão de Entrar */}
+              {/* Botão de Ação Primária Oficial TOTVS */}
               <div className="pt-2">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-totvs-blue via-totvs-vibrant to-totvs-cyan hover:from-totvs-vibrant hover:to-totvs-accent text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 transform active:scale-98"
+                  className="w-full py-3.5 px-4 rounded-xl bg-[#00dbff] hover:bg-[#00c5ea] active:bg-[#00b0d2] text-[#002233] font-black text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-cyan-500/25 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 transform active:scale-[0.99]"
                 >
                   {loading ? (
                     <>
@@ -4572,8 +4649,8 @@
                     </>
                   ) : (
                     <>
-                      <Icons.Key />
-                      <span>Entrar no Espaço Experiência</span>
+                      <Icons.Key className="w-4 h-4" />
+                      <span>ENTRAR NO ESPAÇO EXPERIÊNCIA</span>
                     </>
                   )}
                 </button>
@@ -4581,11 +4658,11 @@
             </form>
 
             {/* Rodapé Institucional */}
-            <div className="mt-6 pt-4 border-t border-slate-100 text-center space-y-1">
+            <div className="mt-6 pt-4 border-t border-white/10 text-center space-y-1">
               <p className="text-[10px] text-slate-400 font-medium">
                 Perfis cadastrados: Especialista, PMM e Administrador
               </p>
-              <p className="text-[9px] text-slate-400/80 font-mono">
+              <p className="text-[9px] text-slate-400/70 font-mono">
                 TOTVS S.A. • Espaço Experiência • Governança & Auditoria
               </p>
             </div>
