@@ -4394,11 +4394,25 @@
       });
       const [loading, setLoading] = useState(false);
       const [erro, setErro] = useState('');
+      const [capsLockAtivo, setCapsLockAtivo] = useState(false);
+
+      const checkCapsLock = (e) => {
+        if (e && typeof e.getModifierState === 'function') {
+          setCapsLockAtivo(e.getModifierState('CapsLock'));
+        }
+      };
 
       const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
         setErro('');
+
+        // Validação da tecla Caps Lock: Não permitir submissão se ativa
+        if (capsLockAtivo) {
+          setErro('N\u00E3o \u00E9 permitido efetuar login com a tecla Caps Lock ativada. Desative o Caps Lock para continuar.');
+          return;
+        }
+
+        setLoading(true);
 
         const salvarLembrarUsuario = () => {
           if (lembrarUsuario) {
@@ -4485,7 +4499,7 @@
             setErro(data.message || 'E-mail ou senha incorretos.');
           }
         } catch (err) {
-          setErro('Erro de conexão ao autenticar. Tente novamente.');
+          setErro('Erro de conex\u00E3o ao autenticar. Tente novamente.');
         } finally {
           setLoading(false);
         }
@@ -4551,19 +4565,12 @@
 
           {/* Card Central de Login em Dark Tech Fosco Suave (#001B2B / #002538) */}
           <div className="bg-[#001B2B]/90 backdrop-blur-xl rounded-3xl shadow-2xl max-w-md w-full p-7 sm:p-9 border border-white/10 relative z-10 animate-in zoom-in-95 duration-200">
-            {/* Topo do Card: Badge e Título Portal Espaço Experiência */}
+            {/* Topo do Card: Título Portal Espaço Experiência (sem aviso de modo estrito) */}
             <div className="text-center mb-6">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#a44dff]/15 text-[#c788ff] border border-[#a44dff]/40 text-[10px] font-black uppercase tracking-wider mb-3">
-                <Icons.Lock className="w-3.5 h-3.5 shrink-0" />
-                <span>Modo Estrito Ativo</span>
-                <span>•</span>
-                <span>Acesso Restrito</span>
-              </div>
-
               <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight font-totvs">
                 PORTAL ESPAÇO EXPERIÊNCIA
               </h2>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed font-normal">
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed font-normal">
                 Identifique-se com suas credenciais corporativas para liberar o showroom e as ferramentas operacionais.
               </p>
             </div>
@@ -4576,6 +4583,17 @@
               </div>
             )}
 
+            {/* Sinalização Visual de Caps Lock Ativado */}
+            {capsLockAtivo && (
+              <div className="mb-4 bg-amber-500/15 border border-amber-500/50 text-amber-300 text-xs p-3 rounded-xl flex items-center gap-2 animate-in fade-in">
+                <span className="text-base">⚠️</span>
+                <div>
+                  <span className="font-bold">Aten\u00E7\u00E3o: Tecla Caps Lock ativada!</span>
+                  <p className="text-[10px] text-amber-200/80 mt-0.5">Desative o Caps Lock para digitar sua senha e efetuar o login.</p>
+                </div>
+              </div>
+            )}
+
             {/* Formulário de Identificação */}
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div>
@@ -4585,10 +4603,12 @@
                 <div className="relative">
                   <input
                     type="email"
-                    placeholder="seu.email@totvs.com.br"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className="w-full p-3.5 border border-white/15 rounded-xl bg-[#001422]/70 font-medium text-white placeholder-slate-400 focus:bg-[#001422] focus:border-[#00dbff] focus:ring-4 focus:ring-[#00dbff]/20 transition-all text-xs outline-none"
+                    onKeyDown={checkCapsLock}
+                    onKeyUp={checkCapsLock}
+                    onFocus={checkCapsLock}
+                    className="w-full p-3.5 border border-white/15 rounded-xl bg-[#001422]/70 font-medium text-white focus:bg-[#001422] focus:border-[#00dbff] focus:ring-4 focus:ring-[#00dbff]/20 transition-all text-xs outline-none"
                     required
                     autoFocus={!email}
                   />
@@ -4602,10 +4622,12 @@
                 <div className="relative">
                   <input
                     type={showSenha ? 'text' : 'password'}
-                    placeholder="••••••••"
                     value={senha}
                     onChange={e => setSenha(e.target.value)}
-                    className="w-full p-3.5 pr-11 border border-white/15 rounded-xl bg-[#001422]/70 font-medium text-white placeholder-slate-400 focus:bg-[#001422] focus:border-[#00dbff] focus:ring-4 focus:ring-[#00dbff]/20 transition-all text-xs outline-none"
+                    onKeyDown={checkCapsLock}
+                    onKeyUp={checkCapsLock}
+                    onFocus={checkCapsLock}
+                    className="w-full p-3.5 pr-11 border border-white/15 rounded-xl bg-[#001422]/70 font-medium text-white focus:bg-[#001422] focus:border-[#00dbff] focus:ring-4 focus:ring-[#00dbff]/20 transition-all text-xs outline-none"
                     required
                     autoFocus={!!email}
                   />
@@ -4630,7 +4652,7 @@
                     className="w-4 h-4 rounded text-[#00dbff] focus:ring-[#00dbff] border-white/20 cursor-pointer accent-[#00dbff]"
                   />
                   <span className="text-[11px] font-bold text-slate-300 hover:text-white transition-colors">
-                    Lembrar meu usuário neste dispositivo
+                    Lembrar meu usu\u00E1rio neste dispositivo
                   </span>
                 </label>
               </div>
@@ -4650,7 +4672,7 @@
                   ) : (
                     <>
                       <Icons.Key className="w-4 h-4" />
-                      <span>ENTRAR NO ESPAÇO EXPERIÊNCIA</span>
+                      <span>ENTRAR NO ESPA\u00C7O EXPERI\u00CANCIA</span>
                     </>
                   )}
                 </button>
@@ -4663,15 +4685,14 @@
                 Perfis cadastrados: Especialista, PMM e Administrador
               </p>
               <p className="text-[9px] text-slate-400/70 font-mono">
-                TOTVS S.A. • Espaço Experiência • Governança & Auditoria
+                TOTVS S.A. \u2022 Espa\u00E7o Experi\u00EAncia \u2022 Governan\u00E7a & Auditoria
               </p>
             </div>
           </div>
         </div>
       );
     }
-
-    // --- COMPONENTE: MODAL OBRIGATÓRIO DE DEFINIÇÃO DE NOVA SENHA (PÓS-RESET / PRIMEIRO ACESSO) ---
+// --- COMPONENTE: MODAL OBRIGATÓRIO DE DEFINIÇÃO DE NOVA SENHA (PÓS-RESET / PRIMEIRO ACESSO) ---
     function ForcarTrocaSenhaModal({ usuario, onSuccess, onClose, showToast }) {
       const [novaSenha, setNovaSenha] = useState('');
       const [confirmaSenha, setConfirmaSenha] = useState('');
