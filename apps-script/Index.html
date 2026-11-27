@@ -3103,11 +3103,12 @@
 
       // Ação Universal: Retornar ao Showroom (Reset Geral / Fechar Modais / Limpar Filtros)
       const handleReturnToShowroom = () => {
-        const algumModalAberto = showPlantonistasModal || adminModal || showVisitorHistoryModal || showVisitorModal || showMeuPerfilModal || lightboxSegment || showVideoModal || editSegment || quickBancadaSegment || validationModal || showLoginModal || showAcceptInviteModal || showForcarTrocaSenhaModal;
+        const algumModalAberto = showRoadmapsModal || showPlantonistasModal || adminModal || showVisitorHistoryModal || showVisitorModal || showMeuPerfilModal || lightboxSegment || showVideoModal || editSegment || quickBancadaSegment || validationModal || showLoginModal || showAcceptInviteModal || showForcarTrocaSenhaModal;
         
         setShowPlantonistasModal(false);
         setAdminModal(false);
         setShowVisitorHistoryModal(false);
+        setShowRoadmapsModal(false);
         setShowVisitorModal(false);
         setShowMeuPerfilModal(false);
         setLightboxSegment(null);
@@ -3167,6 +3168,11 @@
                 return;
               }
               setShowVisitorHistoryModal(true);
+            }}
+            onOpenRoadmaps={() => {
+              handleReturnToShowroom();
+              setShowRoadmapsModal(true);
+              setActiveNav('roadmaps');
             }}
             onOpenAdmin={handleOpenAdmin}
             onLogoutAdm={handleLogoutAdm}
@@ -3685,6 +3691,18 @@
                 window.history.replaceState({}, document.title, window.location.pathname);
               }}
               onAcceptSuccess={handleAcceptInviteSuccess}
+            />
+          )}
+
+          {/* MODAL DE GESTÃO DE ROADMAPS & IDEIAS (DONO DO PRODUTO) */}
+          {showRoadmapsModal && admLogado && (admLogado.dono_produto === true || admLogado.email?.toLowerCase().trim() === 'andre.gianotti@totvs.com.br') && (
+            <RoadmapsModal
+              onClose={() => {
+                setShowRoadmapsModal(false);
+                setActiveNav('showroom');
+              }}
+              admLogado={admLogado}
+              showToast={showToast}
             />
           )}
 
