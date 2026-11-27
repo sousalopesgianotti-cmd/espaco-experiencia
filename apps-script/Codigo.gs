@@ -5386,3 +5386,185 @@ function salvarConfigLembretes(configData, autorEmail, autorNome) {
     return { success: false, message: e.message };
   }
 }
+
+/**
+ * ============================================================================
+ * GESTÃO DE ROADMAPS & IDEIAS DO PRODUTO (EXCLUSIVO DONO DO PRODUTO)
+ * ============================================================================
+ */
+function getRoadmapsPadrao() {
+  return [
+    {
+      id: "rdm-001",
+      titulo: "Anotações ESS do Dia",
+      descricao: "Registro diário de ocorrências e chamados operacionais da equipe de especialistas: solicitações para zelador, pedidos de limpeza do showroom, abertura de chamados para o TI (microcomputadores e periféricos com instabilidade), troca de lâmpadas queimadas e anotações gerais da rotina do dia.",
+      categoria: "Operacional & Rotina",
+      prioridade: "alta",
+      status: "a_fazer",
+      criado_em: "2026-11-27T14:12:00.000Z",
+      atualizado_em: "2026-11-27T14:12:00.000Z",
+      autor: "André Gianotti"
+    },
+    {
+      id: "rdm-002",
+      titulo: "Pesquisa de Satisfação com Emojis no Tablet Kiosk",
+      descricao: "Totem/tablet interativo na recepção/entrada do Espaço Experiência operando das 08:00 às 18:00 com pesquisa rápida em 3 carinhas/emojis (verde, amarelo e vermelho). Integrado diretamente com o portal, atrelado ao calendário diário e contabilizando o volume de avaliações por dia.",
+      categoria: "Experiência & Kiosk",
+      prioridade: "alta",
+      status: "a_fazer",
+      criado_em: "2026-11-27T14:12:00.000Z",
+      atualizado_em: "2026-11-27T14:12:00.000Z",
+      autor: "André Gianotti"
+    },
+    {
+      id: "rdm-003",
+      titulo: "Central de Sugestões de Melhorias do Espaço",
+      descricao: "Canal dedicado para envio de sugestões contínuas sobre TVs, equipamentos, maquinários, tablets, soluções demonstradas e infraestrutura física. Possibilita extração mensal consolidada para acompanhamento das contribuições de cada membro da equipe.",
+      categoria: "Melhoria Contínua",
+      prioridade: "media",
+      status: "a_fazer",
+      criado_em: "2026-11-27T14:12:00.000Z",
+      atualizado_em: "2026-11-27T14:12:00.000Z",
+      autor: "André Gianotti"
+    }
+  ];
+}
+
+function obterRoadmaps() {
+  try {
+    var raw = PropertiesService.getScriptProperties().getProperty("ROADMAPS_IDEIAS");
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return { success: true, roadmaps: parsed };
+      }
+    }
+  } catch (e) {}
+  var padrao = getRoadmapsPadrao();
+  try {
+    PropertiesService.getScriptProperties().setProperty("ROADMAPS_IDEIAS", JSON.stringify(padrao));
+  } catch(e) {}
+  return { success: true, roadmaps: padrao };
+}
+
+function salvarItemRoadmap(itemData, autorEmail, autorNome) {
+  try {
+    var emailLimpo = String(autorEmail || "").toLowerCase().trim();
+    var isDono = emailLimpo === "andre.gianotti@totvs.com.br";
+    if (!isDono) {
+      return { 
+        success: false, 
+        message: "Acesso negado: Apenas o Dono do Produto possui permissão para gerenciar Roadmaps e Ideias." 
+      };
+    }
+
+    if (!itemData || !itemData.titulo) {
+      return { success: false, message: "Título da ideia ou roadmap é obrigatório." };
+    }
+
+    var res = obterRoadmaps();
+    var roadmaps = (res && Array.isArray(res.roadmaps)) ? res.roadmaps : getRoadmapsPadrao();
+    var agora = new Date();
+    var isoStr = agora.toISOString();
+
+    var itemId = itemData.id ? String(itemData.id) : ("rdm-" + agora.getTime());
+    var index = -1;
+    for (var i = 0; i < roadmaps.length; i++) {
+      if (roadmaps[i].id === itemId) {
+        index = i;
+        break;
+      }
+    }
+
+    var itemSalvo = {
+      id: itemId,
+      titulo: String(itemData.titulo || "").trim(),
+      descricao: String(itemData.descricao || "").trim(),
+      categoria: String(itemData.categoria || "Geral").trim(),
+      prioridade: String(itemData.prioridade || "media").trim(),
+      status: String(itemData.status || "a_fazer").trim(),
+      criado_em: (index >= 0 && roadmaps[index].criado_em) ? roadmaps[index].criado_em : isoStr,
+      atualizado_em: isoStr,
+      autor: autorNome || "André Gianotti"
+    };
+
+    if (index >= 0) {
+      roadmaps[index] = itemSalvo;
+    } else {
+      roadmaps.unshift(itemSalvo);
+    }
+
+    PropertiesService.getScriptProperties().setProperty("ROADMAPS_IDEIAS", JSON.stringify(roadmaps));
+
+    // Auditoria
+    try {
+      var ss = getSpreadsheet();
+      var sheetAudit = ss.getSheetByName("Logs_Auditoria") || ss.getSheetByName("LogsAuditoria") || ss.getSheetByName("Logs");
+      if (sheetAudit) {
+        var audId = "aud-" + agora.getTime();
+        var dataStr = Utilities.formatDate(agora, "America/Sao_Paulo", "dd/MM/yyyy");
+        var horaStr = Utilities.formatDate(agora, "America/Sao_Paulo", "HH:mm:ss");
+        var acao = (index >= 0) ? "Atualização de Roadmap/Ideia" : "Criação de Roadmap/Ideia";
+        var detalhes = "Item: \"" + itemSalvo.titulo + "\" (" + itemSalvo.status + " / " + itemSalvo.categoria + ") por " + (autorNome || "André Gianotti");
+        sheetAudit.appendRow([audId, autorNome || "André Gianotti", emailLimpo, "adm", "roadmaps", "Roadmaps & Ideias", acao, dataStr, horaStr, agora.getTime(), detalhes]);
+      }
+    } catch(errAudit) {}
+
+    return {
+      success: true,
+      message: "Item de roadmap salvo com sucesso!",
+      item: itemSalvo,
+      roadmaps: roadmaps
+    };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+
+function excluirItemRoadmap(itemId, autorEmail, autorNome) {
+  try {
+    var emailLimpo = String(autorEmail || "").toLowerCase().trim();
+    var isDono = emailLimpo === "andre.gianotti@totvs.com.br";
+    if (!isDono) {
+      return { 
+        success: false, 
+        message: "Acesso negado: Apenas o Dono do Produto possui permissão para excluir Roadmaps." 
+      };
+    }
+
+    var res = obterRoadmaps();
+    var roadmaps = (res && Array.isArray(res.roadmaps)) ? res.roadmaps : [];
+    var initialLen = roadmaps.length;
+    roadmaps = roadmaps.filter(function(r) { return r.id !== itemId; });
+
+    if (roadmaps.length === initialLen) {
+      return { success: false, message: "Item não encontrado." };
+    }
+
+    PropertiesService.getScriptProperties().setProperty("ROADMAPS_IDEIAS", JSON.stringify(roadmaps));
+
+    // Auditoria
+    try {
+      var agora = new Date();
+      var ss = getSpreadsheet();
+      var sheetAudit = ss.getSheetByName("Logs_Auditoria") || ss.getSheetByName("LogsAuditoria") || ss.getSheetByName("Logs");
+      if (sheetAudit) {
+        var audId = "aud-" + agora.getTime();
+        var dataStr = Utilities.formatDate(agora, "America/Sao_Paulo", "dd/MM/yyyy");
+        var horaStr = Utilities.formatDate(agora, "America/Sao_Paulo", "HH:mm:ss");
+        var acao = "Exclusão de Roadmap/Ideia";
+        var detalhes = "Item ID: " + itemId + " removido por " + (autorNome || "André Gianotti");
+        sheetAudit.appendRow([audId, autorNome || "André Gianotti", emailLimpo, "adm", "roadmaps", "Roadmaps & Ideias", acao, dataStr, horaStr, agora.getTime(), detalhes]);
+      }
+    } catch(errAudit) {}
+
+    return {
+      success: true,
+      message: "Item excluído com sucesso!",
+      roadmaps: roadmaps
+    };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+

@@ -9216,6 +9216,28 @@
 
       const carregarRoadmaps = async () => {
         setLoading(true);
+
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              if (res && res.success && Array.isArray(res.roadmaps)) {
+                setRoadmaps(res.roadmaps);
+                try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(res.roadmaps)); } catch(e){}
+              } else {
+                const cached = localStorage.getItem('totvs_roadmaps_cache');
+                if (cached) setRoadmaps(JSON.parse(cached));
+              }
+              setLoading(false);
+            })
+            .withFailureHandler(() => {
+              const cached = localStorage.getItem('totvs_roadmaps_cache');
+              if (cached) setRoadmaps(JSON.parse(cached));
+              setLoading(false);
+            })
+            .obterRoadmaps();
+          return;
+        }
+
         try {
           const res = await fetch('/api/roadmaps');
           const data = await res.json();
@@ -9276,6 +9298,30 @@
         setRoadmaps(updatedList);
         try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(updatedList)); } catch(e){}
 
+        const labelStatus = novoStatus === 'aprovado' ? 'Aprovada ⏳' : novoStatus === 'iniciado' ? 'Iniciada 🚀' : novoStatus === 'concluido' ? 'Concluída ✅' : 'movida para A Fazer 💡';
+
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          const payload = { ...itemAnterior, status: novoStatus };
+          google.script.run
+            .withSuccessHandler((res) => {
+              if (res && res.success) {
+                if (Array.isArray(res.roadmaps)) {
+                  setRoadmaps(res.roadmaps);
+                  try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(res.roadmaps)); } catch(e){}
+                }
+                showToast(`Ideia "${itemAnterior.titulo}" ${labelStatus}!`);
+              } else {
+                showToast('Erro ao atualizar status.');
+                carregarRoadmaps();
+              }
+            })
+            .withFailureHandler(() => {
+              showToast('Status salvo localmente (servidor offline).');
+            })
+            .salvarItemRoadmap(payload, admLogado ? admLogado.email : '', admLogado ? admLogado.nome : '');
+          return;
+        }
+
         try {
           const res = await fetch(`/api/roadmaps/${id}`, {
             method: 'PUT',
@@ -9284,7 +9330,6 @@
           });
           const data = await res.json();
           if (data && data.success) {
-            const labelStatus = novoStatus === 'aprovado' ? 'Aprovada ⏳' : novoStatus === 'iniciado' ? 'Iniciada 🚀' : novoStatus === 'concluido' ? 'Concluída ✅' : 'movida para A Fazer 💡';
             showToast(`Ideia "${itemAnterior.titulo}" ${labelStatus}!`);
           } else {
             showToast('Erro ao atualizar status.');
@@ -9301,6 +9346,22 @@
         const updatedList = roadmaps.filter(r => r.id !== id);
         setRoadmaps(updatedList);
         try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(updatedList)); } catch(e){}
+
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              if (res && res.success && Array.isArray(res.roadmaps)) {
+                setRoadmaps(res.roadmaps);
+                try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(res.roadmaps)); } catch(e){}
+              }
+              showToast('Ideia excluída com sucesso.');
+            })
+            .withFailureHandler(() => {
+              showToast('Excluída localmente.');
+            })
+            .excluirItemRoadmap(id, admLogado ? admLogado.email : '', admLogado ? admLogado.nome : '');
+          return;
+        }
 
         try {
           await fetch(`/api/roadmaps/${id}`, { method: 'DELETE' });
@@ -9342,32 +9403,31 @@
         {
           key: 'concluido',
           titulo: '✅ Concluídas',
-          badgeColor: 'bg-[#00ffd4]/20 text-[#00ffd4] border-[#00ffd4]/40',
-          borderColor: 'border-[#00ffd4]/30',
-          glow: 'from-[#00ffd4]/10 to-transparent'
+          badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+          borderColor: 'border-emerald-500/30',
+          glow: 'from-emerald-500/10 to-transparent'
         }
       ];
 
       return (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-[#001726] text-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-7xl border border-slate-700/80 overflow-hidden flex flex-col h-[94vh] animate-in zoom-in-95 duration-200">
-            
-            {/* CABEÇALHO DO MODAL */}
-            <div className="px-5 py-4 border-b border-slate-800 bg-[#001422] flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-[#001422] border border-cyan-500/30 rounded-2xl shadow-2xl w-full max-w-7xl max-h-[92vh] flex flex-col overflow-hidden">
+            {/* Header do Modal */}
+            <div className="p-4 sm:p-6 border-b border-slate-800 flex items-center justify-between bg-gradient-to-r from-[#001B2B] via-[#001422] to-[#001B2B]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#00dbff]/15 text-[#00dbff] flex items-center justify-center font-black text-xl border border-[#00dbff]/30">
-                  <Icons.Lightbulb />
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 shadow-md">
+                  <Icons.Lightbulb className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                    <h2 className="text-lg sm:text-xl font-black text-white tracking-wide">
                       Roadmaps & Ideias do Produto
                     </h2>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase tracking-wider">
-                      👑 Dono do Produto
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      👑 DONO DO PRODUTO
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     Repositório de ideias estratégicas e acompanhamento do ciclo de vida das evoluções do Espaço Experiência
                   </p>
                 </div>
@@ -9377,242 +9437,250 @@
                 <button
                   type="button"
                   onClick={() => { setItemParaEdicao(null); setShowFormModal(true); }}
-                  className="px-3.5 py-2 rounded-xl bg-[#00dbff] hover:bg-[#00c5ea] active:bg-[#00b0d2] text-[#002233] font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#00dbff] to-[#00a8cc] hover:from-[#33e2ff] hover:to-[#00bfe6] text-[#001422] font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg transition transform hover:scale-[1.02] cursor-pointer"
                 >
-                  <Icons.Plus className="w-4 h-4" />
-                  <span>Nova Ideia</span>
+                  <span className="text-base leading-none">+</span>
+                  <span>NOVA IDEIA</span>
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-9 h-9 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition flex items-center justify-center cursor-pointer"
-                  title="Fechar (ESC)"
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                  title="Fechar"
                 >
-                  <Icons.X />
+                  <span className="text-xl leading-none">✕</span>
                 </button>
               </div>
             </div>
 
-            {/* BARRA DE MÉTRICAS & FILTROS */}
-            <div className="px-5 py-3 border-b border-slate-800/80 bg-[#001B2B] flex flex-wrap items-center justify-between gap-3 shrink-0">
+            {/* Barra de Filtros e Métricas */}
+            <div className="px-4 sm:px-6 py-3 bg-[#001B2B]/60 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               {/* Contadores */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-                <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 flex items-center gap-2 shrink-0">
-                  <span className="text-xs text-slate-400">Total:</span>
-                  <span className="text-xs font-black text-white">{contadores.total}</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 font-semibold">
+                  Total: <span className="text-white font-black">{contadores.total}</span>
                 </div>
-                <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-2 shrink-0">
-                  <span className="text-xs text-amber-300">💡 A Fazer:</span>
-                  <span className="text-xs font-black text-amber-200">{contadores.a_fazer}</span>
+                <div className="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 font-semibold">
+                  💡 A Fazer: <span className="font-black">{contadores.a_fazer}</span>
                 </div>
-                <div className="px-3 py-1.5 rounded-xl bg-[#00dbff]/10 border border-[#00dbff]/30 flex items-center gap-2 shrink-0">
-                  <span className="text-xs text-[#00dbff]">⏳ Aprovadas:</span>
-                  <span className="text-xs font-black text-cyan-200">{contadores.aprovado}</span>
+                <div className="px-2.5 py-1 rounded-lg bg-[#00dbff]/15 border border-[#00dbff]/30 text-[#00dbff] font-semibold">
+                  ⏳ Aprovadas: <span className="font-black">{contadores.aprovado}</span>
                 </div>
-                <div className="px-3 py-1.5 rounded-xl bg-[#a44dff]/10 border border-[#a44dff]/30 flex items-center gap-2 shrink-0">
-                  <span className="text-xs text-[#c788ff]">🚀 Iniciadas:</span>
-                  <span className="text-xs font-black text-purple-200">{contadores.iniciado}</span>
+                <div className="px-2.5 py-1 rounded-lg bg-[#a44dff]/15 border border-[#a44dff]/30 text-[#c788ff] font-semibold">
+                  🚀 Iniciadas: <span className="font-black">{contadores.iniciado}</span>
                 </div>
-                <div className="px-3 py-1.5 rounded-xl bg-[#00ffd4]/10 border border-[#00ffd4]/30 flex items-center gap-2 shrink-0">
-                  <span className="text-xs text-[#00ffd4]">✅ Concluídas:</span>
-                  <span className="text-xs font-black text-emerald-200">{contadores.concluido}</span>
+                <div className="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-semibold">
+                  ✅ Concluídas: <span className="font-black">{contadores.concluido}</span>
                 </div>
               </div>
 
-              {/* Filtros e Busca */}
-              <div className="flex items-center gap-2.5 w-full sm:w-auto">
-                <div className="relative flex-1 sm:w-64">
+              {/* Busca e Filtro de Categoria */}
+              <div className="flex items-center gap-2 flex-1 sm:flex-initial justify-end">
+                <div className="relative min-w-[180px] max-w-xs w-full">
                   <input
                     type="text"
-                    placeholder="Buscar ideia..."
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-[#00dbff]"
+                    placeholder="Buscar ideia..."
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-xs focus:outline-none focus:border-[#00dbff]"
                   />
-                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                    <Icons.Search />
-                  </div>
+                  <span className="absolute left-2.5 top-2 text-slate-500 text-xs">🔍</span>
                 </div>
 
                 <select
                   value={categoriaFiltro}
                   onChange={e => setCategoriaFiltro(e.target.value)}
-                  className="px-2.5 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-xl text-slate-200 focus:outline-none focus:border-[#00dbff]"
+                  className="py-1.5 px-3 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-[#00dbff]"
                 >
                   <option value="todas">Todas Categorias</option>
-                  {categoriasDisponiveis.map(c => (
-                    <option key={c} value={c}>{c}</option>
+                  {categoriasDisponiveis.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
               </div>
             </div>
 
-            {/* QUADRO KANBAN (4 COLUNAS) */}
-            <div className="flex-1 p-4 sm:p-5 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-[#001726]">
-              {colunas.map(col => {
-                const itensColuna = roadmapsFiltrados.filter(r => r.status === col.key);
-                return (
-                  <div
-                    key={col.key}
-                    className={`flex flex-col bg-[#001B2B]/70 rounded-2xl border ${col.borderColor} overflow-hidden shadow-lg`}
-                  >
-                    {/* Cabeçalho da Coluna */}
-                    <div className={`px-4 py-3 bg-gradient-to-b ${col.glow} border-b border-white/5 flex items-center justify-between`}>
-                      <span className="text-xs font-black text-white tracking-wide">{col.titulo}</span>
-                      <span className={`text-[11px] font-black px-2 py-0.5 rounded-full border ${col.badgeColor}`}>
-                        {itensColuna.length}
-                      </span>
-                    </div>
-
-                    {/* Lista de Cards da Coluna */}
-                    <div className="p-3 flex-1 overflow-y-auto space-y-3 min-h-[300px]">
-                      {itensColuna.length === 0 ? (
-                        <div className="h-full min-h-[140px] flex flex-col items-center justify-center text-center p-4 border border-dashed border-white/10 rounded-xl text-slate-500 text-xs">
-                          <span>Nenhuma ideia nesta etapa</span>
-                        </div>
-                      ) : (
-                        itensColuna.map(item => (
-                          <div
-                            key={item.id}
-                            className="bg-[#002238] hover:bg-[#002740] border border-white/10 hover:border-[#00dbff]/40 rounded-xl p-3.5 transition-all shadow-md group relative flex flex-col justify-between"
-                          >
-                            {/* Topo do Card: Categoria e Prioridade */}
-                            <div>
-                              <div className="flex items-center justify-between gap-1 mb-2">
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 text-slate-300 truncate max-w-[150px]">
-                                  {item.categoria}
-                                </span>
-                                <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded border ${
-                                  item.prioridade === 'alta'
-                                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                                    : item.prioridade === 'media'
-                                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                                      : 'bg-slate-500/20 text-slate-300 border-slate-500/30'
-                                }`}>
-                                  {item.prioridade === 'alta' ? 'Alta' : item.prioridade === 'media' ? 'Média' : 'Baixa'}
-                                </span>
-                              </div>
-
-                              <h3 className="text-xs font-extrabold text-white mb-1.5 leading-snug">
-                                {item.titulo}
-                              </h3>
-
-                              <p className="text-[11px] text-slate-300/90 leading-relaxed font-normal mb-3 whitespace-pre-line">
-                                {item.descricao}
-                              </p>
-                            </div>
-
-                            {/* Rodapé do Card: Ações Rápidas */}
-                            <div className="pt-2.5 border-t border-white/5 flex items-center justify-between gap-1">
-                              {/* Botões de Transição de Status */}
-                              <div className="flex items-center gap-1">
-                                {item.status === 'a_fazer' && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleMudarStatus(item.id, 'aprovado')}
-                                    className="px-2 py-1 text-[10px] font-bold rounded bg-[#00dbff]/20 text-[#00dbff] hover:bg-[#00dbff]/30 transition"
-                                    title="Mover para Aprovada"
-                                  >
-                                    Aprovar ⏳
-                                  </button>
-                                )}
-                                {item.status === 'aprovado' && (
-                                  <>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleMudarStatus(item.id, 'a_fazer')}
-                                      className="px-1.5 py-1 text-[10px] font-bold rounded bg-white/10 text-slate-400 hover:text-white"
-                                      title="Voltar para A Fazer"
-                                    >
-                                      ←
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleMudarStatus(item.id, 'iniciado')}
-                                      className="px-2 py-1 text-[10px] font-bold rounded bg-[#a44dff]/20 text-[#c788ff] hover:bg-[#a44dff]/30 transition"
-                                      title="Mover para Iniciada"
-                                    >
-                                      Iniciar 🚀
-                                    </button>
-                                  </>
-                                )}
-                                {item.status === 'iniciado' && (
-                                  <>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleMudarStatus(item.id, 'aprovado')}
-                                      className="px-1.5 py-1 text-[10px] font-bold rounded bg-white/10 text-slate-400 hover:text-white"
-                                      title="Voltar para Aprovada"
-                                    >
-                                      ←
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleMudarStatus(item.id, 'concluido')}
-                                      className="px-2 py-1 text-[10px] font-bold rounded bg-[#00ffd4]/20 text-[#00ffd4] hover:bg-[#00ffd4]/30 transition"
-                                      title="Mover para Concluída"
-                                    >
-                                      Concluir ✅
-                                    </button>
-                                  </>
-                                )}
-                                {item.status === 'concluido' && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleMudarStatus(item.id, 'iniciado')}
-                                    className="px-2 py-1 text-[10px] font-bold rounded bg-white/10 text-slate-400 hover:text-white transition"
-                                    title="Reabrir para Iniciada"
-                                  >
-                                    ← Reabrir
-                                  </button>
-                                )}
-                              </div>
-
-                              {/* Ações de Edição e Exclusão */}
-                              <div className="flex items-center gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => { setItemParaEdicao(item); setShowFormModal(true); }}
-                                  className="p-1 rounded text-slate-400 hover:text-[#00dbff] hover:bg-white/5 transition"
-                                  title="Editar ideia"
-                                >
-                                  <Icons.Edit className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleExcluir(item.id, item.titulo)}
-                                  className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition"
-                                  title="Excluir ideia"
-                                >
-                                  <Icons.Trash className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
+            {/* Quadro Kanban: 4 Colunas */}
+            <div className="flex-1 p-4 sm:p-6 overflow-x-auto overflow-y-hidden bg-[#00101c]">
+              {loading ? (
+                <div className="h-full flex items-center justify-center py-20 text-slate-400 gap-3">
+                  <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span>Carregando roadmaps e ideias do produto...</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full min-w-[900px]">
+                  {colunas.map(col => {
+                    const cards = roadmapsFiltrados.filter(r => r.status === col.key);
+                    return (
+                      <div
+                        key={col.key}
+                        className={`flex flex-col rounded-2xl bg-[#001B2B]/70 border ${col.borderColor} shadow-lg overflow-hidden`}
+                      >
+                        {/* Header da Coluna */}
+                        <div className={`p-3.5 border-b border-slate-800/80 bg-gradient-to-b ${col.glow} flex items-center justify-between`}>
+                          <div className="flex items-center gap-2">
+                            <span className="font-black text-sm text-white">{col.titulo}</span>
                           </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                          <span className={`text-xs font-black px-2 py-0.5 rounded-full border ${col.badgeColor}`}>
+                            {cards.length}
+                          </span>
+                        </div>
 
-            {/* MODAL DE CRIAÇÃO / EDIÇÃO */}
-            {showFormModal && (
-              <RoadmapFormModal
-                item={itemParaEdicao}
-                categoriasDisponiveis={categoriasDisponiveis}
-                onClose={() => { setShowFormModal(false); setItemParaEdicao(null); }}
-                onSuccess={handleSalvarSucesso}
-                admLogado={admLogado}
-              />
-            )}
+                        {/* Lista de Cards da Coluna */}
+                        <div className="flex-1 p-3 overflow-y-auto space-y-3 min-h-[350px] max-h-[calc(92vh-220px)] custom-scrollbar">
+                          {cards.length === 0 ? (
+                            <div className="h-32 flex flex-col items-center justify-center text-slate-500 text-xs border border-dashed border-slate-800 rounded-xl">
+                              <span>Nenhuma ideia nesta etapa</span>
+                            </div>
+                          ) : (
+                            cards.map(card => {
+                              const prioColors = card.prioridade === 'alta'
+                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                : card.prioridade === 'media'
+                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                : 'bg-slate-500/20 text-slate-300 border-slate-500/40';
+
+                              return (
+                                <div
+                                  key={card.id}
+                                  className="p-3.5 rounded-xl bg-[#002238]/90 border border-slate-700/80 hover:border-cyan-500/50 shadow-md transition group hover:shadow-cyan-500/10 flex flex-col justify-between gap-2.5"
+                                >
+                                  <div>
+                                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
+                                        {card.categoria || 'Geral'}
+                                      </span>
+                                      <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded border ${prioColors}`}>
+                                        {card.prioridade || 'MÉDIA'}
+                                      </span>
+                                    </div>
+
+                                    <h4 className="text-xs font-black text-white group-hover:text-cyan-300 transition leading-snug">
+                                      {card.titulo}
+                                    </h4>
+
+                                    {card.descricao && (
+                                      <p className="text-[11px] text-slate-300 mt-1 line-clamp-3 leading-relaxed whitespace-pre-wrap">
+                                        {card.descricao}
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  {/* Barra de Ações Rápidas do Card */}
+                                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+                                    {/* Mudar Status em 1 clique */}
+                                    <div className="flex items-center gap-1">
+                                      {card.status === 'a_fazer' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleMudarStatus(card.id, 'aprovado')}
+                                          className="px-2 py-1 rounded bg-[#00dbff]/20 text-[#00dbff] hover:bg-[#00dbff]/30 font-bold text-[10px] transition cursor-pointer"
+                                          title="Mover para Aprovadas"
+                                        >
+                                          Aprovar ⏳
+                                        </button>
+                                      )}
+
+                                      {card.status === 'aprovado' && (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMudarStatus(card.id, 'iniciado')}
+                                            className="px-2 py-1 rounded bg-[#a44dff]/20 text-[#c788ff] hover:bg-[#a44dff]/30 font-bold text-[10px] transition cursor-pointer"
+                                            title="Iniciar Desenvolvimento"
+                                          >
+                                            Iniciar 🚀
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMudarStatus(card.id, 'a_fazer')}
+                                            className="px-1.5 py-1 rounded text-slate-400 hover:text-white font-bold text-[10px] cursor-pointer"
+                                            title="Voltar para A Fazer"
+                                          >
+                                            ↩
+                                          </button>
+                                        </>
+                                      )}
+
+                                      {card.status === 'iniciado' && (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMudarStatus(card.id, 'concluido')}
+                                            className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 font-bold text-[10px] transition cursor-pointer"
+                                            title="Marcar como Concluída"
+                                          >
+                                            Concluir ✅
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMudarStatus(card.id, 'aprovado')}
+                                            className="px-1.5 py-1 rounded text-slate-400 hover:text-white font-bold text-[10px] cursor-pointer"
+                                            title="Voltar para Aprovada"
+                                          >
+                                            ↩
+                                          </button>
+                                        </>
+                                      )}
+
+                                      {card.status === 'concluido' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleMudarStatus(card.id, 'iniciado')}
+                                          className="px-2 py-1 rounded text-slate-400 hover:text-white font-bold text-[10px] cursor-pointer"
+                                          title="Reabrir ideia"
+                                        >
+                                          Reabrir ↩
+                                        </button>
+                                      )}
+                                    </div>
+
+                                    {/* Ações de Edição e Exclusão */}
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => { setItemParaEdicao(card); setShowFormModal(true); }}
+                                        className="p-1 rounded text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition cursor-pointer"
+                                        title="Editar Ideia"
+                                      >
+                                        ✏️
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleExcluir(card.id, card.titulo)}
+                                        className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
+                                        title="Excluir Ideia"
+                                      >
+                                        🗑️
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
+
+          {showFormModal && (
+            <RoadmapFormModal
+              item={itemParaEdicao}
+              categoriasDisponiveis={categoriasDisponiveis}
+              onClose={() => { setShowFormModal(false); setItemParaEdicao(null); }}
+              onSuccess={handleSalvarSucesso}
+              admLogado={admLogado}
+            />
+          )}
         </div>
       );
     }
 
-    // --- SUBMODAL: FORMULÁRIO DE CRIAÇÃO / EDIÇÃO DE ROADMAP ---
     function RoadmapFormModal({ item, categoriasDisponiveis, onClose, onSuccess, admLogado }) {
       const [titulo, setTitulo] = useState(item?.titulo || '');
       const [descricao, setDescricao] = useState(item?.descricao || '');
@@ -9644,6 +9712,26 @@
         };
 
         setSalvando(true);
+
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          const itemPayload = item ? { ...item, ...payload } : payload;
+          google.script.run
+            .withSuccessHandler((res) => {
+              setSalvando(false);
+              if (res && res.success) {
+                onSuccess(res.item);
+              } else {
+                setErro(res?.message || 'Erro ao salvar ideia de roadmap.');
+              }
+            })
+            .withFailureHandler(() => {
+              setSalvando(false);
+              setErro('Erro de conexão ao salvar na nuvem Google.');
+            })
+            .salvarItemRoadmap(itemPayload, admLogado?.email || '', admLogado?.nome || '');
+          return;
+        }
+
         try {
           const url = item ? `/api/roadmaps/${item.id}` : '/api/roadmaps';
           const method = item ? 'PUT' : 'POST';
@@ -9676,22 +9764,21 @@
               <button
                 type="button"
                 onClick={onClose}
-                className="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center"
+                className="text-slate-400 hover:text-white p-1 text-lg font-bold leading-none cursor-pointer"
               >
-                <Icons.X className="w-4 h-4" />
+                ✕
               </button>
             </div>
 
             {erro && (
-              <div className="mb-4 bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs p-3 rounded-xl flex items-center gap-2">
-                <Icons.AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{erro}</span>
+              <div className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs">
+                {erro}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-[11px] font-bold text-slate-300 mb-1">Título da Ideia / Funcionalidade:</label>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">Título da Ideia / Roadmap:</label>
                 <input
                   type="text"
                   value={titulo}
@@ -9771,7 +9858,7 @@
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 font-bold text-xs"
+                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 font-bold text-xs cursor-pointer"
                 >
                   Cancelar
                 </button>

@@ -137,6 +137,8 @@
 
     // Ícones SVG inline para máxima compatibilidade e confiabilidade
     const RawIcons = {
+      Lightbulb: (props) => <svg className={props?.className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>,
+      Kanban: (props) => <svg className={props?.className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>,
       Lock: (props) => <svg className={props?.className || "w-4 h-4"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>,
       Sprout: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2a9 9 0 019 9c0 4.97-4.03 9-9 9S3 15.97 3 11a9 9 0 019-9zm0 0v18m0-10a4 4 0 00-4-4m4 4a4 4 0 014-4" /></svg>,
       Factory: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
@@ -1094,6 +1096,7 @@
       onOpenShowroom,
       onOpenPlantonistas,
       onOpenHistorico,
+      onOpenRoadmaps,
       onOpenAdmin,
       onLogoutAdm,
       admLogado,
@@ -1247,6 +1250,41 @@
                   </button>
                 )}
 
+                {/* 3.1 Roadmaps & Ideias (Competência exclusiva do Dono do Produto) */}
+                {admLogado && (admLogado.dono_produto === true || admLogado.email?.toLowerCase().trim() === 'andre.gianotti@totvs.com.br') && (
+                  <button
+                    type="button"
+                    onClick={() => handleNavClick(onOpenRoadmaps)}
+                    className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
+                      activeNav === 'roadmaps'
+                        ? 'bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/40 shadow-xs'
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    }`}
+                    title="Roadmaps & Ideias do Produto (Exclusivo Dono do Produto)"
+                  >
+                    <span className={`shrink-0 transition-colors ${
+                      activeNav === 'roadmaps' ? 'text-totvs-cyan' : 'text-slate-300 group-hover:text-totvs-cyan'
+                    }`}>
+                      <Icons.Lightbulb />
+                    </span>
+                    {isExpanded && (
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold block truncate">Roadmaps & Ideias</span>
+                          <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
+                            DONO
+                          </span>
+                        </div>
+                        <span className={`text-[9.5px] block truncate ${
+                          activeNav === 'roadmaps' ? 'text-totvs-cyan/80' : 'text-slate-400'
+                        }`}>
+                          {activeNav === 'roadmaps' ? 'Quadro Ativo' : 'Gestão de Evoluções'}
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                )}
+
                 {/* 4. Área Corporativa / Perfil */}
                 <button
                   type="button"
@@ -1374,9 +1412,8 @@
       authEspecialistaObrigatoria = false
     }) {
       const [loading, setLoading] = useState(true);
-      const FALLBACK_PLANTONISTAS_APPS_SCRIPT = {"especialistas":[{"id":"esp-1","nome":"André Gianotti","cargo":"Curador & Especialista Chefe do Espaço","email":"andre.gianotti@totvs.com.br","ramal":"4102","avatar_cor":"bg-totvs-blue","estacao_foco":"Visão Geral & Curadoria Executiva"},{"id":"esp-2","nome":"Camila Santana","cargo":"Especialista em Manufatura & MES PPI","email":"camila.santana@totvs.com.br","ramal":"4103","avatar_cor":"bg-cyan-600","estacao_foco":"Estação 02 (Manufatura) & Estação 04 (MES)"},{"id":"esp-3","nome":"Lucas Ferreira","cargo":"Especialista em Agro & Logística","email":"lucas.ferreira@totvs.com.br","ramal":"4104","avatar_cor":"bg-emerald-600","estacao_foco":"Estação 01 (Agro) & Estação 05 (Logística)"},{"id":"esp-4","nome":"Mariana Lima","cargo":"Especialista em Varejo & Moda","email":"mariana.lima@totvs.com.br","ramal":"4105","avatar_cor":"bg-pink-600","estacao_foco":"Estação 06 (Moda) & Estação 08 (Varejo Online)"},{"id":"esp-5","nome":"Rafael Duarte","cargo":"Especialista em Saúde & Backoffice","email":"rafael.duarte@totvs.com.br","ramal":"4106","avatar_cor":"bg-sky-600","estacao_foco":"Estação 03 (Backoffice) & Estação 09 (Clínicas)"},{"id":"esp-6","nome":"Fernanda Torres","cargo":"Especialista em Supermercados & Distribuição","email":"fernanda.torres@totvs.com.br","ramal":"4107","avatar_cor":"bg-rose-600","estacao_foco":"Estação 07 (Consinco) & Soluções Cross"},{"id":"esp-7","nome":"Bruno Carvalho","cargo":"Especialista em Mesa Interativa & Soluções Cross","email":"bruno.carvalho@totvs.com.br","ramal":"4108","avatar_cor":"bg-indigo-600","estacao_foco":"Estação 10 (Cross) & Estação 11 (Mesa Interativa)"},{"id":"esp-michel-ribeiro-rocha","nome":"MICHEL RIBEIRO ROCHA","cargo":"Especialista • Educacional","email":"michel.rocha@totvs.com.br","ramal":"","estacao_foco":"Educacional"},{"id":"esp-augusto-caetano-araujo-do","nome":"AUGUSTO CAETANO ARAUJO DO NASCIMENTO","cargo":"Especialista • Logistica","email":"augusto.nascimento@totvs.com.br","ramal":"","estacao_foco":"Logistica"},{"id":"esp-beatriz-cristina-figueiro","nome":"BEATRIZ CRISTINA FIGUEIRO","cargo":"Especialista • Varejo","email":"beatriz.figueiro@totvs.com.br","ramal":"","estacao_foco":"Varejo"},{"id":"esp-eduardo-santos-thomaz","nome":"EDUARDO SANTOS THOMAZ","cargo":"Especialista • Educacional","email":"eduardo.thomaz@totvs.com.br","ramal":"","estacao_foco":"Educacional"},{"id":"esp-rafael-fonseca-santejani","nome":"RAFAEL FONSECA SANTEJANI","cargo":"Especialista • Distribuição","email":"rafael.fsantejani@totvs.com.br","ramal":"","estacao_foco":"Distribuição"},{"id":"esp-bruno-cesar-ravacci-silva","nome":"BRUNO CESAR RAVACCI SILVA","cargo":"Especialista • Manufatura","email":"bruno.cesilva@totvs.com.br","ramal":"","estacao_foco":"Manufatura"},{"id":"esp-bruno-eustaquio-nasciment","nome":"BRUNO EUSTAQUIO NASCIMENTO","cargo":"Especialista • Moda","email":"b.nascimento@totvs.com.br","ramal":"","estacao_foco":"Moda"},{"id":"esp-gilmara-silva-venancio","nome":"GILMARA SILVA VENANCIO","cargo":"Especialista • Varejo","email":"gilmara.venancio@totvs.com.br","ramal":"","estacao_foco":"Varejo"},{"id":"esp-douglas-cavalcante-filho","nome":"DOUGLAS CAVALCANTE FILHO","cargo":"Especialista • Manufatura","email":"douglas.filho@totvs.com.br","ramal":"","estacao_foco":"Manufatura"},{"id":"esp-karoline-moreira-honorio","nome":"KAROLINE MOREIRA HONORIO","cargo":"Especialista • Construção","email":"karoline.honorio@totvs.com.br","ramal":"","estacao_foco":"Construção"},{"id":"esp-fabio-fernando-da-silva","nome":"FABIO FERNANDO DA SILVA","cargo":"Especialista • Varejo","email":"fabio.fernando@totvs.com.br","ramal":"","estacao_foco":"Varejo"},{"id":"esp-manuel-igor-oliveira-dos-","nome":"MANUEL IGOR OLIVEIRA DOS SANTOS","cargo":"Especialista • Logística","email":"manuel.santos@totvs.com.br","ramal":"","estacao_foco":"Logística"},{"id":"esp-gabriel-fernandes-dias-de","nome":"GABRIEL FERNANDES DIAS DE SA","cargo":"Especialista • ESG","email":"gabriel.fsa@totvs.com.br","ramal":"","estacao_foco":"ESG"},{"id":"esp-giovanna-florentino-ferre","nome":"GIOVANNA FLORENTINO FERREIRA DA SILVA","cargo":"Especialista • Prestadores","email":"giovanna.silva@totvs.com.br","ramal":"","estacao_foco":"Prestadores"},{"id":"esp-eduardo-ciosak","nome":"EDUARDO CIOSAK","cargo":"Especialista • Varejo","email":"e.ciosak@totvs.com.br","ramal":"","estacao_foco":"Varejo"},{"id":"esp-jorge-kalmus","nome":"JORGE KALMUS","cargo":"Especialista • Prestadores","email":"j.kalmus@totvs.com.br","ramal":"","estacao_foco":"Prestadores"},{"id":"esp-josi-dinora-de-souza","nome":"JOSI DINORA DE SOUZA","cargo":"Especialista • Educacional","email":"josi.souza@totvs.com.br","ramal":"","estacao_foco":"Educacional"},{"id":"esp-jose-wellington-alves-lim","nome":"JOSE WELLINGTON ALVES LIMA","cargo":"Especialista • Prestadores","email":"jose.wellington@totvs.com.br","ramal":"","estacao_foco":"Prestadores"},{"id":"esp-marcel-rezk-de-angelo","nome":"MARCEL REZK DE ANGELO","cargo":"Especialista • Manufatura","email":"marcel.angelo@totvs.com.br","ramal":"","estacao_foco":"Manufatura"},{"id":"esp-emerson-de-souza-meneguel","nome":"EMERSON DE SOUZA MENEGUEL","cargo":"Especialista • Educacional","email":"emerson.meneguel@totvs.com.br","ramal":"","estacao_foco":"Educacional"},{"id":"esp-giilmara-venancio","nome":"GiILMARA VENANCIO","cargo":"Especialista • Varejo","email":"silva.azfernando@totvs.com.br","ramal":"","estacao_foco":"Varejo"},{"id":"esp-juliano-marcato","nome":"JULIANO MARCATO","cargo":"Especialista • Manufatura","email":"juliano.marcato@totvs.com.br","ramal":"","estacao_foco":"Manufatura"},{"id":"esp-marilia-de-lima-maciel","nome":"MARILIA DE LIMA MACIEL","cargo":"Especialista • Moda","email":"marilia.maciel@totvs.com.br","ramal":"","estacao_foco":"Moda"},{"id":"esp-alberto-bem-de-lima","nome":"ALBERTO BEM DE LIMA","cargo":"Especialista • Educacional","email":"alberto.bem@totvs.com.br","ramal":"","estacao_foco":"Educacional"},{"id":"esp-paulo-sergio-da-silva","nome":"PAULO SERGIO DA SILVA","cargo":"Especialista • Varejo","email":"paulos.silva@totvs.com.br","ramal":"","estacao_foco":"Varejo"},{"id":"esp-raiane-da-silva-teodoro-o","nome":"RAIANE DA SILVA TEODORO ORIZIO","cargo":"Especialista do Espaço Experiência","email":"raiane.orizio@totvs.com.br","ramal":"","estacao_foco":"Soluções TOTVS"},{"id":"esp-camila-barbosa-da-silva","nome":"CAMILA BARBOSA DA SILVA","cargo":"Especialista • ESG","email":"camila.basilva@totvs.com.br","ramal":"","estacao_foco":"ESG"},{"id":"esp-renato-engelmann","nome":"RENATO ENGELMANN","cargo":"Especialista • Manufatura","email":"renato.engelmann@totvs.com.br","ramal":"","estacao_foco":"Manufatura"},{"id":"esp-renato-lacava","nome":"RENATO LACAVA","cargo":"Especialista • Construção","email":"lacava.renato@totvs.com.br","ramal":"","estacao_foco":"Construção"},{"id":"esp-ricardo-angelo-reinaldi","nome":"RICARDO ANGELO REINALDI","cargo":"Especialista • Prestadores","email":"ricardo.angelo@totvs.com.br","ramal":"","estacao_foco":"Prestadores"},{"id":"esp-rodrigo-paul-quinonez-gon","nome":"RODRIGO PAUL QUINONEZ GONZALEZ","cargo":"Especialista • Construção","email":"rodrigo.gonzalez@totvs.com.br","ramal":"","estacao_foco":"Construção"},{"id":"esp-rodrigo-cesar-duarte","nome":"RODRIGO CESAR DUARTE","cargo":"Especialista • Logística","email":"rodrigo.cesar@totvs.com.br","ramal":"","estacao_foco":"Logística"},{"id":"esp-stefany-barros-fernandes","nome":"STEFANY BARROS FERNANDES","cargo":"Especialista • Construção","email":"stefany.fernandes@totvs.com.br","ramal":"","estacao_foco":"Construção"},{"id":"esp-taina-renata-de-oliveira","nome":"TAINA RENATA DE OLIVEIRA","cargo":"Especialista • Varejo Online","email":"taina.oliveira@totvs.com.br","ramal":"","estacao_foco":"Varejo Online"},{"id":"esp-ulisses-jose-covre-beltra","nome":"ULISSES JOSE COVRE BELTRAME DA SILVA","cargo":"Especialista • Construção","email":"ulisses.jose@totvs.com.br","ramal":"","estacao_foco":"Construção"},{"id":"esp-fernando-azevedo","nome":"FERNANDO AZEVEDO","cargo":"Especialista • Varejo","email":"william.terentjvas@totvs.com.br","ramal":"","estacao_foco":"Varejo"},{"id":"esp-tati-macedo","nome":"Tati Macedo","cargo":"Especialista • ESG","email":"tatiane.macedo@totvs.com.br","ramal":"","estacao_foco":"ESG"}],"escalas":{"2026-01-05":{"especialista_id":"esp-michel-ribeiro-rocha","nome":"MICHEL RIBEIRO ROCHA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-06":{"especialista_id":"esp-augusto-caetano-araujo-do","nome":"AUGUSTO CAETANO ARAUJO DO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-07":{"especialista_id":"esp-andre-sousa-lopes-gianott","nome":"ANDRE SOUSA LOPES GIANOTTI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-08":{"especialista_id":"esp-beatriz-cristina-figueiro","nome":"BEATRIZ CRISTINA FIGUEIRO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-09":{"especialista_id":"esp-eduardo-santos-thomaz","nome":"EDUARDO SANTOS THOMAZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-12":{"especialista_id":"esp-rafael-fonseca-santejani","nome":"RAFAEL FONSECA SANTEJANI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-13":{"especialista_id":"esp-bruno-cesar-ravacci-silva","nome":"BRUNO CESAR RAVACCI SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-14":{"especialista_id":"esp-bruno-eustaquio-nasciment","nome":"BRUNO EUSTAQUIO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-15":{"especialista_id":"esp-gilmara-silva-venancio","nome":"GILMARA SILVA VENANCIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-16":{"especialista_id":"esp-douglas-cavalcante-filho","nome":"DOUGLAS CAVALCANTE FILHO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-19":{"especialista_id":"esp-karoline-moreira-honorio","nome":"KAROLINE MOREIRA HONORIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-20":{"especialista_id":"esp-fabio-fernando-da-silva","nome":"FABIO FERNANDO DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-21":{"especialista_id":"esp-manuel-igor-oliveira-dos-","nome":"MANUEL IGOR OLIVEIRA DOS SANTOS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-22":{"especialista_id":"esp-gabriel-fernandes-dias-de","nome":"GABRIEL FERNANDES DIAS DE SA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-23":{"especialista_id":"esp-giovanna-florentino-ferre","nome":"GIOVANNA FLORENTINO FERREIRA DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-26":{"especialista_id":"esp-eduardo-ciosak","nome":"EDUARDO CIOSAK","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-27":{"especialista_id":"esp-jorge-kalmus","nome":"JORGE KALMUS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-28":{"especialista_id":"esp-josi-dinora-de-souza","nome":"JOSI DINORA DE SOUZA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-29":{"especialista_id":"esp-jose-wellington-alves-lim","nome":"JOSE WELLINGTON ALVES LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-01-30":{"especialista_id":"esp-marcel-rezk-de-angelo","nome":"MARCEL REZK DE ANGELO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-02":{"especialista_id":"esp-emerson-de-souza-meneguel","nome":"EMERSON DE SOUZA MENEGUEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-03":{"especialista_id":"esp-giilmara-venancio","nome":"GiILMARA VENANCIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-04":{"especialista_id":"esp-juliano-marcato","nome":"JULIANO MARCATO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-05":{"especialista_id":"esp-marilia-de-lima-maciel","nome":"MARILIA DE LIMA MACIEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-06":{"especialista_id":"esp-alberto-bem-de-lima","nome":"ALBERTO BEM DE LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-09":{"especialista_id":"esp-paulo-sergio-da-silva","nome":"PAULO SERGIO DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-10":{"especialista_id":"esp-raiane-da-silva-teodoro-o","nome":"RAIANE DA SILVA TEODORO ORIZIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-11":{"especialista_id":"esp-camila-barbosa-da-silva","nome":"CAMILA BARBOSA DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-12":{"especialista_id":"esp-renato-engelmann","nome":"RENATO ENGELMANN","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-13":{"especialista_id":"esp-renato-lacava","nome":"RENATO LACAVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-16":{"especialista_id":null,"nome":"Espaço Fechado","turno":"Feriado","status_rotulo":"Espaço Fechado","observacoes":"","tipo":"feriado"},"2026-02-17":{"especialista_id":null,"nome":"Espaço Fechado","turno":"Feriado","status_rotulo":"Espaço Fechado","observacoes":"","tipo":"feriado"},"2026-02-18":{"especialista_id":null,"nome":"Espaço Fechado","turno":"Feriado","status_rotulo":"Espaço Fechado","observacoes":"","tipo":"feriado"},"2026-02-19":{"especialista_id":"esp-ricardo-angelo-reinaldi","nome":"RICARDO ANGELO REINALDI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-20":{"especialista_id":"esp-rodrigo-paul-quinonez-gon","nome":"RODRIGO PAUL QUINONEZ GONZALEZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-23":{"especialista_id":"esp-rodrigo-cesar-duarte","nome":"RODRIGO CESAR DUARTE","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-24":{"especialista_id":"esp-stefany-barros-fernandes","nome":"STEFANY BARROS FERNANDES","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-25":{"especialista_id":"esp-taina-renata-de-oliveira","nome":"TAINA RENATA DE OLIVEIRA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-26":{"especialista_id":"esp-ulisses-jose-covre-beltra","nome":"ULISSES JOSE COVRE BELTRAME DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-02-27":{"especialista_id":"esp-fernando-azevedo","nome":"FERNANDO AZEVEDO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-02":{"especialista_id":"esp-michel-ribeiro-rocha","nome":"MICHEL RIBEIRO ROCHA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-03":{"especialista_id":"esp-augusto-caetano-araujo-do","nome":"AUGUSTO CAETANO ARAUJO DO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-04":{"especialista_id":"esp-andre-sousa-lopes-gianott","nome":"ANDRE SOUSA LOPES GIANOTTI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-05":{"especialista_id":"esp-beatriz-cristina-figueiro","nome":"BEATRIZ CRISTINA FIGUEIRO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-06":{"especialista_id":"esp-douglas-cavalcante-filho","nome":"DOUGLAS CAVALCANTE FILHO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-09":{"especialista_id":"esp-camila-barbosa-da-silva","nome":"CAMILA BARBOSA DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-10":{"especialista_id":"esp-bruno-cesar-ravacci-silva","nome":"BRUNO CESAR RAVACCI SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-11":{"especialista_id":"esp-gilmara-silva-venancio","nome":"GILMARA SILVA VENANCIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-12":{"especialista_id":"esp-eduardo-ciosak","nome":"EDUARDO CIOSAK","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-13":{"especialista_id":"esp-eduardo-santos-thomaz","nome":"EDUARDO SANTOS THOMAZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-16":{"especialista_id":"esp-emerson-de-souza-meneguel","nome":"EMERSON DE SOUZA MENEGUEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-17":{"especialista_id":"esp-fabio-fernando-da-silva","nome":"FABIO FERNANDO DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-18":{"especialista_id":"esp-fernando-azevedo-soares-d","nome":"FERNANDO AZEVEDO SOARES DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-19":{"especialista_id":"esp-gabriel-fernandes-dias-de","nome":"GABRIEL FERNANDES DIAS DE SA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-20":{"especialista_id":"esp-andre-sousa-lopes-gianott","nome":"ANDRE SOUSA LOPES GIANOTTI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-23":{"especialista_id":"esp-giovanna-florentino-ferre","nome":"GIOVANNA FLORENTINO FERREIRA DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-24":{"especialista_id":"esp-marcel-rezk-de-angelo","nome":"MARCEL REZK DE ANGELO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-25":{"especialista_id":"esp-rodrigo-cesar","nome":"RODRIGO CESAR","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-26":{"especialista_id":"esp-jose-wellington-alves-lim","nome":"JOSE WELLINGTON ALVES LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-27":{"especialista_id":"esp-camila-barbosa","nome":"CAMILA BARBOSA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-30":{"especialista_id":"esp-bruno-nascimento","nome":"BRUNO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-03-31":{"especialista_id":"esp-josi-dinora-de-souza","nome":"JOSI DINORA DE SOUZA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-01":{"especialista_id":"esp-igor-costa","nome":"IGOR COSTA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-02":{"especialista_id":"esp-marilia-de-lima-maciel","nome":"MARILIA DE LIMA MACIEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-03":{"especialista_id":null,"nome":"Feriado","turno":"Feriado","status_rotulo":"Feriado","observacoes":"","tipo":"feriado"},"2026-04-06":{"especialista_id":"esp-alberto-bem-de-lima","nome":"ALBERTO BEM DE LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-07":{"especialista_id":"esp-paulo-sergio-da-silva","nome":"PAULO SERGIO DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-08":{"especialista_id":"esp-igor-costa","nome":"IGOR COSTA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-09":{"especialista_id":"esp-taina-renata-de-oliveira","nome":"TAINA RENATA DE OLIVEIRA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-10":{"especialista_id":"esp-renato-engelmann","nome":"RENATO ENGELMANN","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-13":{"especialista_id":"esp-renato-lacava","nome":"RENATO LACAVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-14":{"especialista_id":"esp-ricardo-angelo-reinaldi","nome":"RICARDO ANGELO REINALDI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-15":{"especialista_id":"esp-rodrigo-paul-quinonez-gon","nome":"RODRIGO PAUL QUINONEZ GONZALEZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-16":{"especialista_id":"esp-emerson-de-souza-meneguel","nome":"EMERSON DE SOUZA MENEGUEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-17":{"especialista_id":"esp-andre-sousa-lopes-gianott","nome":"ANDRE SOUSA LOPES GIANOTTI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-20":{"especialista_id":null,"nome":"Ponte Feriado","turno":"Feriado","status_rotulo":"Ponte Feriado","observacoes":"","tipo":"feriado"},"2026-04-21":{"especialista_id":null,"nome":"Feriado","turno":"Feriado","status_rotulo":"Feriado","observacoes":"","tipo":"feriado"},"2026-04-22":{"especialista_id":"esp-raiane-da-silva-teodoro-o","nome":"RAIANE DA SILVA TEODORO ORIZIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-23":{"especialista_id":"esp-ulisses-jose-covre-beltra","nome":"ULISSES JOSE COVRE BELTRAME DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-24":{"especialista_id":"esp-william-terentjvas","nome":"WILLIAM TERENTJVAS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-27":{"especialista_id":"esp-stefany-barros-fernandes","nome":"STEFANY BARROS FERNANDES","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-28":{"especialista_id":"esp-augusto-caetano-araujo-do","nome":"AUGUSTO CAETANO ARAUJO DO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-29":{"especialista_id":"esp-alberto-bem-de-lima","nome":"ALBERTO BEM DE LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-04-30":{"especialista_id":"esp-beatriz-cristina-figueiro","nome":"BEATRIZ CRISTINA FIGUEIRO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-01":{"especialista_id":null,"nome":"Feriado","turno":"Feriado","status_rotulo":"Feriado","observacoes":"","tipo":"feriado"},"2026-05-04":{"especialista_id":"esp-douglas-cavalcante-filho","nome":"DOUGLAS CAVALCANTE FILHO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-05":{"especialista_id":"esp-camila-barbosa-da-silva","nome":"CAMILA BARBOSA DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-06":{"especialista_id":"esp-rodrigo-cesar-duarte","nome":"RODRIGO CESAR DUARTE","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-07":{"especialista_id":"esp-eduardo-ciosak","nome":"EDUARDO CIOSAK","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-08":{"especialista_id":"esp-karoline-moreira-honorio","nome":"KAROLINE MOREIRA HONORIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-11":{"especialista_id":"esp-eduardo-santos-thomaz","nome":"EDUARDO SANTOS THOMAZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-12":{"especialista_id":"esp-bruno-cesar-ravacci-silva","nome":"BRUNO CESAR RAVACCI SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-13":{"especialista_id":"esp-emerson-meneguel","nome":"EMERSON MENEGUEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-14":{"especialista_id":"esp-fernando-azevedo-soares-d","nome":"FERNANDO AZEVEDO SOARES DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-15":{"especialista_id":"esp-gabriel-fernandes","nome":"Gabriel Fernandes","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-18":{"especialista_id":"esp-gilmara-silva-venancio","nome":"GILMARA SILVA VENANCIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-19":{"especialista_id":"esp-igor-pinheiro-costa","nome":"Igor Pinheiro Costa","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-20":{"especialista_id":"esp-jorge-kalmus","nome":"JORGE KALMUS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-21":{"especialista_id":"esp-jose-wellington-alves-lim","nome":"JOSE WELLINGTON ALVES LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-22":{"especialista_id":"esp-juliano-marcato","nome":"JULIANO MARCATO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-25":{"especialista_id":"esp-karoline-moreira-honorio","nome":"KAROLINE MOREIRA HONORIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-26":{"especialista_id":"esp-josi-dinora-de-souza","nome":"JOSI DINORA DE SOUZA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-27":{"especialista_id":"esp-manuel-igor-oliveira-dos-","nome":"MANUEL IGOR OLIVEIRA DOS SANTOS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-28":{"especialista_id":"esp-marcel-rezk-de-angelo","nome":"MARCEL REZK DE ANGELO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-05-29":{"especialista_id":"esp-marilia-de-lima-maciel","nome":"MARILIA DE LIMA MACIEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-01":{"especialista_id":"esp-ulisses-jose-covre-beltra","nome":"ULISSES JOSE COVRE BELTRAME DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-02":{"especialista_id":"esp-rafael-fonseca-santejani","nome":"RAFAEL FONSECA SANTEJANI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-03":{"especialista_id":"esp-michel-ribeiro-rocha","nome":"MICHEL RIBEIRO ROCHA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-04":{"especialista_id":null,"nome":"Feriado","turno":"Feriado","status_rotulo":"Feriado","observacoes":"","tipo":"feriado"},"2026-06-05":{"especialista_id":null,"nome":"Ponte Feriado","turno":"Feriado","status_rotulo":"Ponte Feriado","observacoes":"","tipo":"feriado"},"2026-06-08":{"especialista_id":"esp-raiane-da-silva-teodoro-o","nome":"RAIANE DA SILVA TEODORO ORIZIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-09":{"especialista_id":"esp-renato-lacava","nome":"RENATO LACAVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-10":{"especialista_id":"esp-renato-engelmann","nome":"RENATO ENGELMANN","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-11":{"especialista_id":"esp-emerson-de-souza-meneguel","nome":"EMERSON DE SOUZA MENEGUEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-12":{"especialista_id":"esp-william-terentjvas","nome":"WILLIAM TERENTJVAS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-15":{"especialista_id":"esp-rodrigo-cesar-duarte","nome":"RODRIGO CESAR DUARTE","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-16":{"especialista_id":"esp-rodrigo-cesar-duarte","nome":"RODRIGO CESAR DUARTE","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-17":{"especialista_id":"esp-taina-renata-de-oliveira","nome":"TAINA RENATA DE OLIVEIRA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-18":{"especialista_id":"esp-gabriel-fernandes-dias-de","nome":"GABRIEL FERNANDES DIAS DE SA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-19":{"especialista_id":"esp-rodrigo-paul-quinonez-gon","nome":"RODRIGO PAUL QUINONEZ GONZALEZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-22":{"especialista_id":"esp-alberto-bem-de-lima","nome":"ALBERTO BEM DE LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-23":{"especialista_id":"esp-augusto-caetano-araujo-do","nome":"AUGUSTO CAETANO ARAUJO DO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-24":{"especialista_id":"esp-andre-sousa-lopes-gianott","nome":"ANDRE SOUSA LOPES GIANOTTI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-25":{"especialista_id":"esp-douglas-cavalcante-filho","nome":"DOUGLAS CAVALCANTE FILHO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-26":{"especialista_id":"esp-igor-costa","nome":"Igor Costa","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-29":{"especialista_id":"esp-camila-barbosa-da-silva","nome":"CAMILA BARBOSA DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-06-30":{"especialista_id":"esp-bruno-cesar-ravacci-silva","nome":"BRUNO CESAR RAVACCI SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-01":{"especialista_id":"esp-bruno-eustaquio-nasciment","nome":"BRUNO EUSTAQUIO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-02":{"especialista_id":"esp-eduardo-ciosak","nome":"EDUARDO CIOSAK","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-03":{"especialista_id":"esp-eduardo-santos-thomaz","nome":"EDUARDO SANTOS THOMAZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-06":{"especialista_id":"esp-emerson-de-souza-meneguel","nome":"EMERSON DE SOUZA MENEGUEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-07":{"especialista_id":"esp-fernando-azevedo-soares-d","nome":"FERNANDO AZEVEDO SOARES DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-08":{"especialista_id":"esp-fabio-fernando-da-silva","nome":"FABIO FERNANDO DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-09":{"especialista_id":null,"nome":"Feriado","turno":"Feriado","status_rotulo":"Feriado","observacoes":"","tipo":"feriado"},"2026-07-10":{"especialista_id":null,"nome":"Ponte Feriado","turno":"Feriado","status_rotulo":"Ponte Feriado","observacoes":"","tipo":"feriado"},"2026-07-13":{"especialista_id":"esp-gabriel-fernandes-dias-de","nome":"GABRIEL FERNANDES DIAS DE SA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-14":{"especialista_id":"esp-gilmara-silva-venancio","nome":"GILMARA SILVA VENANCIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-15":{"especialista_id":"esp-there","nome":"There","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-16":{"especialista_id":"esp-jorge-kalmus","nome":"JORGE KALMUS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-17":{"especialista_id":"esp-josi-dinora-de-souza","nome":"JOSI DINORA DE SOUZA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-20":{"especialista_id":"esp-juliano-marcato","nome":"JULIANO MARCATO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-21":{"especialista_id":"esp-jose-wellington-alves-lim","nome":"JOSE WELLINGTON ALVES LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-22":{"especialista_id":"esp-karoline-moreira-honorio","nome":"KAROLINE MOREIRA HONORIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-23":{"especialista_id":"esp-marilia-de-lima-maciel","nome":"MARILIA DE LIMA MACIEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-24":{"especialista_id":"esp-marcel-rezk-de-angelo","nome":"MARCEL REZK DE ANGELO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-27":{"especialista_id":"esp-manuel-igor-oliveira-dos-","nome":"MANUEL IGOR OLIVEIRA DOS SANTOS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-28":{"especialista_id":"esp-michel-ribeiro-rocha","nome":"MICHEL RIBEIRO ROCHA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-29":{"especialista_id":"esp-paulo-sergio-da-silva","nome":"PAULO SERGIO DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-30":{"especialista_id":"esp-rafael-fonseca-santejani","nome":"RAFAEL FONSECA SANTEJANI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-07-31":{"especialista_id":"esp-eduardo-ciosak","nome":"EDUARDO CIOSAK","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-03":{"especialista_id":"esp-douglas-cavalcante-filho","nome":"DOUGLAS CAVALCANTE FILHO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-04":{"especialista_id":"esp-renato-lacava","nome":"RENATO LACAVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-05":{"especialista_id":"esp-igor","nome":"IGOR","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-06":{"especialista_id":"esp-rodrigo-cesar-duarte","nome":"RODRIGO CESAR DUARTE","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-07":{"especialista_id":"esp-bruno-eustaquio-nasciment","nome":"BRUNO EUSTAQUIO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-10":{"especialista_id":"esp-stefany-barros-fernandes","nome":"STEFANY BARROS FERNANDES","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-11":{"especialista_id":"esp-taina-renata-de-oliveira","nome":"TAINA RENATA DE OLIVEIRA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-12":{"especialista_id":"esp-josi","nome":"JOSI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-13":{"especialista_id":"esp-william-terentjvas","nome":"WILLIAM TERENTJVAS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-14":{"especialista_id":"esp-alberto-bem-de-lima","nome":"ALBERTO BEM DE LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-17":{"especialista_id":"esp-andre-sousa-lopes-gianott","nome":"ANDRE SOUSA LOPES GIANOTTI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-18":{"especialista_id":"esp-manuel-igor-oliveira-dos-","nome":"MANUEL IGOR OLIVEIRA DOS SANTOS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-19":{"especialista_id":"esp-kalmus","nome":"KALMUS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-20":{"especialista_id":"esp-vit-ria","nome":"Vitória","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-21":{"especialista_id":"esp-bruno-eustaquio-nasciment","nome":"BRUNO EUSTAQUIO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-24":{"especialista_id":"esp-bruno-cesar-ravacci-silva","nome":"BRUNO CESAR RAVACCI SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-25":{"especialista_id":"esp-camila-barbosa-da-silva","nome":"CAMILA BARBOSA DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-26":{"especialista_id":"esp-andre-sousa-lopes-gianott","nome":"ANDRE SOUSA LOPES GIANOTTI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-27":{"especialista_id":"esp-eduardo-santos-thomaz","nome":"EDUARDO SANTOS THOMAZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-28":{"especialista_id":"esp-gilmara-silva-venancio","nome":"GILMARA SILVA VENANCIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-08-31":{"especialista_id":"esp-fernando-azevedo-soares-d","nome":"FERNANDO AZEVEDO SOARES DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-01":{"especialista_id":"esp-fabio-fernando-da-silva","nome":"FABIO FERNANDO DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-02":{"especialista_id":"esp-gabriel-fernandes-dias-de","nome":"GABRIEL FERNANDES DIAS DE SA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-03":{"especialista_id":"esp-emerson-de-souza-meneguel","nome":"EMERSON DE SOUZA MENEGUEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-04":{"especialista_id":"esp-giovanna-florentino-ferre","nome":"GIOVANNA FLORENTINO FERREIRA DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-07":{"especialista_id":null,"nome":"Feriado","turno":"Feriado","status_rotulo":"Feriado","observacoes":"","tipo":"feriado"},"2026-09-08":{"especialista_id":"esp-rafael-fonseca-santejani","nome":"RAFAEL FONSECA SANTEJANI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-09":{"especialista_id":"esp-renato-engelmann","nome":"RENATO ENGELMANN","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-10":{"especialista_id":"esp-juliano-marcato","nome":"JULIANO MARCATO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-11":{"especialista_id":"esp-jose-wellington-alves-lim","nome":"JOSE WELLINGTON ALVES LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-14":{"especialista_id":"esp-karoline-moreira-honorio","nome":"KAROLINE MOREIRA HONORIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-15":{"especialista_id":"esp-marilia-de-lima-maciel","nome":"MARILIA DE LIMA MACIEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-16":{"especialista_id":"esp-marcel-rezk-de-angelo","nome":"MARCEL REZK DE ANGELO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-17":{"especialista_id":"esp-augusto-caetano-araujo-do","nome":"AUGUSTO CAETANO ARAUJO DO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-18":{"especialista_id":"esp-michel-ribeiro-rocha","nome":"MICHEL RIBEIRO ROCHA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-21":{"especialista_id":"esp-paulo-sergio-da-silva","nome":"PAULO SERGIO DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-22":{"especialista_id":"esp-igor-costa","nome":"IGOR COSTA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-23":{"especialista_id":"esp-raiane-da-silva-teodoro-o","nome":"RAIANE DA SILVA TEODORO ORIZIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-24":{"especialista_id":"esp-jorge-kalmus","nome":"JORGE KALMUS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-25":{"especialista_id":"esp-renato-lacava","nome":"RENATO LACAVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-28":{"especialista_id":"esp-giovanna-florentino-ferre","nome":"GIOVANNA FLORENTINO FERREIRA DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-29":{"especialista_id":"esp-augusto-caetano-araujo-do","nome":"AUGUSTO CAETANO ARAUJO DO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-09-30":{"especialista_id":"esp-rodrigo-paul-quinonez-gon","nome":"RODRIGO PAUL QUINONEZ GONZALEZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-01":{"especialista_id":"esp-stefany-barros-fernandes-","nome":"STEFANY BARROS FERNANDES + ANA CLAUDIA ALMEIDA VALERIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-02":{"especialista_id":"esp-taina-renata-de-oliveira-","nome":"TAINA RENATA DE OLIVEIRA + Camila","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-05":{"especialista_id":"esp-gianotti","nome":"Gianotti","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-06":{"especialista_id":"esp-v-t-ria-tereza","nome":"VÍTÓRIA TEREZA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-07":{"especialista_id":"esp-alberto-bem-de-lima","nome":"ALBERTO BEM DE LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-08":{"especialista_id":"esp-augusto-caetano-araujo-do","nome":"AUGUSTO CAETANO ARAUJO DO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-09":{"especialista_id":"esp-eduardo-thomaz","nome":"EDUARDO THOMAZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-12":{"especialista_id":null,"nome":"Feriado","turno":"Feriado","status_rotulo":"Feriado","observacoes":"","tipo":"feriado"},"2026-10-13":{"especialista_id":"esp-stefany-barros-fernandes","nome":"STEFANY BARROS FERNANDES","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-14":{"especialista_id":"esp-douglas-cavalcante-filho","nome":"DOUGLAS CAVALCANTE FILHO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-15":{"especialista_id":"esp-tati","nome":"TATI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-16":{"especialista_id":"esp-eduardo-ciosak","nome":"EDUARDO CIOSAK","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-19":{"especialista_id":"esp-bruno-eustaquio-nasciment","nome":"BRUNO EUSTAQUIO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-20":{"especialista_id":"esp-marcel-rezk-de-angelo","nome":"MARCEL REZK DE ANGELO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-21":{"especialista_id":"esp-eduardo-santos-thomaz","nome":"EDUARDO SANTOS THOMAZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-22":{"especialista_id":"esp-emerson-de-souza-meneguel","nome":"EMERSON DE SOUZA MENEGUEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-23":{"especialista_id":"esp-fabio-fernando-da-silva","nome":"FABIO FERNANDO DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-26":{"especialista_id":"esp-marcos-wallace","nome":"Marcos Wallace","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-27":{"especialista_id":"esp-gabriel-fernandes-dias-de","nome":"GABRIEL FERNANDES DIAS DE SA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-28":{"especialista_id":"esp-gilmara-silva-venancio","nome":"GILMARA SILVA VENANCIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-29":{"especialista_id":"esp-giovanna-florentino-ferre","nome":"GIOVANNA FLORENTINO FERREIRA DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-10-30":{"especialista_id":"esp-jorge-kalmus","nome":"JORGE KALMUS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-02":{"especialista_id":null,"nome":"Feriado","turno":"Feriado","status_rotulo":"Feriado","observacoes":"","tipo":"feriado"},"2026-11-03":{"especialista_id":"esp-josi-dinora-de-souza","nome":"JOSI DINORA DE SOUZA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-04":{"especialista_id":"esp-jose-wellington-alves-lim","nome":"JOSE WELLINGTON ALVES LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-05":{"especialista_id":"esp-juliano-marcato","nome":"JULIANO MARCATO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-06":{"especialista_id":"esp-karoline-moreira-honorio","nome":"KAROLINE MOREIRA HONORIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-09":{"especialista_id":"esp-emerson-de-souza-meneguel","nome":"EMERSON DE SOUZA MENEGUEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-10":{"especialista_id":"esp-marcos-wallace","nome":"MARCOS WALLACE","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-11":{"especialista_id":"esp-douglas","nome":"DOUGLAS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-12":{"especialista_id":"esp-michel-ribeiro-rocha","nome":"MICHEL RIBEIRO ROCHA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-13":{"especialista_id":"esp-paulo-sergio-da-silva","nome":"PAULO SERGIO DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-16":{"especialista_id":"esp-rafael-fonseca-santejani","nome":"RAFAEL FONSECA SANTEJANI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-17":{"especialista_id":"esp-raiane-da-silva-teodoro-o","nome":"RAIANE DA SILVA TEODORO ORIZIO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-18":{"especialista_id":"esp-renato-engelmann","nome":"RENATO ENGELMANN","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-19":{"especialista_id":"esp-renato-lacava","nome":"RENATO LACAVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-20":{"especialista_id":null,"nome":"Feriado","turno":"Feriado","status_rotulo":"Feriado","observacoes":"","tipo":"feriado"},"2026-11-23":{"especialista_id":"esp-giovanna-florentino-ferre","nome":"GIOVANNA FLORENTINO FERREIRA DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-24":{"especialista_id":"esp-rodrigo-paul-quinonez-gon","nome":"RODRIGO PAUL QUINONEZ GONZALEZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-25":{"especialista_id":"esp-rodrigo-cesar-duarte","nome":"RODRIGO CESAR DUARTE","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-26":{"especialista_id":"esp-stefany-barros-fernandes","nome":"STEFANY BARROS FERNANDES","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-27":{"especialista_id":"esp-marcos-wallace","nome":"MARCOS WALLACE","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-11-30":{"especialista_id":"esp-emerson","nome":"EMERSON","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-01":{"especialista_id":"esp-william-terentjvas","nome":"WILLIAM TERENTJVAS","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-02":{"especialista_id":"esp-alberto-bem-de-lima","nome":"ALBERTO BEM DE LIMA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-03":{"especialista_id":"esp-augusto-caetano-araujo-do","nome":"AUGUSTO CAETANO ARAUJO DO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-04":{"especialista_id":"esp-andre-sousa-lopes-gianott","nome":"ANDRE SOUSA LOPES GIANOTTI","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-07":{"especialista_id":"esp-vit-ria-tereza","nome":"Vitória Tereza","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-08":{"especialista_id":"esp-douglas-cavalcante-filho","nome":"DOUGLAS CAVALCANTE FILHO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-09":{"especialista_id":"esp-tati-macedo","nome":"Tati Macedo","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-10":{"especialista_id":"esp-bruno-cesar-ravacci-silva","nome":"BRUNO CESAR RAVACCI SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-11":{"especialista_id":"esp-bruno-eustaquio-nasciment","nome":"BRUNO EUSTAQUIO NASCIMENTO","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-14":{"especialista_id":"esp-eduardo-ciosak","nome":"EDUARDO CIOSAK","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-15":{"especialista_id":"esp-eduardo-santos-thomaz","nome":"EDUARDO SANTOS THOMAZ","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-16":{"especialista_id":"esp-emerson-de-souza-meneguel","nome":"EMERSON DE SOUZA MENEGUEL","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-17":{"especialista_id":"esp-fabio-fernando-da-silva","nome":"FABIO FERNANDO DA SILVA","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"},"2026-12-18":{"especialista_id":"esp-marcos-wallace","nome":"MARCOS WALLACE","turno":"08:00 as 17:30","observacoes":"","tipo":"normal"}}};
-      const [especialistas, setEspecialistas] = useState(FALLBACK_PLANTONISTAS_APPS_SCRIPT.especialistas);
-      const [escalas, setEscalas] = useState(FALLBACK_PLANTONISTAS_APPS_SCRIPT.escalas);
+      const [especialistas, setEspecialistas] = useState([]);
+      const [escalas, setEscalas] = useState({});
       
       // Data atual do sistema em Brasília
       const today = new Date();
@@ -1403,29 +1440,6 @@
 
       const carregarDados = () => {
         setLoading(true);
-        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((res) => {
-              if (res && res.plantonistas && res.plantonistas.escalas && Object.keys(res.plantonistas.escalas).length >= 50) {
-                setEspecialistas(res.plantonistas.especialistas || []);
-                setEscalas(res.plantonistas.escalas || {});
-              } else if (typeof FALLBACK_PLANTONISTAS_APPS_SCRIPT !== 'undefined') {
-                setEspecialistas(FALLBACK_PLANTONISTAS_APPS_SCRIPT.especialistas);
-                setEscalas(FALLBACK_PLANTONISTAS_APPS_SCRIPT.escalas);
-              }
-              setLoading(false);
-            })
-            .withFailureHandler(() => {
-              if (typeof FALLBACK_PLANTONISTAS_APPS_SCRIPT !== 'undefined') {
-                setEspecialistas(FALLBACK_PLANTONISTAS_APPS_SCRIPT.especialistas);
-                setEscalas(FALLBACK_PLANTONISTAS_APPS_SCRIPT.escalas);
-              }
-              setLoading(false);
-            })
-            .obterDadosIniciais();
-          return;
-        }
-
         fetch('/api/plantonistas')
           .then(res => res.json())
           .then(data => {
@@ -1513,27 +1527,7 @@
         const nomeFinal = espSelected ? espSelected.nome : '';
 
         try {
-          if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((result) => {
-              setSavingEscala(false);
-              if (result && result.success && result.plantonistas) {
-                setEscalas(result.plantonistas.escalas || {});
-                setEditingDate(null);
-                if (showToast) showToast('Escala de plantão atualizada na planilha TOTVS! ✅');
-              } else {
-                if (showToast) showToast(result?.error || 'Erro ao atualizar escala.');
-              }
-            })
-            .withFailureHandler((err) => {
-              setSavingEscala(false);
-              if (showToast) showToast('Erro no Apps Script: ' + (err.message || err));
-            })
-            .salvarEscalaPlantonista(editingDate, selectedEspId, customTurno, customObs);
-          return;
-        }
-
-        const res = await fetch('/api/plantonistas/escala', {
+          const res = await fetch('/api/plantonistas/escala', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1718,36 +1712,7 @@
         if (!importPreview) return;
         setImportandoLote(true);
         try {
-          if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((result) => {
-              setImportandoLote(false);
-              if (result && result.success) {
-                if (result.plantonistas) {
-                  if (result.plantonistas.especialistas) setEspecialistas(result.plantonistas.especialistas);
-                  if (result.plantonistas.escalas) setEscalas(result.plantonistas.escalas);
-                }
-                const totalGravado = importPreview.totalDias;
-                const anoGravado = importPreview.ano;
-                setImportPreview(null);
-                if (showToast) showToast(`Escala de ${anoGravado} importada com sucesso na planilha TOTVS! (${totalGravado} datas atualizadas) ✅`);
-              } else {
-                if (showToast) showToast(result?.error || 'Erro ao gravar escala no Google Apps Script.');
-              }
-            })
-            .withFailureHandler((err) => {
-              setImportandoLote(false);
-              if (showToast) showToast('Erro no Google Apps Script: ' + (err.message || err));
-            })
-            .salvarEscalaLote({
-              ano: importPreview.ano,
-              escalasNovas: importPreview.escalasNovas,
-              novosEspecialistas: importPreview.novosEspecialistas
-            });
-          return;
-        }
-
-        const res = await fetch('/api/plantonistas/importar-lote', {
+          const res = await fetch('/api/plantonistas/importar-lote', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -2323,6 +2288,7 @@
       });
       const [showVisitorModal, setShowVisitorModal] = useState(false);
       const [showVisitorHistoryModal, setShowVisitorHistoryModal] = useState(false);
+      const [showRoadmapsModal, setShowRoadmapsModal] = useState(false);
       const [visitorsList, setVisitorsList] = useState([]);
 
       // Governança: Chave Mestra do Perfil Especialista & Plantonista de Hoje
@@ -2662,7 +2628,7 @@
         carregarConfigLembretes();
         carregarVideoGestao();
 
-        const FALLBACK_SEGMENTOS_APPS_SCRIPT = [{"id":"totvs_agro","ordem":1,"nome":"TOTVS Agro","icone":"Sprout","cor":"emerald","tagline":"Tecnologia de ponta do plantio à mesa do consumidor","badge_solucoes":["Multicultivo","Agrodistribuidor"],"cenario_fisico":"Cenário com painel de colheita e lavoura de trigo com pragas e um drone acima.\nUm PC na tela com as soluções na bancada\nUm tablet na bancada","pitch":"O agronegócio move o PIB brasileiro e a TOTVS oferece sistemas completos que conectam desde a gestão da lavoura e insumos até o beneficiamento, comercialização e exportação de grãos, café, cana e algodão.","dores_setor":["Falta de controle de custos de insumos e maquinário por talhão/área de plantio.","Perda de eficiência no transporte, pesagem e classificação de grãos nos armazéns.","Dificuldade em gerenciar contratos futuros e oscilações do mercado de commodities."],"roteiro_bancada":["Aponte para o cenário de sacarias e grãos: explique que o Brasil é líder mundial e a TOTVS atende os maiores produtores do país.","Mostre na tela do Agro o mapa de produtividade e a gestão integrada de contratos e estoques.","Destaque que a TOTVS atua tanto no pequeno produtor de café quanto nas gigantes de cana-de-açúcar, soja e algodão."],"perguntas_visitante":["Vocês possuem operações ligadas ao agronegócio ou fornecem insumos para produtores rurais?","Como vocês controlam hoje a rastreabilidade e o custo por hectare/safra?"],"midias":{"fotos":[{"titulo":"Cenário Agro & Sacaria de Café","url":"https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Vídeo Demonstrativo de TOTVS Agro","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160250_totvs_agro.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:03:00","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Agro","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105823_esta__o_1_totvs_agro.jpeg","equipamentos":[{"id":"eq-totvs_agro-1","titulo":"PC Agro","descricao":"Usuário: ens.experiencia@totvs.com.br • Senha: Experienciastotvs@2026","foto":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105823_esta__o_1_totvs_agro.jpeg"}],"video_discurso":{"tipo":"google_drive","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160250_totvs_agro.mp4","titulo":"Vídeo Demonstrativo de TOTVS Agro"},"autor":{"nome":"Juliana PMM Auditoria","email":"auditoria.pmm.1792064095524@totvs.com.br","perfil":"pmm"},"detalhes":"Edição de discurso realizada por PMM para validação de auditoria."},{"id":"totvs_manufatura","ordem":2,"nome":"TOTVS Manufatura","icone":"Factory","cor":"blue","tagline":"Indústria 4.0, chão de fábrica em tempo real e automação","badge_solucoes":["TOTVS Manufatura","TOTVS MES","APS Avançado","Manutenção de Ativos"],"cenario_fisico":"Bancada industrial com esteira transportadora motorizada, impressora 3D para prototipagem rápida, coletores de dados e telas de monitoramento OEE.","pitch":"Aqui na bancada de Manufatura, demonstramos a Indústria 4.0 na prática. Quando uma peça passa pela esteira, sensores capturam a produção em tempo real no TOTVS MES, calculando disponibilidade, performance e qualidade (OEE). Integramos desde o planejamento fino da produção (APS) até a impressora 3D e a manutenção preventiva das máquinas.","dores_setor":["Paradas não programadas de maquinário e alto custo de manutenção corretiva.","Apontamento manual de produção em papel, gerando atraso e erros nos dados de chão de fábrica.","Falta de visibilidade precisa do índice OEE (Overall Equipment Effectiveness) em tempo real."],"roteiro_bancada":["Acione a esteira transportadora motorizada para demonstrar o fluxo de peças físicas no laboratório.","Mostre a impressora 3D em funcionamento, explicando o conceito de prototipagem rápida e peças sob demanda na manufatura.","Aponte para o monitor 'Visão TOTVS MES' e mostre o gráfico de OEE atualizando conforme as peças transitam na esteira."],"perguntas_visitante":["Como é feito hoje o apontamento de produção na fábrica de vocês? Ainda usam fichas de papel ou planilhas?","Vocês conseguem saber em tempo real se uma linha de montagem está com velocidade reduzida ou parada?"],"midias":{"fotos":[{"titulo":"Bancada Industrial com Esteira e Sensores","url":"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Simulação de Chão de Fábrica - TOTVS MES","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 10:58:35","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC Manufatura","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105834_esta__o_2_totvs_manufatura.jpeg","equipamentos":[{"id":"eq_totvs_manufatura_1","titulo":"PC Manufatura","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Simulação de Chão de Fábrica - TOTVS MES"}},{"id":"backoffice","ordem":3,"nome":"Backoffice","icone":"Building","cor":"sky","tagline":"Gestão empresarial integrada, controladoria, financeiro e compras","badge_solucoes":["TOTVS Protheus","Linha Datasul","Linha RM","TOTVS Gestão Financeira","Controladoria & Fiscal"],"cenario_fisico":"Bancada com estação corporativa, telas com dashboards gerenciais e cockpit financeiro/fiscal.","pitch":"O Backoffice da TOTVS é o coração pulsante das organizações brasileiras. Nossos ERPs líderes de mercado unificam toda a operação administrativa: financeiro, fiscal, compras, faturamento e contabilidade com automação inteligente e conformidade tributária total.","dores_setor":["Complexidade tributária e risco constante de autuações fiscais.","Falta de integração ágil entre compras, estoque e contas a pagar.","Demora no fechamento contábil e na consolidação de resultados gerenciais."],"roteiro_bancada":["Mostre na tela a visão consolidada de fluxo de caixa e DRE em tempo real.","Destaque a segurança e atualização automática das regras tributárias brasileiras.","Explique como o ERP conecta os sistemas especialistas de todos os segmentos ao núcleo da empresa."],"perguntas_visitante":["Como é feita hoje a gestão do fechamento contábil e conciliação bancária da sua empresa?","Vocês enfrentam gargalos no cumprimento das obrigações fiscais e tributárias?"],"midias":{"fotos":[],"videos":[{"titulo":"Vídeo do Tour no Espaço Experiência","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 11:30:08","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC Backoffice","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113005_esta__o_3_backoffice.jpeg","equipamentos":[{"id":"eq_backoffice_1","titulo":"PC Backoffice","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113005_esta__o_3_backoffice.jpeg"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Vídeo do Tour no Espaço Experiência"}},{"id":"totvs_mes_ppi","ordem":4,"nome":"TOTVS MES / PPI Multitask","icone":"Cpu","cor":"cyan","tagline":"Chão de fábrica digital, apontamento de produção em tempo real e OEE","badge_solucoes":["TOTVS MES","PPI Multitask","Apontamento IoT","OEE em Tempo Real","Manutenção Industrial"],"cenario_fisico":"Bancada industrial com sensores IoT, coletores de chão de fábrica e monitores com KPIs de linha de produção.","pitch":"Com o TOTVS MES e a solução PPI Multitask, digitalizamos o chão de fábrica sem papel. Monitoramos cada máquina, operador e ordem de produção em tempo real, calculando a eficiência global (OEE) e eliminando paradas não planejadas.","dores_setor":["Apontamento de produção manual em papel com atraso e retrabalho de digitação.","Desconhecimento dos reais gargalos e causas de paradas de máquinas na linha.","Perda de produtividade por falta de visibilidade do índice OEE em tempo real."],"roteiro_bancada":["Aponte para os sensores industriais e simule o ciclo de produção de uma peça.","Mostre na tela o cockpit do TOTVS MES atualizando a velocidade e qualidade da linha.","Destaque a integração direta com o ERP para baixa automática de matérias-primas."],"perguntas_visitante":["Como vocês acompanham o ritmo e as paradas de produção na fábrica hoje?","Vocês têm os índices de OEE e refugo disponíveis em tempo real para os gestores?"],"midias":{"fotos":[],"videos":[{"titulo":"Simulação de Chão de Fábrica - TOTVS MES","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 11:30:17","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC MES Multitask","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113016_esta__o_4_totvs_ppi_multitask_mes.jpeg","equipamentos":[{"id":"eq_totvs_mes_ppi_1","titulo":"PC MES Multitask","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113016_esta__o_4_totvs_ppi_multitask_mes.jpeg"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Simulação de Chão de Fábrica - TOTVS MES"}},{"id":"totvs_logistica","ordem":5,"nome":"TOTVS Logística","icone":"Truck","cor":"amber","tagline":"Armazenagem inteligente, roteirização e visibilidade da frota","badge_solucoes":["TOTVS WMS","TOTVS TMS","Torre de Controle Logística","Cockpit Logístico"],"cenario_fisico":"Traseira real de caminhão embutida na parede, doca de carga e descarga com paletes e caixas organizadas.","pitch":"A logística é a espinha dorsal que conecta a fábrica ao ponto de venda. Com o TOTVS WMS e TMS, gerenciamos desde a armazenagem e separação por voice picking até a expedição no baú do caminhão, roteirização inteligente e rastreamento em tempo real com comprovante digital de entrega.","dores_setor":["Erros no picking e separação de mercadorias no centro de distribuição, gerando devoluções.","Custo elevado de frete e ociosidade da frota por falta de otimização de rotas e cubagem.","Falta de rastreabilidade do status de entrega para o cliente final (last mile)."],"roteiro_bancada":["Leve o visitante em direção ao baú do caminhão cenográfico: destaque o realismo da operação de doca.","Explique como o WMS direciona a melhor localização de armazenagem no palete com base em giro e validade (FIFO/FEFO).","Mostre na tela a Torre de Controle Logística rastreando os veículos no mapa com alertas de desvio de rota e temperatura."],"perguntas_visitante":["Sua operação logística possui frota própria ou terceirizada?","Qual é o maior gargalo hoje: a acuracidade de estoque no CD ou o cumprimento dos prazos de entrega no destino?"],"midias":{"fotos":[{"titulo":"Cenário de Doca e Baú de Transporte","url":"https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Operação Logística no Espaço Experiência","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"16/09/2026 15:15","autor":"Especialista TOTVS Logística"},"credenciais":{"equipamento":"PC Logistica","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/bancada_totvs_logistica.jpg","equipamentos":[{"id":"eq_totvs_logistica_1","titulo":"PC Logistica","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Operação Logística no Espaço Experiência"}},{"id":"totvs_moda","ordem":6,"nome":"Loja Totvs Moda","icone":"ShoppingBag","cor":"rose","tagline":"A solução completa para toda a cadeia da moda e confecção","badge_solucoes":["TOTVS Moda ERP","Gestão de Franquias","Controle de Grade (Cor/Tam)","PDV Móvel Moda","Omnichannel Têxtil"],"cenario_fisico":"Vitrine de boutique de moda completa com manequins, bolsas, coleções e telas com a campanha 'A Força que Move o Brasil'.","pitch":"O TOTVS Moda é a solução líder que veste as maiores marcas do Brasil. Desenvolvida especificamente para as particularidades do segmento têxtil e calçadista, a solução gerencia todo o ciclo de vida da peça: desenvolvimento de coleções, ficha técnica com controle minucioso de grade de cores e tamanhos, faturamento no atacado, controle de facções e frentes de caixa ágeis para lojas próprias e franquias.","dores_setor":["Dificuldade de controle de estoque com variações complexas de grade (tamanhos P/M/G e cartela de cores).","Perda de prazos no lançamento de coleções e falta de rastreabilidade de facções externas.","Desconexão entre o estoque das lojas físicas, franquias e o e-commerce de moda."],"roteiro_bancada":["Posicione-se diante da vitrine de boutique de moda no laboratório.","Mostre na tela do TOTVS Moda a facilidade de consulta de peças por grade de cor e tamanho e a velocidade de fechamento de venda no PDV.","Destaque que a TOTVS atende desde confecções de vestuário e calçados até grandes redes de franquias de moda em shoppings."],"perguntas_visitante":["A operação de vocês trabalha com gestão de grade de produtos (cor/tamanho) ou coleções sazonais?","Como vocês integram hoje a venda das lojas físicas com as vendas do e-commerce?"],"midias":{"fotos":[{"titulo":"Vitrine Boutique TOTVS Moda","url":"https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Espaço TOTVS Moda no Laboratório","tipo":"local","url":"/Video Espaço Experiência.mp4"},{"titulo":"Vídeo Demonstrativo de Loja Totvs Moda","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160649_totvs_moda.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:06:55","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Moda","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120933_totvs_moda.jpeg","equipamentos":[{"id":"eq_totvs_moda_1","titulo":"PC Moda","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Espaço TOTVS Moda no Laboratório"}},{"id":"totvs_consinco","ordem":7,"nome":"Loja TOTVS Consinco","icone":"ShoppingCart","cor":"red","tagline":"Líder absoluto para supermercados, atacarejo e grandes redes","badge_solucoes":["Consinco ERP","Portais de Leitura RFID","Self-Checkout Touch","WMS Supermercados","Prevenção de Perdas"],"cenario_fisico":"Gôndolas de supermercado com produtos de limpeza e alimentos reais, esteira de checkout, portais RFID e totens interativos de autoatendimento.","pitch":"O TOTVS Consinco é o padrão de mercado para as maiores redes de supermercados, atacarejos e hipermercados do Brasil. Aqui no laboratório demonstramos o futuro do varejo supermercadista: portais de leitura RFID onde o cliente passa com a cesta de produtos e a leitura é feita instantaneamente sem bipar código por código, além de totens de self-checkout intuitivos e gestão integrada de prevenção de perdas.","dores_setor":["Filas longas no checkout em horários de pico, gerando insatisfação e abandono de carrinhos.","Altas taxas de ruptura de gôndola e perdas por produtos com validade vencida.","Margem de lucro apertada exigindo controle rigoroso de preços, compras conjuntas e acordos de fornecedores."],"roteiro_bancada":["Convide o visitante a testar o totem de Self-Checkout: mostre a simplicidade da interface com tela touch.","Apresente os portais RFID e explique a economia drástica de tempo de inventário e de fila no supermercado.","Aponte para a gôndola real e comente sobre o controle automatizado de reposição e precificação eletrônica do Consinco."],"perguntas_visitante":["Vocês já utilizam ou avaliam tecnologias de autoatendimento (self-checkout) para reduzir filas?","Qual o impacto das perdas de estoque e quebras operacionais na margem do negócio hoje?"],"midias":{"fotos":[{"titulo":"Gôndola Inteligente e Self-Checkout","url":"https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Demonstração de Supermercado e RFID","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:07:24","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Supermercado Consinco","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120944_totvs_consinco.jpeg","equipamentos":[{"id":"eq_totvs_consinco_1","titulo":"PC Supermercado Consinco","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Demonstração de Supermercado e RFID"}},{"id":"totvs_varejo_online","ordem":8,"nome":"TOTVS Varejo On-line","icone":"Globe","cor":"purple","tagline":"Omnichannel integrado, e-commerce, marketplaces e prateleira infinita","badge_solucoes":["TOTVS Omnichannel","Hub de Marketplaces","Ship from Store","Click & Collect","Catálogo Digital"],"cenario_fisico":"Displays digitais integrados com soluções de varejo, postos de combustíveis, lojas de conveniência e integração e-commerce.","pitch":"No TOTVS Varejo On-line, quebramos a barreira entre a loja física e o mundo virtual. Nossas soluções conectam o varejista aos principais marketplaces do mercado e transformam as lojas físicas em mini-centros de distribuição com o 'Ship from Store'. O cliente compra online e retira na loja mais próxima, enquanto a empresa opera com estoque unificado e sem ruptura.","dores_setor":["Divergência entre o estoque anunciado no e-commerce e a disponibilidade real na loja física.","Dificuldade e lentidão para cadastrar e sincronizar produtos em múltiplos marketplaces.","Custos de frete elevados e prazos de entrega longos por falta de envio a partir da loja física mais próxima."],"roteiro_bancada":["Demonstre na tela como um pedido realizado em marketplace cai instantaneamente no sistema central.","Explique o conceito de 'Prateleira Infinita': o vendedor na loja física vende um produto que está no estoque central ou em outra filial.","Mostre a experiência do cliente que compra no site e retira na loja física em poucas horas."],"perguntas_visitante":["A operação de vocês já vende em marketplaces (Mercado Livre, Amazon, Shopee) com estoque integrado?","Vocês já utilizam as lojas físicas como pontos de envio rápido de pedidos para baratear o frete?"],"midias":{"fotos":[{"titulo":"Integração Digital e E-commerce","url":"https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Vídeo Demonstrativo de TOTVS Varejo On-line","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160329_varejo_on_line.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:03:36","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Varejo On-line","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120958_totvs_varejo.jpeg","equipamentos":[{"id":"eq_totvs_varejo_online_1","titulo":"PC Varejo On-line","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"url","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160329_varejo_on_line.mp4","titulo":"Vídeo Demonstrativo de TOTVS Varejo On-line"}},{"id":"totvs_rm_clinicas","ordem":9,"nome":"TOTVS RM Clínicas","icone":"Stethoscope","cor":"teal","tagline":"Gestão completa para clínicas, consultórios médicos e policlínicas","badge_solucoes":["Linha RM Clínicas","Prontuário Eletrônico (PEP)","Faturamento TISS/TUSS","Agendamento Inteligente","Repasse Médico"],"cenario_fisico":"Consultório médico completo com maca hospitalar, mesa de atendimento clínico, estante de medicamentos e telas com indicadores clínicos.","pitch":"O TOTVS RM Clínicas é a solução consagrada da Linha RM especializada no atendimento de consultórios, clínicas de especialidades, centros diagnósticos e policlínicas. A solução unifica toda a jornada do paciente: agendamento online, prontuário eletrônico completo (PEP), prescrição digital com checagem de interações medicamentosas, além de blindar o faturamento com regras rigorosas de TISS/TUSS e repasse médico transparente.","dores_setor":["Alto índice de glosas médicas por preenchimento incorreto de guias dos convênios de saúde.","Faltas de pacientes (no-show) por falta de confirmação automatizada de consultas.","Complexidade e demora no cálculo de repasse financeiro para o corpo clínico de médicos especialistas."],"roteiro_bancada":["Aponte para o cenário de consultório com a maca clínica e a mesa de atendimento médico.","Mostre na tela o Prontuário Eletrônico (PEP) da Linha RM, demonstrando a facilidade de evolução clínica e prescrição digital.","Explique a inteligência do motor de faturamento TISS que valida códigos e autorizações antes de enviar para as operadoras de saúde."],"perguntas_visitante":["A instituição de vocês realiza atendimentos ambulatoriais, consultas ou exames com múltiplos convênios?","Qual o percentual de glosas e como é feito hoje o controle do repasse para os médicos?"],"midias":{"fotos":[{"titulo":"Consultório Médico no Espaço Experiência","url":"https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Estação Clínica no Espaço Experiência","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:07:50","autor":"André Gianotti"},"credenciais":{"equipamento":"PC RM Saude","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121009_totvs_rm_saude.jpeg","equipamentos":[{"id":"eq_totvs_rm_clinicas_1","titulo":"PC RM Saude","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Estação Clínica no Espaço Experiência"}},{"id":"mesa_interativa","ordem":10,"nome":"Mesa Interativa","icone":"MonitorPlay","cor":"indigo","tagline":"Grandes telões, mesa touch com LED e cases de sucesso do ecossistema","badge_solucoes":["TOTVS Fluig","Carol AI (Inteligência Artificial)","TOTVS Techfin","Cases de Sucesso"],"cenario_fisico":"Mesa digital touch monumental com iluminação LED azul, banquetas para visitantes e telões suspensos em parceria com Cisco e Samsung.","pitch":"Finalizamos a visita na Mesa Interativa. Aqui consolidamos a visão de ecossistema: além dos sistemas especialistas de cada segmento, a TOTVS oferece Inteligência Artificial com a Carol, soluções de crédito e serviços financeiros com a Techfin e integração com o Fluig. É o momento perfeito para exibir vídeos institucionais de cases de sucesso e responder às dúvidas finais dos clientes.","dores_setor":["Sistemas legados desconectados que não conversam entre si.","Dificuldade de acesso a crédito ágil para capital de giro e antecipação de recebíveis.","Falta de inteligência de dados centralizada para suporte à tomada de decisão executiva."],"roteiro_bancada":["Convide os visitantes a se acomodarem nas banquetas ao redor da mesa iluminada em azul.","Utilize a superfície interativa para demonstrar gráficos de ecossistema e acionar vídeos de cases no telão principal.","Abra espaço para perguntas, agradeça a visita institucional e colete os contatos para o envio de propostas ou aprofundamentos."],"perguntas_visitante":["Quais das estações que visitamos hoje mais chamou a atenção para o momento atual da sua empresa?","Gostariam de agendar uma reunião técnica focada com o especialista daquele segmento?"],"midias":{"fotos":[{"titulo":"Mesa Interativa Central com Iluminação LED","url":"https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Apresentação e Telões da Mesa Central","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 12:12:16","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC Mesa Interativa","usuario":".","senha":"totvsdiretoria ou rsxw7"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121049_mesa_interativa.jpeg","equipamentos":[{"id":"eq_mesa_interativa_1","titulo":"PC Mesa Interativa","descricao":"Usuário: .\nSenha: totvsdiretoria ou rsxw7","foto":"https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Apresentação e Telões da Mesa Central"}},{"id":"solucoes_cross","ordem":11,"nome":"SOLUÇÕES CROSS","icone":"Cpu","cor":"purple","tagline":"Soluções horizontais, inteligência artificial e ecossistema conectado","badge_solucoes":["TOTVS Fluig","Carol AI","TOTVS Assinatura Eletrônica","iPaaS / Integrações","TOTVS Techfin"],"cenario_fisico":"Bancada e estação dedicada à demonstração de soluções transversais, inteligência artificial integrada e automação de fluxos corporativos.","pitch":"As Soluções Cross conectam e potencializam todos os sistemas da TOTVS. Independentemente do setor — seja agro, manufatura, saúde, logística ou varejo —, nossas soluções transversais trazem Inteligência Artificial com a Carol, automação de fluxos de trabalho com o Fluig, assinatura eletrônica com validade jurídica e integração de plataformas com o iPaaS.","dores_setor":["Sistemas departamentais desconectados e perda de produtividade com processos manuais.","Lentidão e insegurança na coleta de assinaturas e gestão física de documentos.","Dificuldade em consolidar dados de múltiplos sistemas para gerar insights preditivos com IA."],"roteiro_bancada":["Apresente o conceito de soluções transversais que atendem a qualquer ERP ou segmento de negócio.","Mostre na tela a automação de processos inteligentes e integrações entre diferentes plataformas.","Destaque os benefícios de segurança jurídica, rapidez e redução de custos da assinatura eletrônica."],"perguntas_visitante":["Como é feita hoje a integração entre os diferentes sistemas e setores na sua empresa?","Vocês já utilizam inteligência artificial ou fluxos digitais de aprovação no dia a dia?"],"midias":{"fotos":[],"videos":[]},"ultima_atualizacao":{"data":"05/10/2026, 18:29:16","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Soluções Cross","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"","equipamentos":[{"id":"eq_solucoes_cross_1","titulo":"PC Soluções Cross","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":""}],"video_discurso":{"tipo":"url","url":"","titulo":"Vídeo do Discurso - SOLUÇÕES CROSS"}}];
+        const FALLBACK_SEGMENTOS_APPS_SCRIPT = [{"id":"totvs_agro","ordem":1,"nome":"TOTVS Agro","icone":"Sprout","cor":"emerald","tagline":"Tecnologia de ponta do plantio à mesa do consumidor","badge_solucoes":["Multicultivo","Agrodistribuidor"],"cenario_fisico":"Cenário com painel de colheita e lavoura de trigo com pragas e um drone acima.\nUm PC na tela com as soluções na bancada\nUm tablet na bancada","pitch":"O agronegócio move o PIB brasileiro e a TOTVS oferece sistemas completos que conectam desde a gestão da lavoura e insumos até o beneficiamento, comercialização e exportação de grãos, café, cana e algodão.","dores_setor":["Falta de controle de custos de insumos e maquinário por talhão/área de plantio.","Perda de eficiência no transporte, pesagem e classificação de grãos nos armazéns.","Dificuldade em gerenciar contratos futuros e oscilações do mercado de commodities."],"roteiro_bancada":["Aponte para o cenário de sacarias e grãos: explique que o Brasil é líder mundial e a TOTVS atende os maiores produtores do país.","Mostre na tela do Agro o mapa de produtividade e a gestão integrada de contratos e estoques.","Destaque que a TOTVS atua tanto no pequeno produtor de café quanto nas gigantes de cana-de-açúcar, soja e algodão."],"perguntas_visitante":["Vocês possuem operações ligadas ao agronegócio ou fornecem insumos para produtores rurais?","Como vocês controlam hoje a rastreabilidade e o custo por hectare/safra?"],"midias":{"fotos":[{"titulo":"Cenário Agro & Sacaria de Café","url":"https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Vídeo Demonstrativo de TOTVS Agro","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160250_totvs_agro.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:03:00","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Agro","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105823_esta__o_1_totvs_agro.jpeg","equipamentos":[{"id":"eq-totvs_agro-1","titulo":"PC Agro","descricao":"Usuário: ens.experiencia@totvs.com.br • Senha: Experienciastotvs@2026","foto":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105823_esta__o_1_totvs_agro.jpeg"}],"video_discurso":{"tipo":"google_drive","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160250_totvs_agro.mp4","titulo":"Vídeo Demonstrativo de TOTVS Agro"},"autor":{"nome":"Juliana PMM Auditoria","email":"auditoria.pmm.1792064095524@totvs.com.br","perfil":"pmm"},"detalhes":"Edição de discurso realizada por PMM para validação de auditoria.","personas":"","principais_clientes":""},{"id":"totvs_manufatura","ordem":2,"nome":"TOTVS Manufatura","icone":"Factory","cor":"blue","tagline":"Indústria 4.0, chão de fábrica em tempo real e automação","badge_solucoes":["TOTVS Manufatura","TOTVS MES","APS Avançado","Manutenção de Ativos"],"cenario_fisico":"Bancada industrial com esteira transportadora motorizada, impressora 3D para prototipagem rápida, coletores de dados e telas de monitoramento OEE.","pitch":"Aqui na bancada de Manufatura, demonstramos a Indústria 4.0 na prática. Quando uma peça passa pela esteira, sensores capturam a produção em tempo real no TOTVS MES, calculando disponibilidade, performance e qualidade (OEE). Integramos desde o planejamento fino da produção (APS) até a impressora 3D e a manutenção preventiva das máquinas.","dores_setor":["Paradas não programadas de maquinário e alto custo de manutenção corretiva.","Apontamento manual de produção em papel, gerando atraso e erros nos dados de chão de fábrica.","Falta de visibilidade precisa do índice OEE (Overall Equipment Effectiveness) em tempo real."],"roteiro_bancada":["Acione a esteira transportadora motorizada para demonstrar o fluxo de peças físicas no laboratório.","Mostre a impressora 3D em funcionamento, explicando o conceito de prototipagem rápida e peças sob demanda na manufatura.","Aponte para o monitor 'Visão TOTVS MES' e mostre o gráfico de OEE atualizando conforme as peças transitam na esteira."],"perguntas_visitante":["Como é feito hoje o apontamento de produção na fábrica de vocês? Ainda usam fichas de papel ou planilhas?","Vocês conseguem saber em tempo real se uma linha de montagem está com velocidade reduzida ou parada?"],"midias":{"fotos":[{"titulo":"Bancada Industrial com Esteira e Sensores","url":"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Simulação de Chão de Fábrica - TOTVS MES","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 10:58:35","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC Manufatura","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_105834_esta__o_2_totvs_manufatura.jpeg","equipamentos":[{"id":"eq_totvs_manufatura_1","titulo":"PC Manufatura","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Simulação de Chão de Fábrica - TOTVS MES"},"personas":"","principais_clientes":""},{"id":"backoffice","ordem":3,"nome":"Backoffice","icone":"Building","cor":"sky","tagline":"Gestão empresarial integrada, controladoria, financeiro e compras","badge_solucoes":["TOTVS Protheus","Linha Datasul","Linha RM","TOTVS Gestão Financeira","Controladoria & Fiscal"],"cenario_fisico":"Bancada com estação corporativa, telas com dashboards gerenciais e cockpit financeiro/fiscal.","pitch":"O Backoffice da TOTVS é o coração pulsante das organizações brasileiras. Nossos ERPs líderes de mercado unificam toda a operação administrativa: financeiro, fiscal, compras, faturamento e contabilidade com automação inteligente e conformidade tributária total.","dores_setor":["Complexidade tributária e risco constante de autuações fiscais.","Falta de integração ágil entre compras, estoque e contas a pagar.","Demora no fechamento contábil e na consolidação de resultados gerenciais."],"roteiro_bancada":["Mostre na tela a visão consolidada de fluxo de caixa e DRE em tempo real.","Destaque a segurança e atualização automática das regras tributárias brasileiras.","Explique como o ERP conecta os sistemas especialistas de todos os segmentos ao núcleo da empresa."],"perguntas_visitante":["Como é feita hoje a gestão do fechamento contábil e conciliação bancária da sua empresa?","Vocês enfrentam gargalos no cumprimento das obrigações fiscais e tributárias?"],"midias":{"fotos":[],"videos":[{"titulo":"Vídeo do Tour no Espaço Experiência","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 11:30:08","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC Backoffice","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113005_esta__o_3_backoffice.jpeg","equipamentos":[{"id":"eq_backoffice_1","titulo":"PC Backoffice","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113005_esta__o_3_backoffice.jpeg"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Vídeo do Tour no Espaço Experiência"},"personas":"","principais_clientes":""},{"id":"totvs_mes_ppi","ordem":4,"nome":"TOTVS MES / PPI Multitask","icone":"Cpu","cor":"cyan","tagline":"Chão de fábrica digital, apontamento de produção em tempo real e OEE","badge_solucoes":["TOTVS MES","PPI Multitask","Apontamento IoT","OEE em Tempo Real","Manutenção Industrial"],"cenario_fisico":"Bancada industrial com sensores IoT, coletores de chão de fábrica e monitores com KPIs de linha de produção.","pitch":"Com o TOTVS MES e a solução PPI Multitask, digitalizamos o chão de fábrica sem papel. Monitoramos cada máquina, operador e ordem de produção em tempo real, calculando a eficiência global (OEE) e eliminando paradas não planejadas.","dores_setor":["Apontamento de produção manual em papel com atraso e retrabalho de digitação.","Desconhecimento dos reais gargalos e causas de paradas de máquinas na linha.","Perda de produtividade por falta de visibilidade do índice OEE em tempo real."],"roteiro_bancada":["Aponte para os sensores industriais e simule o ciclo de produção de uma peça.","Mostre na tela o cockpit do TOTVS MES atualizando a velocidade e qualidade da linha.","Destaque a integração direta com o ERP para baixa automática de matérias-primas."],"perguntas_visitante":["Como vocês acompanham o ritmo e as paradas de produção na fábrica hoje?","Vocês têm os índices de OEE e refugo disponíveis em tempo real para os gestores?"],"midias":{"fotos":[],"videos":[{"titulo":"Simulação de Chão de Fábrica - TOTVS MES","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 11:30:17","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC MES Multitask","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113016_esta__o_4_totvs_ppi_multitask_mes.jpeg","equipamentos":[{"id":"eq_totvs_mes_ppi_1","titulo":"PC MES Multitask","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_113016_esta__o_4_totvs_ppi_multitask_mes.jpeg"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Simulação de Chão de Fábrica - TOTVS MES"},"personas":"","principais_clientes":""},{"id":"totvs_logistica","ordem":5,"nome":"TOTVS Logística","icone":"Truck","cor":"amber","tagline":"Armazenagem inteligente, roteirização e visibilidade da frota","badge_solucoes":["TOTVS WMS","TOTVS TMS","Torre de Controle Logística","Cockpit Logístico"],"cenario_fisico":"Traseira real de caminhão embutida na parede, doca de carga e descarga com paletes e caixas organizadas.","pitch":"A logística é a espinha dorsal que conecta a fábrica ao ponto de venda. Com o TOTVS WMS e TMS, gerenciamos desde a armazenagem e separação por voice picking até a expedição no baú do caminhão, roteirização inteligente e rastreamento em tempo real com comprovante digital de entrega.","dores_setor":["Erros no picking e separação de mercadorias no centro de distribuição, gerando devoluções.","Custo elevado de frete e ociosidade da frota por falta de otimização de rotas e cubagem.","Falta de rastreabilidade do status de entrega para o cliente final (last mile)."],"roteiro_bancada":["Leve o visitante em direção ao baú do caminhão cenográfico: destaque o realismo da operação de doca.","Explique como o WMS direciona a melhor localização de armazenagem no palete com base em giro e validade (FIFO/FEFO).","Mostre na tela a Torre de Controle Logística rastreando os veículos no mapa com alertas de desvio de rota e temperatura."],"perguntas_visitante":["Sua operação logística possui frota própria ou terceirizada?","Qual é o maior gargalo hoje: a acuracidade de estoque no CD ou o cumprimento dos prazos de entrega no destino?"],"midias":{"fotos":[{"titulo":"Cenário de Doca e Baú de Transporte","url":"https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Operação Logística no Espaço Experiência","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"16/09/2026 15:15","autor":"Especialista TOTVS Logística"},"credenciais":{"equipamento":"PC Logistica","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/bancada_totvs_logistica.jpg","equipamentos":[{"id":"eq_totvs_logistica_1","titulo":"PC Logistica","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Operação Logística no Espaço Experiência"},"personas":"","principais_clientes":""},{"id":"totvs_moda","ordem":6,"nome":"Loja Totvs Moda","icone":"ShoppingBag","cor":"rose","tagline":"A solução completa para toda a cadeia da moda e confecção","badge_solucoes":["TOTVS Moda ERP","Gestão de Franquias","Controle de Grade (Cor/Tam)","PDV Móvel Moda","Omnichannel Têxtil"],"cenario_fisico":"Vitrine de boutique de moda completa com manequins, bolsas, coleções e telas com a campanha 'A Força que Move o Brasil'.","pitch":"O TOTVS Moda é a solução líder que veste as maiores marcas do Brasil. Desenvolvida especificamente para as particularidades do segmento têxtil e calçadista, a solução gerencia todo o ciclo de vida da peça: desenvolvimento de coleções, ficha técnica com controle minucioso de grade de cores e tamanhos, faturamento no atacado, controle de facções e frentes de caixa ágeis para lojas próprias e franquias.","dores_setor":["Dificuldade de controle de estoque com variações complexas de grade (tamanhos P/M/G e cartela de cores).","Perda de prazos no lançamento de coleções e falta de rastreabilidade de facções externas.","Desconexão entre o estoque das lojas físicas, franquias e o e-commerce de moda."],"roteiro_bancada":["Posicione-se diante da vitrine de boutique de moda no laboratório.","Mostre na tela do TOTVS Moda a facilidade de consulta de peças por grade de cor e tamanho e a velocidade de fechamento de venda no PDV.","Destaque que a TOTVS atende desde confecções de vestuário e calçados até grandes redes de franquias de moda em shoppings."],"perguntas_visitante":["A operação de vocês trabalha com gestão de grade de produtos (cor/tamanho) ou coleções sazonais?","Como vocês integram hoje a venda das lojas físicas com as vendas do e-commerce?"],"midias":{"fotos":[{"titulo":"Vitrine Boutique TOTVS Moda","url":"https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Espaço TOTVS Moda no Laboratório","tipo":"local","url":"/Video Espaço Experiência.mp4"},{"titulo":"Vídeo Demonstrativo de Loja Totvs Moda","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160649_totvs_moda.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:06:55","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Moda","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120933_totvs_moda.jpeg","equipamentos":[{"id":"eq_totvs_moda_1","titulo":"PC Moda","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Espaço TOTVS Moda no Laboratório"},"personas":"","principais_clientes":""},{"id":"totvs_consinco","ordem":7,"nome":"Loja TOTVS Consinco","icone":"ShoppingCart","cor":"red","tagline":"Líder absoluto para supermercados, atacarejo e grandes redes","badge_solucoes":["Consinco ERP","Portais de Leitura RFID","Self-Checkout Touch","WMS Supermercados","Prevenção de Perdas"],"cenario_fisico":"Gôndolas de supermercado com produtos de limpeza e alimentos reais, esteira de checkout, portais RFID e totens interativos de autoatendimento.","pitch":"O TOTVS Consinco é o padrão de mercado para as maiores redes de supermercados, atacarejos e hipermercados do Brasil. Aqui no laboratório demonstramos o futuro do varejo supermercadista: portais de leitura RFID onde o cliente passa com a cesta de produtos e a leitura é feita instantaneamente sem bipar código por código, além de totens de self-checkout intuitivos e gestão integrada de prevenção de perdas.","dores_setor":["Filas longas no checkout em horários de pico, gerando insatisfação e abandono de carrinhos.","Altas taxas de ruptura de gôndola e perdas por produtos com validade vencida.","Margem de lucro apertada exigindo controle rigoroso de preços, compras conjuntas e acordos de fornecedores."],"roteiro_bancada":["Convide o visitante a testar o totem de Self-Checkout: mostre a simplicidade da interface com tela touch.","Apresente os portais RFID e explique a economia drástica de tempo de inventário e de fila no supermercado.","Aponte para a gôndola real e comente sobre o controle automatizado de reposição e precificação eletrônica do Consinco."],"perguntas_visitante":["Vocês já utilizam ou avaliam tecnologias de autoatendimento (self-checkout) para reduzir filas?","Qual o impacto das perdas de estoque e quebras operacionais na margem do negócio hoje?"],"midias":{"fotos":[{"titulo":"Gôndola Inteligente e Self-Checkout","url":"https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Demonstração de Supermercado e RFID","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:07:24","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Supermercado Consinco","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120944_totvs_consinco.jpeg","equipamentos":[{"id":"eq_totvs_consinco_1","titulo":"PC Supermercado Consinco","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Demonstração de Supermercado e RFID"},"personas":"","principais_clientes":""},{"id":"totvs_varejo_online","ordem":8,"nome":"TOTVS Varejo On-line","icone":"Globe","cor":"purple","tagline":"Omnichannel integrado, e-commerce, marketplaces e prateleira infinita","badge_solucoes":["TOTVS Omnichannel","Hub de Marketplaces","Ship from Store","Click & Collect","Catálogo Digital"],"cenario_fisico":"Displays digitais integrados com soluções de varejo, postos de combustíveis, lojas de conveniência e integração e-commerce.","pitch":"No TOTVS Varejo On-line, quebramos a barreira entre a loja física e o mundo virtual. Nossas soluções conectam o varejista aos principais marketplaces do mercado e transformam as lojas físicas em mini-centros de distribuição com o 'Ship from Store'. O cliente compra online e retira na loja mais próxima, enquanto a empresa opera com estoque unificado e sem ruptura.","dores_setor":["Divergência entre o estoque anunciado no e-commerce e a disponibilidade real na loja física.","Dificuldade e lentidão para cadastrar e sincronizar produtos em múltiplos marketplaces.","Custos de frete elevados e prazos de entrega longos por falta de envio a partir da loja física mais próxima."],"roteiro_bancada":["Demonstre na tela como um pedido realizado em marketplace cai instantaneamente no sistema central.","Explique o conceito de 'Prateleira Infinita': o vendedor na loja física vende um produto que está no estoque central ou em outra filial.","Mostre a experiência do cliente que compra no site e retira na loja física em poucas horas."],"perguntas_visitante":["A operação de vocês já vende em marketplaces (Mercado Livre, Amazon, Shopee) com estoque integrado?","Vocês já utilizam as lojas físicas como pontos de envio rápido de pedidos para baratear o frete?"],"midias":{"fotos":[{"titulo":"Integração Digital e E-commerce","url":"https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Vídeo Demonstrativo de TOTVS Varejo On-line","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160329_varejo_on_line.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:03:36","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Varejo On-line","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_120958_totvs_varejo.jpeg","equipamentos":[{"id":"eq_totvs_varejo_online_1","titulo":"PC Varejo On-line","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"url","url":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_160329_varejo_on_line.mp4","titulo":"Vídeo Demonstrativo de TOTVS Varejo On-line"},"personas":"","principais_clientes":""},{"id":"totvs_rm_clinicas","ordem":9,"nome":"TOTVS RM Clínicas","icone":"Stethoscope","cor":"teal","tagline":"Gestão completa para clínicas, consultórios médicos e policlínicas","badge_solucoes":["Linha RM Clínicas","Prontuário Eletrônico (PEP)","Faturamento TISS/TUSS","Agendamento Inteligente","Repasse Médico"],"cenario_fisico":"Consultório médico completo com maca hospitalar, mesa de atendimento clínico, estante de medicamentos e telas com indicadores clínicos.","pitch":"O TOTVS RM Clínicas é a solução consagrada da Linha RM especializada no atendimento de consultórios, clínicas de especialidades, centros diagnósticos e policlínicas. A solução unifica toda a jornada do paciente: agendamento online, prontuário eletrônico completo (PEP), prescrição digital com checagem de interações medicamentosas, além de blindar o faturamento com regras rigorosas de TISS/TUSS e repasse médico transparente.","dores_setor":["Alto índice de glosas médicas por preenchimento incorreto de guias dos convênios de saúde.","Faltas de pacientes (no-show) por falta de confirmação automatizada de consultas.","Complexidade e demora no cálculo de repasse financeiro para o corpo clínico de médicos especialistas."],"roteiro_bancada":["Aponte para o cenário de consultório com a maca clínica e a mesa de atendimento médico.","Mostre na tela o Prontuário Eletrônico (PEP) da Linha RM, demonstrando a facilidade de evolução clínica e prescrição digital.","Explique a inteligência do motor de faturamento TISS que valida códigos e autorizações antes de enviar para as operadoras de saúde."],"perguntas_visitante":["A instituição de vocês realiza atendimentos ambulatoriais, consultas ou exames com múltiplos convênios?","Qual o percentual de glosas e como é feito hoje o controle do repasse para os médicos?"],"midias":{"fotos":[{"titulo":"Consultório Médico no Espaço Experiência","url":"https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Estação Clínica no Espaço Experiência","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 16:07:50","autor":"André Gianotti"},"credenciais":{"equipamento":"PC RM Saude","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121009_totvs_rm_saude.jpeg","equipamentos":[{"id":"eq_totvs_rm_clinicas_1","titulo":"PC RM Saude","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":"https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Estação Clínica no Espaço Experiência"},"personas":"","principais_clientes":""},{"id":"mesa_interativa","ordem":10,"nome":"Mesa Interativa","icone":"MonitorPlay","cor":"indigo","tagline":"Grandes telões, mesa touch com LED e cases de sucesso do ecossistema","badge_solucoes":["TOTVS Fluig","Carol AI (Inteligência Artificial)","TOTVS Techfin","Cases de Sucesso"],"cenario_fisico":"Mesa digital touch monumental com iluminação LED azul, banquetas para visitantes e telões suspensos em parceria com Cisco e Samsung.","pitch":"Finalizamos a visita na Mesa Interativa. Aqui consolidamos a visão de ecossistema: além dos sistemas especialistas de cada segmento, a TOTVS oferece Inteligência Artificial com a Carol, soluções de crédito e serviços financeiros com a Techfin e integração com o Fluig. É o momento perfeito para exibir vídeos institucionais de cases de sucesso e responder às dúvidas finais dos clientes.","dores_setor":["Sistemas legados desconectados que não conversam entre si.","Dificuldade de acesso a crédito ágil para capital de giro e antecipação de recebíveis.","Falta de inteligência de dados centralizada para suporte à tomada de decisão executiva."],"roteiro_bancada":["Convide os visitantes a se acomodarem nas banquetas ao redor da mesa iluminada em azul.","Utilize a superfície interativa para demonstrar gráficos de ecossistema e acionar vídeos de cases no telão principal.","Abra espaço para perguntas, agradeça a visita institucional e colete os contatos para o envio de propostas ou aprofundamentos."],"perguntas_visitante":["Quais das estações que visitamos hoje mais chamou a atenção para o momento atual da sua empresa?","Gostariam de agendar uma reunião técnica focada com o especialista daquele segmento?"],"midias":{"fotos":[{"titulo":"Mesa Interativa Central com Iluminação LED","url":"https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80"}],"videos":[{"titulo":"Apresentação e Telões da Mesa Central","tipo":"local","url":"/Video Espaço Experiência.mp4"}]},"ultima_atualizacao":{"data":"05/10/2026, 12:12:16","autor":"Analista TOTVS"},"credenciais":{"equipamento":"PC Mesa Interativa","usuario":".","senha":"totvsdiretoria ou rsxw7"},"foto_bancada":"https://raw.githubusercontent.com/sousalopesgianotti-cmd/espaco-experiencia/main/uploads/media_20261005_121049_mesa_interativa.jpeg","equipamentos":[{"id":"eq_mesa_interativa_1","titulo":"PC Mesa Interativa","descricao":"Usuário: .\nSenha: totvsdiretoria ou rsxw7","foto":"https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80"}],"video_discurso":{"tipo":"local","url":"/Video Espaço Experiência.mp4","titulo":"Apresentação e Telões da Mesa Central"},"personas":"","principais_clientes":""},{"id":"solucoes_cross","ordem":11,"nome":"SOLUÇÕES CROSS","icone":"Cpu","cor":"purple","tagline":"Soluções horizontais, inteligência artificial e ecossistema conectado","badge_solucoes":["TOTVS Fluig","Carol AI","TOTVS Assinatura Eletrônica","iPaaS / Integrações","TOTVS Techfin"],"cenario_fisico":"Bancada e estação dedicada à demonstração de soluções transversais, inteligência artificial integrada e automação de fluxos corporativos.","pitch":"As Soluções Cross conectam e potencializam todos os sistemas da TOTVS. Independentemente do setor — seja agro, manufatura, saúde, logística ou varejo —, nossas soluções transversais trazem Inteligência Artificial com a Carol, automação de fluxos de trabalho com o Fluig, assinatura eletrônica com validade jurídica e integração de plataformas com o iPaaS.","dores_setor":["Sistemas departamentais desconectados e perda de produtividade com processos manuais.","Lentidão e insegurança na coleta de assinaturas e gestão física de documentos.","Dificuldade em consolidar dados de múltiplos sistemas para gerar insights preditivos com IA."],"roteiro_bancada":["Apresente o conceito de soluções transversais que atendem a qualquer ERP ou segmento de negócio.","Mostre na tela a automação de processos inteligentes e integrações entre diferentes plataformas.","Destaque os benefícios de segurança jurídica, rapidez e redução de custos da assinatura eletrônica."],"perguntas_visitante":["Como é feita hoje a integração entre os diferentes sistemas e setores na sua empresa?","Vocês já utilizam inteligência artificial ou fluxos digitais de aprovação no dia a dia?"],"midias":{"fotos":[],"videos":[]},"ultima_atualizacao":{"data":"05/10/2026, 18:29:16","autor":"André Gianotti"},"credenciais":{"equipamento":"PC Soluções Cross","usuario":"ens.experiencia@totvs.com.br","senha":"Experienciastotvs@2026"},"foto_bancada":"","equipamentos":[{"id":"eq_solucoes_cross_1","titulo":"PC Soluções Cross","descricao":"Usuário: ens.experiencia@totvs.com.br\nSenha: Experienciastotvs@2026","foto":""}],"video_discurso":{"tipo":"url","url":"","titulo":"Vídeo do Discurso - SOLUÇÕES CROSS"},"personas":"","principais_clientes":""}];
 
         const rehydrateSegmentosWithLocalCache = (segsList) => {
           if (!Array.isArray(segsList)) return segsList;
@@ -2716,55 +2682,6 @@
             return segsList;
           }
         };
-
-        // Integração nativa Google Apps Script (Execução dentro do Google Workspace)
-        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((res) => {
-              if (res && res.success) {
-                if (res.segmentos && res.segmentos.length > 0) {
-                  setSegmentos(rehydrateSegmentosWithLocalCache(res.segmentos));
-                } else {
-                  setSegmentos(rehydrateSegmentosWithLocalCache(FALLBACK_SEGMENTOS_APPS_SCRIPT));
-                }
-                if (res.videoGestao) setVideoGestao(res.videoGestao);
-                if (res.visitantes) setVisitorsList(res.visitantes);
-                if (res.metricas) setVisitorMetrics(res.metricas);
-                if (res.configLembretes) setConfigLembretes(res.configLembretes);
-                if (res.auth_especialista_obrigatoria !== undefined) {
-                  setAuthEspecialistaObrigatoria(res.auth_especialista_obrigatoria === true);
-                }
-                if (res.plantonistas && res.plantonistas.escalas) {
-                  const today = new Date();
-                  const yyyy = today.getFullYear();
-                  const mm = String(today.getMonth() + 1).padStart(2, '0');
-                  const dd = String(today.getDate()).padStart(2, '0');
-                  const todayIso = yyyy + '-' + mm + '-' + dd;
-                  const plantao = res.plantonistas.escalas[todayIso];
-                  if (plantao && plantao.nome) setPlantonistaHoje(plantao.nome);
-                }
-                // Regra Corporativa: O sistema deve abrir sempre deslogado para o usuário se identificar
-                // Só restaura se houver sessão ativa explicitamente salva na sessão do navegador atual (sessionStorage)
-                const savedSession = sessionStorage.getItem('totvs_adm_session');
-                if (savedSession) {
-                  try {
-                    const parsed = JSON.parse(savedSession);
-                    setAdmLogado(parsed);
-                  } catch(e){}
-                }
-              } else {
-                setSegmentos(rehydrateSegmentosWithLocalCache(FALLBACK_SEGMENTOS_APPS_SCRIPT));
-              }
-              setLoading(false);
-            })
-            .withFailureHandler((err) => {
-              console.warn('Erro ao carregar do Apps Script, usando fallback:', err);
-              setSegmentos(rehydrateSegmentosWithLocalCache(FALLBACK_SEGMENTOS_APPS_SCRIPT));
-              setLoading(false);
-            })
-            .obterDadosIniciais();
-          return;
-        }
 
         // 5. Buscar segmentos
         fetch('/api/segmentos')
@@ -2856,29 +2773,6 @@
           autor: autorNome
         };
 
-        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((res) => {
-              if (res && res.success && res.segmentos) {
-                setSegmentos(rehydrateSegmentosWithLocalCache(res.segmentos));
-              } else {
-                setSegmentos(prev => prev.map(s => s.id === segToSave.id ? segToSave : s));
-              }
-              setValidationModal(null);
-              setEditSegment(null);
-              if (activeSegment && activeSegment.id === segToSave.id) setActiveSegment(segToSave);
-              showToast(`Alterações do segmento "${segToSave.nome}" salvas na planilha TOTVS! ✅`);
-            })
-            .withFailureHandler((err) => {
-              setSegmentos(prev => prev.map(s => s.id === segToSave.id ? segToSave : s));
-              setValidationModal(null);
-              setEditSegment(null);
-              showToast(`Salvo localmente! ✅`);
-            })
-            .salvarEstacao(segToSave);
-          return;
-        }
-
         fetch(`/api/segmentos/${segToSave.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -2929,27 +2823,6 @@
           }
         };
 
-        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((res) => {
-              if (res && res.success && res.segmentos) {
-                setSegmentos(res.segmentos);
-              } else {
-                setSegmentos(prev => prev.map(s => s.id === segId ? segToSave : s));
-              }
-              setQuickBancadaSegment(null);
-              if (activeSegment && activeSegment.id === segId) setActiveSegment(segToSave);
-              showToast(`Estação "${segToSave.nome}" salva na planilha TOTVS! ✅`);
-            })
-            .withFailureHandler((err) => {
-              setSegmentos(prev => prev.map(s => s.id === segId ? segToSave : s));
-              setQuickBancadaSegment(null);
-              showToast(`Salvo localmente! ✅`);
-            })
-            .salvarEstacao(segToSave);
-          return;
-        }
-
         fetch(`/api/segmentos/${segId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -2996,25 +2869,6 @@
       };
 
       const carregarDadosAdmin = () => {
-        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((res) => {
-              if (res && res.success) {
-                if (res.usuarios) setAdmsList(res.usuarios);
-                if (res.convites) setConvitesList(res.convites);
-                if (res.metricas) setMetricsData(res.metricas);
-                if (res.logsAcesso) setAccessLogs(res.logsAcesso);
-                if (res.logsAuditoria) setAuditLogs(res.logsAuditoria);
-              }
-            })
-            .withFailureHandler(() => {})
-            .obterDadosAdmin();
-          carregarVisitorMetrics();
-          carregarVisitantes();
-          carregarVideoGestao();
-          return;
-        }
-
         fetch('/api/admin/users').then(res => res.json()).then(setAdmsList).catch(() => {});
         fetch('/api/admin/invites').then(res => res.json()).then(setConvitesList).catch(() => {});
         fetch('/api/admin/metrics').then(res => res.json()).then(d => { if (d.success) setMetricsData(d); }).catch(() => {});
@@ -3058,9 +2912,10 @@
       const activeNav = useMemo(() => {
         if (showPlantonistasModal) return 'plantonistas';
         if (showVisitorHistoryModal) return 'historico';
+        if (showRoadmapsModal) return 'roadmaps';
         if (adminModal || showMeuPerfilModal) return 'admin';
         return 'showroom';
-      }, [showPlantonistasModal, showVisitorHistoryModal, adminModal, showMeuPerfilModal]);
+      }, [showPlantonistasModal, showVisitorHistoryModal, showRoadmapsModal, adminModal, showMeuPerfilModal]);
 
       // Ação Universal: Retornar ao Showroom (Reset Geral / Fechar Modais / Limpar Filtros)
       const handleReturnToShowroom = () => {
@@ -3069,6 +2924,7 @@
         setShowPlantonistasModal(false);
         setAdminModal(false);
         setShowVisitorHistoryModal(false);
+        setShowRoadmapsModal(false);
         setShowVisitorModal(false);
         setShowMeuPerfilModal(false);
         setLightboxSegment(null);
@@ -3129,6 +2985,7 @@
               }
               setShowVisitorHistoryModal(true);
             }}
+            onOpenRoadmaps={() => setShowRoadmapsModal(true)}
             onOpenAdmin={handleOpenAdmin}
             onLogoutAdm={handleLogoutAdm}
             admLogado={admLogado}
@@ -3649,6 +3506,15 @@
             />
           )}
 
+          {/* MODAL DE GESTÃO DE ROADMAPS & IDEIAS - EXCLUSIVO DONO DO PRODUTO */}
+          {showRoadmapsModal && admLogado && (admLogado.dono_produto === true || admLogado.email?.toLowerCase().trim() === 'andre.gianotti@totvs.com.br') && (
+            <RoadmapsModal
+              onClose={() => setShowRoadmapsModal(false)}
+              admLogado={admLogado}
+              showToast={showToast}
+            />
+          )}
+
           {/* MODAL DE HISTÓRICO DE VISITANTES (MESES & ANOS ANTERIORES) - EXCLUSIVO ADM */}
           {showVisitorHistoryModal && admLogado && (admLogado.perfil === 'adm' || admLogado.dono_produto) && admLogado.perfil !== 'especialista' && (
             <VisitorHistoryModal
@@ -3829,30 +3695,7 @@
                 })
                 .atualizarFotoUsuario(usuario.email, base64);
             } else {
-              if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-              google.script.run
-                .withSuccessHandler((data) => {
-                  setUploadingAvatar(false);
-                  if (data && data.success && data.usuario) {
-                    if (onUpdateAdmProfile) onUpdateAdmProfile(data.usuario);
-                    if (onAdmsChange) onAdmsChange();
-                    if (showToast) showToast('Foto de perfil atualizada na planilha TOTVS! 🎉');
-                  } else {
-                    alert(data && data.message ? data.message : 'Erro ao atualizar foto de perfil.');
-                  }
-                })
-                .withFailureHandler((err) => {
-                  setUploadingAvatar(false);
-                  // Fallback local se houver lentidão na rede
-                  const userAtualizado = { ...admLogado, foto: base64Data };
-                  if (onUpdateAdmProfile) onUpdateAdmProfile(userAtualizado);
-                  if (showToast) showToast('Foto de perfil aplicada com sucesso! 🎉');
-                })
-                .salvarAvatarAdmin(admLogado.email, base64Data);
-              return;
-            }
-
-            const res = await fetch('/api/admin/avatar', {
+              const res = await fetch('/api/admin/avatar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: usuario.email, foto: base64 })
@@ -4217,61 +4060,6 @@
         setLoading(true);
         setErro('');
         try {
-          if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-            const emLower = email.trim().toLowerCase();
-            const pwd = senha.trim();
-            // Atalho direto e instantâneo para o Dono do Produto
-            if (emLower === 'andre.gianotti@totvs.com.br' && (pwd === 'totvs123' || pwd === '123')) {
-              const dono = {
-                id: 'adm-001',
-                email: 'andre.gianotti@totvs.com.br',
-                nome: 'André Gianotti',
-                cargo: 'Dono do Produto',
-                tipo: 'administrador',
-                dono_produto: true,
-                precisa_trocar_senha: false,
-                foto: ''
-              };
-              localStorage.setItem('totvs_adm_session', JSON.stringify(dono));
-              onLoginSuccess(dono);
-              setLoading(false);
-              return;
-            }
-
-            google.script.run
-              .withSuccessHandler((data) => {
-                setLoading(false);
-                if (data && data.success && data.usuario) {
-                  localStorage.setItem('totvs_adm_session', JSON.stringify(data.usuario));
-                  onLoginSuccess(data.usuario);
-                } else {
-                  setErro(data && data.message ? data.message : 'E-mail ou senha incorretos.');
-                }
-              })
-              .withFailureHandler((err) => {
-                setLoading(false);
-                // Fallback offline / local de segurança
-                if (emLower === 'andre.gianotti@totvs.com.br' && (pwd === 'totvs123' || pwd === '123')) {
-                  const donoUser = {
-                    id: 'adm-001',
-                    email: 'andre.gianotti@totvs.com.br',
-                    nome: 'André Gianotti',
-                    cargo: 'Dono do Produto',
-                    tipo: 'administrador',
-                    dono_produto: true,
-                    precisa_trocar_senha: false,
-                    foto: ''
-                  };
-                  localStorage.setItem('totvs_adm_session', JSON.stringify(donoUser));
-                  onLoginSuccess(donoUser);
-                } else {
-                  setErro('Erro ao autenticar: ' + (err.message || err));
-                }
-              })
-              .autenticarUsuario(email.trim(), senha.trim());
-            return;
-          }
-
           const res = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -4844,27 +4632,6 @@
 
       useEffect(() => {
         if (!token) return;
-        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((data) => {
-              setCarregando(false);
-              if (data && data.success && data.convite) {
-                setConviteData(data.convite);
-                if (data.convite.nome) setNome(data.convite.nome);
-                if (data.convite.email) setEmail(data.convite.email);
-                setSenhaProvisoria('totvs123');
-              } else {
-                setErroToken(data && data.message ? data.message : 'Este link de convite é inválido ou já foi utilizado.');
-              }
-            })
-            .withFailureHandler((err) => {
-              setCarregando(false);
-              setErroToken('Erro ao verificar convite: ' + (err.message || err));
-            })
-            .verificarConvite(token);
-          return;
-        }
-
         fetch(`/api/admin/invite/${token}`)
           .then(res => res.json())
           .then(data => {
@@ -4939,32 +4706,7 @@
 
         setSalvando(true);
         try {
-          if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((data) => {
-              setSalvando(false);
-              if (data && data.success && data.usuario) {
-                localStorage.setItem('totvs_adm_session', JSON.stringify(data.usuario));
-                onAcceptSuccess(data.usuario);
-              } else {
-                setFormErro(data && data.message ? data.message : 'Erro ao ativar perfil de usuário.');
-              }
-            })
-            .withFailureHandler((err) => {
-              setSalvando(false);
-              setFormErro('Erro no Apps Script: ' + (err.message || err));
-            })
-            .aceitarConvite({
-              token: token,
-              nome: nomeTrim,
-              email: emailTrim,
-              senhaProvisoria: senhaProvisoria.trim(),
-              novaSenha: novaSenha.trim()
-            });
-          return;
-        }
-
-        const res = await fetch('/api/admin/accept-invite', {
+          const res = await fetch('/api/admin/accept-invite', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -9469,6 +9211,678 @@
     }
 
     // --- COMPONENTE: REGISTRO DE VISITANTE NO ESPAÇO EXPERIÊNCIA (ACESSO ABERTO) ---
+    
+    // --- MODAL DE GESTÃO DE ROADMAPS & IDEIAS (EXCLUSIVO DONO DO PRODUTO) ---
+    function RoadmapsModal({ onClose, admLogado, showToast }) {
+      const [roadmaps, setRoadmaps] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [searchTerm, setSearchTerm] = useState('');
+      const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
+      const [itemParaEdicao, setItemParaEdicao] = useState(null);
+      const [showFormModal, setShowFormModal] = useState(false);
+
+      const carregarRoadmaps = async () => {
+        setLoading(true);
+
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              if (res && res.success && Array.isArray(res.roadmaps)) {
+                setRoadmaps(res.roadmaps);
+                try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(res.roadmaps)); } catch(e){}
+              } else {
+                const cached = localStorage.getItem('totvs_roadmaps_cache');
+                if (cached) setRoadmaps(JSON.parse(cached));
+              }
+              setLoading(false);
+            })
+            .withFailureHandler(() => {
+              const cached = localStorage.getItem('totvs_roadmaps_cache');
+              if (cached) setRoadmaps(JSON.parse(cached));
+              setLoading(false);
+            })
+            .obterRoadmaps();
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/roadmaps');
+          const data = await res.json();
+          if (data && data.success && Array.isArray(data.roadmaps)) {
+            setRoadmaps(data.roadmaps);
+            try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(data.roadmaps)); } catch(e){}
+          } else {
+            const cached = localStorage.getItem('totvs_roadmaps_cache');
+            if (cached) setRoadmaps(JSON.parse(cached));
+          }
+        } catch (err) {
+          try {
+            const cached = localStorage.getItem('totvs_roadmaps_cache');
+            if (cached) setRoadmaps(JSON.parse(cached));
+          } catch(e){}
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      useEffect(() => {
+        carregarRoadmaps();
+      }, []);
+
+      const categoriasDisponiveis = useMemo(() => {
+        const cats = new Set(['Operacional & Rotina', 'Experiência & Kiosk', 'Melhoria Contínua', 'Infraestrutura & TI', 'Inovação & IA']);
+        roadmaps.forEach(r => { if (r.categoria) cats.add(r.categoria); });
+        return Array.from(cats);
+      }, [roadmaps]);
+
+      const roadmapsFiltrados = useMemo(() => {
+        return roadmaps.filter(r => {
+          const matchBusca = !searchTerm || 
+            (r.titulo && r.titulo.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (r.descricao && r.descricao.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (r.categoria && r.categoria.toLowerCase().includes(searchTerm.toLowerCase()));
+          const matchCat = categoriaFiltro === 'todas' || r.categoria === categoriaFiltro;
+          return matchBusca && matchCat;
+        });
+      }, [roadmaps, searchTerm, categoriaFiltro]);
+
+      const contadores = useMemo(() => {
+        return {
+          total: roadmaps.length,
+          a_fazer: roadmaps.filter(r => r.status === 'a_fazer').length,
+          aprovado: roadmaps.filter(r => r.status === 'aprovado').length,
+          iniciado: roadmaps.filter(r => r.status === 'iniciado').length,
+          concluido: roadmaps.filter(r => r.status === 'concluido').length
+        };
+      }, [roadmaps]);
+
+      const handleMudarStatus = async (id, novoStatus) => {
+        const itemAnterior = roadmaps.find(r => r.id === id);
+        if (!itemAnterior) return;
+
+        // Atualização otimista
+        const updatedList = roadmaps.map(r => r.id === id ? { ...r, status: novoStatus, atualizado_em: new Date().toISOString() } : r);
+        setRoadmaps(updatedList);
+        try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(updatedList)); } catch(e){}
+
+        const labelStatus = novoStatus === 'aprovado' ? 'Aprovada ⏳' : novoStatus === 'iniciado' ? 'Iniciada 🚀' : novoStatus === 'concluido' ? 'Concluída ✅' : 'movida para A Fazer 💡';
+
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          const payload = { ...itemAnterior, status: novoStatus };
+          google.script.run
+            .withSuccessHandler((res) => {
+              if (res && res.success) {
+                if (Array.isArray(res.roadmaps)) {
+                  setRoadmaps(res.roadmaps);
+                  try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(res.roadmaps)); } catch(e){}
+                }
+                showToast(`Ideia "${itemAnterior.titulo}" ${labelStatus}!`);
+              } else {
+                showToast('Erro ao atualizar status.');
+                carregarRoadmaps();
+              }
+            })
+            .withFailureHandler(() => {
+              showToast('Status salvo localmente (servidor offline).');
+            })
+            .salvarItemRoadmap(payload, admLogado ? admLogado.email : '', admLogado ? admLogado.nome : '');
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/roadmaps/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: novoStatus })
+          });
+          const data = await res.json();
+          if (data && data.success) {
+            showToast(`Ideia "${itemAnterior.titulo}" ${labelStatus}!`);
+          } else {
+            showToast('Erro ao atualizar status.');
+            carregarRoadmaps();
+          }
+        } catch (err) {
+          showToast('Status salvo localmente (servidor offline).');
+        }
+      };
+
+      const handleExcluir = async (id, titulo) => {
+        if (!window.confirm(`Deseja realmente excluir a ideia de roadmap "${titulo}"?`)) return;
+
+        const updatedList = roadmaps.filter(r => r.id !== id);
+        setRoadmaps(updatedList);
+        try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(updatedList)); } catch(e){}
+
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              if (res && res.success && Array.isArray(res.roadmaps)) {
+                setRoadmaps(res.roadmaps);
+                try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(res.roadmaps)); } catch(e){}
+              }
+              showToast('Ideia excluída com sucesso.');
+            })
+            .withFailureHandler(() => {
+              showToast('Excluída localmente.');
+            })
+            .excluirItemRoadmap(id, admLogado ? admLogado.email : '', admLogado ? admLogado.nome : '');
+          return;
+        }
+
+        try {
+          await fetch(`/api/roadmaps/${id}`, { method: 'DELETE' });
+          showToast('Ideia excluída com sucesso.');
+        } catch (err) {
+          showToast('Excluída localmente.');
+        }
+      };
+
+      const handleSalvarSucesso = (itemAtualizado) => {
+        carregarRoadmaps();
+        setShowFormModal(false);
+        setItemParaEdicao(null);
+        showToast('Roadmap salvo com sucesso!');
+      };
+
+      const colunas = [
+        {
+          key: 'a_fazer',
+          titulo: '💡 A Fazer / Ideias',
+          badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+          borderColor: 'border-amber-500/30',
+          glow: 'from-amber-500/10 to-transparent'
+        },
+        {
+          key: 'aprovado',
+          titulo: '⏳ Aprovadas',
+          badgeColor: 'bg-[#00dbff]/20 text-[#00dbff] border-[#00dbff]/40',
+          borderColor: 'border-[#00dbff]/30',
+          glow: 'from-[#00dbff]/10 to-transparent'
+        },
+        {
+          key: 'iniciado',
+          titulo: '🚀 Iniciadas',
+          badgeColor: 'bg-[#a44dff]/20 text-[#c788ff] border-[#a44dff]/40',
+          borderColor: 'border-[#a44dff]/30',
+          glow: 'from-[#a44dff]/10 to-transparent'
+        },
+        {
+          key: 'concluido',
+          titulo: '✅ Concluídas',
+          badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+          borderColor: 'border-emerald-500/30',
+          glow: 'from-emerald-500/10 to-transparent'
+        }
+      ];
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-[#001422] border border-cyan-500/30 rounded-2xl shadow-2xl w-full max-w-7xl max-h-[92vh] flex flex-col overflow-hidden">
+            {/* Header do Modal */}
+            <div className="p-4 sm:p-6 border-b border-slate-800 flex items-center justify-between bg-gradient-to-r from-[#001B2B] via-[#001422] to-[#001B2B]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 shadow-md">
+                  <Icons.Lightbulb className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-black text-white tracking-wide">
+                      Roadmaps & Ideias do Produto
+                    </h2>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      👑 DONO DO PRODUTO
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Repositório de ideias estratégicas e acompanhamento do ciclo de vida das evoluções do Espaço Experiência
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setItemParaEdicao(null); setShowFormModal(true); }}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#00dbff] to-[#00a8cc] hover:from-[#33e2ff] hover:to-[#00bfe6] text-[#001422] font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg transition transform hover:scale-[1.02] cursor-pointer"
+                >
+                  <span className="text-base leading-none">+</span>
+                  <span>NOVA IDEIA</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                  title="Fechar"
+                >
+                  <span className="text-xl leading-none">✕</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Barra de Filtros e Métricas */}
+            <div className="px-4 sm:px-6 py-3 bg-[#001B2B]/60 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              {/* Contadores */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 font-semibold">
+                  Total: <span className="text-white font-black">{contadores.total}</span>
+                </div>
+                <div className="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 font-semibold">
+                  💡 A Fazer: <span className="font-black">{contadores.a_fazer}</span>
+                </div>
+                <div className="px-2.5 py-1 rounded-lg bg-[#00dbff]/15 border border-[#00dbff]/30 text-[#00dbff] font-semibold">
+                  ⏳ Aprovadas: <span className="font-black">{contadores.aprovado}</span>
+                </div>
+                <div className="px-2.5 py-1 rounded-lg bg-[#a44dff]/15 border border-[#a44dff]/30 text-[#c788ff] font-semibold">
+                  🚀 Iniciadas: <span className="font-black">{contadores.iniciado}</span>
+                </div>
+                <div className="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-semibold">
+                  ✅ Concluídas: <span className="font-black">{contadores.concluido}</span>
+                </div>
+              </div>
+
+              {/* Busca e Filtro de Categoria */}
+              <div className="flex items-center gap-2 flex-1 sm:flex-initial justify-end">
+                <div className="relative min-w-[180px] max-w-xs w-full">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    placeholder="Buscar ideia..."
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-xs focus:outline-none focus:border-[#00dbff]"
+                  />
+                  <span className="absolute left-2.5 top-2 text-slate-500 text-xs">🔍</span>
+                </div>
+
+                <select
+                  value={categoriaFiltro}
+                  onChange={e => setCategoriaFiltro(e.target.value)}
+                  className="py-1.5 px-3 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-[#00dbff]"
+                >
+                  <option value="todas">Todas Categorias</option>
+                  {categoriasDisponiveis.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Quadro Kanban: 4 Colunas */}
+            <div className="flex-1 p-4 sm:p-6 overflow-x-auto overflow-y-hidden bg-[#00101c]">
+              {loading ? (
+                <div className="h-full flex items-center justify-center py-20 text-slate-400 gap-3">
+                  <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span>Carregando roadmaps e ideias do produto...</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full min-w-[900px]">
+                  {colunas.map(col => {
+                    const cards = roadmapsFiltrados.filter(r => r.status === col.key);
+                    return (
+                      <div
+                        key={col.key}
+                        className={`flex flex-col rounded-2xl bg-[#001B2B]/70 border ${col.borderColor} shadow-lg overflow-hidden`}
+                      >
+                        {/* Header da Coluna */}
+                        <div className={`p-3.5 border-b border-slate-800/80 bg-gradient-to-b ${col.glow} flex items-center justify-between`}>
+                          <div className="flex items-center gap-2">
+                            <span className="font-black text-sm text-white">{col.titulo}</span>
+                          </div>
+                          <span className={`text-xs font-black px-2 py-0.5 rounded-full border ${col.badgeColor}`}>
+                            {cards.length}
+                          </span>
+                        </div>
+
+                        {/* Lista de Cards da Coluna */}
+                        <div className="flex-1 p-3 overflow-y-auto space-y-3 min-h-[350px] max-h-[calc(92vh-220px)] custom-scrollbar">
+                          {cards.length === 0 ? (
+                            <div className="h-32 flex flex-col items-center justify-center text-slate-500 text-xs border border-dashed border-slate-800 rounded-xl">
+                              <span>Nenhuma ideia nesta etapa</span>
+                            </div>
+                          ) : (
+                            cards.map(card => {
+                              const prioColors = card.prioridade === 'alta'
+                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                : card.prioridade === 'media'
+                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                : 'bg-slate-500/20 text-slate-300 border-slate-500/40';
+
+                              return (
+                                <div
+                                  key={card.id}
+                                  className="p-3.5 rounded-xl bg-[#002238]/90 border border-slate-700/80 hover:border-cyan-500/50 shadow-md transition group hover:shadow-cyan-500/10 flex flex-col justify-between gap-2.5"
+                                >
+                                  <div>
+                                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
+                                        {card.categoria || 'Geral'}
+                                      </span>
+                                      <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded border ${prioColors}`}>
+                                        {card.prioridade || 'MÉDIA'}
+                                      </span>
+                                    </div>
+
+                                    <h4 className="text-xs font-black text-white group-hover:text-cyan-300 transition leading-snug">
+                                      {card.titulo}
+                                    </h4>
+
+                                    {card.descricao && (
+                                      <p className="text-[11px] text-slate-300 mt-1 line-clamp-3 leading-relaxed whitespace-pre-wrap">
+                                        {card.descricao}
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  {/* Barra de Ações Rápidas do Card */}
+                                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+                                    {/* Mudar Status em 1 clique */}
+                                    <div className="flex items-center gap-1">
+                                      {card.status === 'a_fazer' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleMudarStatus(card.id, 'aprovado')}
+                                          className="px-2 py-1 rounded bg-[#00dbff]/20 text-[#00dbff] hover:bg-[#00dbff]/30 font-bold text-[10px] transition cursor-pointer"
+                                          title="Mover para Aprovadas"
+                                        >
+                                          Aprovar ⏳
+                                        </button>
+                                      )}
+
+                                      {card.status === 'aprovado' && (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMudarStatus(card.id, 'iniciado')}
+                                            className="px-2 py-1 rounded bg-[#a44dff]/20 text-[#c788ff] hover:bg-[#a44dff]/30 font-bold text-[10px] transition cursor-pointer"
+                                            title="Iniciar Desenvolvimento"
+                                          >
+                                            Iniciar 🚀
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMudarStatus(card.id, 'a_fazer')}
+                                            className="px-1.5 py-1 rounded text-slate-400 hover:text-white font-bold text-[10px] cursor-pointer"
+                                            title="Voltar para A Fazer"
+                                          >
+                                            ↩
+                                          </button>
+                                        </>
+                                      )}
+
+                                      {card.status === 'iniciado' && (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMudarStatus(card.id, 'concluido')}
+                                            className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 font-bold text-[10px] transition cursor-pointer"
+                                            title="Marcar como Concluída"
+                                          >
+                                            Concluir ✅
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMudarStatus(card.id, 'aprovado')}
+                                            className="px-1.5 py-1 rounded text-slate-400 hover:text-white font-bold text-[10px] cursor-pointer"
+                                            title="Voltar para Aprovada"
+                                          >
+                                            ↩
+                                          </button>
+                                        </>
+                                      )}
+
+                                      {card.status === 'concluido' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleMudarStatus(card.id, 'iniciado')}
+                                          className="px-2 py-1 rounded text-slate-400 hover:text-white font-bold text-[10px] cursor-pointer"
+                                          title="Reabrir ideia"
+                                        >
+                                          Reabrir ↩
+                                        </button>
+                                      )}
+                                    </div>
+
+                                    {/* Ações de Edição e Exclusão */}
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => { setItemParaEdicao(card); setShowFormModal(true); }}
+                                        className="p-1 rounded text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition cursor-pointer"
+                                        title="Editar Ideia"
+                                      >
+                                        ✏️
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleExcluir(card.id, card.titulo)}
+                                        className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
+                                        title="Excluir Ideia"
+                                      >
+                                        🗑️
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {showFormModal && (
+            <RoadmapFormModal
+              item={itemParaEdicao}
+              categoriasDisponiveis={categoriasDisponiveis}
+              onClose={() => { setShowFormModal(false); setItemParaEdicao(null); }}
+              onSuccess={handleSalvarSucesso}
+              admLogado={admLogado}
+            />
+          )}
+        </div>
+      );
+    }
+
+    function RoadmapFormModal({ item, categoriasDisponiveis, onClose, onSuccess, admLogado }) {
+      const [titulo, setTitulo] = useState(item?.titulo || '');
+      const [descricao, setDescricao] = useState(item?.descricao || '');
+      const [categoria, setCategoria] = useState(item?.categoria || 'Operacional & Rotina');
+      const [novaCategoria, setNovaCategoria] = useState('');
+      const [prioridade, setPrioridade] = useState(item?.prioridade || 'alta');
+      const [status, setStatus] = useState(item?.status || 'a_fazer');
+      const [salvando, setSalvando] = useState(false);
+      const [erro, setErro] = useState('');
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setErro('');
+
+        if (!titulo.trim()) {
+          setErro('O título da ideia é obrigatório.');
+          return;
+        }
+
+        const catFinal = (novaCategoria.trim() || categoria).trim();
+
+        const payload = {
+          titulo: titulo.trim(),
+          descricao: descricao.trim(),
+          categoria: catFinal,
+          prioridade,
+          status,
+          autor: admLogado?.nome || 'André Gianotti'
+        };
+
+        setSalvando(true);
+
+        if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+          const itemPayload = item ? { ...item, ...payload } : payload;
+          google.script.run
+            .withSuccessHandler((res) => {
+              setSalvando(false);
+              if (res && res.success) {
+                onSuccess(res.item);
+              } else {
+                setErro(res?.message || 'Erro ao salvar ideia de roadmap.');
+              }
+            })
+            .withFailureHandler(() => {
+              setSalvando(false);
+              setErro('Erro de conexão ao salvar na nuvem Google.');
+            })
+            .salvarItemRoadmap(itemPayload, admLogado?.email || '', admLogado?.nome || '');
+          return;
+        }
+
+        try {
+          const url = item ? `/api/roadmaps/${item.id}` : '/api/roadmaps';
+          const method = item ? 'PUT' : 'POST';
+          const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data && data.success) {
+            onSuccess(data.item);
+          } else {
+            setErro(data?.message || 'Erro ao salvar ideia de roadmap.');
+          }
+        } catch (err) {
+          setErro('Erro de conexão ao salvar.');
+        } finally {
+          setSalvando(false);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 animate-in fade-in duration-150">
+          <div className="bg-[#001B2B] text-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-700/80 p-6 relative">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Icons.Lightbulb className="w-5 h-5 text-[#00dbff]" />
+                <span>{item ? 'Editar Ideia de Roadmap' : 'Nova Ideia de Roadmap'}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-slate-400 hover:text-white p-1 text-lg font-bold leading-none cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {erro && (
+              <div className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs">
+                {erro}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">Título da Ideia / Roadmap:</label>
+                <input
+                  type="text"
+                  value={titulo}
+                  onChange={e => setTitulo(e.target.value)}
+                  placeholder="Ex: Pesquisa de satisfação com emojis no tablet"
+                  className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00dbff] text-xs font-semibold"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Categoria:</label>
+                  <select
+                    value={categoria}
+                    onChange={e => setCategoria(e.target.value)}
+                    className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs"
+                  >
+                    {categoriasDisponiveis.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                    <option value="__nova__">+ Outra Categoria...</option>
+                  </select>
+                  {categoria === '__nova__' && (
+                    <input
+                      type="text"
+                      placeholder="Nome da nova categoria"
+                      value={novaCategoria}
+                      onChange={e => setNovaCategoria(e.target.value)}
+                      className="w-full mt-2 p-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs"
+                      required
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Prioridade:</label>
+                  <select
+                    value={prioridade}
+                    onChange={e => setPrioridade(e.target.value)}
+                    className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs"
+                  >
+                    <option value="alta">🔴 Alta Prioridade</option>
+                    <option value="media">🟡 Média Prioridade</option>
+                    <option value="baixa">⚪ Baixa Prioridade</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">Status do Ciclo de Vida:</label>
+                <select
+                  value={status}
+                  onChange={e => setStatus(e.target.value)}
+                  className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs"
+                >
+                  <option value="a_fazer">💡 A Fazer / Ideia (Backlog)</option>
+                  <option value="aprovado">⏳ Aprovada (Planejada)</option>
+                  <option value="iniciado">🚀 Iniciada (Em Andamento)</option>
+                  <option value="concluido">✅ Concluída (Entregue)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">Descrição Detalhada & Requisitos:</label>
+                <textarea
+                  rows={4}
+                  value={descricao}
+                  onChange={e => setDescricao(e.target.value)}
+                  placeholder="Explique como a funcionalidade deve funcionar, regras e detalhes..."
+                  className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00dbff] text-xs font-normal"
+                />
+              </div>
+
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 font-bold text-xs cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={salvando}
+                  className="px-5 py-2.5 rounded-xl bg-[#00dbff] hover:bg-[#00c5ea] active:bg-[#00b0d2] text-[#002233] font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer disabled:opacity-50"
+                >
+                  {salvando ? 'Salvando...' : (item ? 'Atualizar Ideia' : 'Cadastrar Ideia')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
     function VisitorRegisterModal({ onClose, onSuccess, onFormOpened, showToast, admLogado, plantonistaHoje }) {
       const [dataVisita, setDataVisita] = useState(() => {
         const today = new Date();
@@ -9533,34 +9947,7 @@
         }
         setSalvando(true);
         try {
-          if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((res) => {
-              setSalvando(false);
-              if (res && res.success) {
-                if (onSuccess) onSuccess(res.metricas, res.visitante);
-                if (showToast) showToast(`Visita de "${empresa.trim()}" (${qtd} pessoa${qtd > 1 ? 's' : ''}) registrada na planilha TOTVS! 🎉`);
-                onClose();
-              } else {
-                alert(res.error || 'Erro ao salvar visitante na planilha.');
-              }
-            })
-            .withFailureHandler((err) => {
-              setSalvando(false);
-              alert('Erro no Apps Script: ' + (err.message || err));
-            })
-            .salvarVisitante({
-              data: dataVisita,
-              empresa: empresa.trim(),
-              nome: empresa.trim(),
-              tipo_visitante: tipoVisitante,
-              numero_pessoas: qtd,
-              responsavel: responsavel.trim()
-            });
-          return;
-        }
-
-        const res = await fetch('/api/visitors', {
+          const res = await fetch('/api/visitors', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -10532,27 +10919,7 @@
         const novoValor = !authEspecialistaObrigatoria;
 
         try {
-          if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((result) => {
-              setTogglingAuthMode(false);
-              if (result && result.success) {
-                if (onAuthModeChange) onAuthModeChange(result.auth_especialista_obrigatoria);
-                if (showToast) showToast(result.message || 'Chave alterada na planilha TOTVS! ✅');
-                if (onRefresh) onRefresh();
-              } else {
-                if (showToast) showToast(result?.message || 'Erro ao alterar chave mestra.');
-              }
-            })
-            .withFailureHandler((err) => {
-              setTogglingAuthMode(false);
-              if (showToast) showToast('Erro no Google Apps Script: ' + (err.message || err));
-            })
-            .salvarModoAuthEspecialista(novoValor, admLogado.email, admLogado.nome);
-          return;
-        }
-
-        const res = await fetch('/api/config/auth-mode', {
+          const res = await fetch('/api/config/auth-mode', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -10637,27 +11004,7 @@
         setSalvandoLembretes(true);
         try {
           // Suporte nativo Google Apps Script (interceptado via sync_apps_script.js)
-          if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((result) => {
-              setSalvandoLembretes(false);
-              if (result && result.success) {
-                if (onConfigLembretesChange) onConfigLembretesChange(result.config);
-                if (showToast) showToast(result.message || 'Configurações de lembretes salvas na planilha TOTVS! ✅');
-                if (onRefresh) onRefresh();
-              } else {
-                if (showToast) showToast(result?.message || 'Erro ao salvar configurações de lembretes.');
-              }
-            })
-            .withFailureHandler((err) => {
-              setSalvandoLembretes(false);
-              if (showToast) showToast('Erro no Google Apps Script: ' + (err.message || err));
-            })
-            .salvarConfigLembretes(formLembretes, admLogado.email, admLogado.nome);
-          return;
-        }
-
-        const res = await fetch('/api/config/reminders', {
+          const res = await fetch('/api/config/reminders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -10841,34 +11188,7 @@
 
         setGerandoConvite(true);
         try {
-          if (typeof google !== 'undefined' && google && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler((data) => {
-              setGerandoConvite(false);
-              if (data && data.success && data.convite) {
-                setConviteRecemCriado(data.convite);
-                setNovoAdmNome('');
-                setNovoAdmEmail('');
-                if (onConvitesChange) onConvitesChange();
-                if (showToast) showToast('Link de convite gerado na planilha TOTVS! 🔗');
-              } else {
-                alert(data.message || data.error || 'Erro ao gerar convite.');
-              }
-            })
-            .withFailureHandler((err) => {
-              setGerandoConvite(false);
-              alert('Erro no Apps Script: ' + (err.message || err));
-            })
-            .salvarConviteAdmin({
-              nome: novoAdmNome.trim(),
-              email: novoAdmEmail.trim(),
-              perfil: perfilConvite,
-              criado_por: admLogado?.nome || 'Administrador'
-            });
-          return;
-        }
-
-        const res = await fetch('/api/admin/invite', {
+          const res = await fetch('/api/admin/invite', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
