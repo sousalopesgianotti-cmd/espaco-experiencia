@@ -8004,6 +8004,28 @@
 
       // Estados para Hover e Detalhamento da Gestão à Vista
       const [hoveredBloco, setHoveredBloco] = useState(null); // 'cliente' | 'prospect' | 'interno'
+      const hoverTimerRef = useRef(null);
+
+      const handleEnterHoverBloco = (tipo) => {
+        if (hoverTimerRef.current) {
+          clearTimeout(hoverTimerRef.current);
+          hoverTimerRef.current = null;
+        }
+        setHoveredBloco(tipo);
+      };
+
+      const handleLeaveHoverBloco = () => {
+        if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+        hoverTimerRef.current = setTimeout(() => {
+          setHoveredBloco(null);
+        }, 300);
+      };
+
+      useEffect(() => {
+        return () => {
+          if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+        };
+      }, []);
       const [categoriaDetalheModal, setCategoriaDetalheModal] = useState(null); // 'cliente' | 'prospect' | 'interno'
       const [buscaDetalhe, setBuscaDetalhe] = useState('');
 
@@ -8755,44 +8777,67 @@
                       >
                         {/* Janela Flutuante à Vista (Hover Tooltip) */}
                         {hoveredBloco === 'cliente' && (
-                          <div className="absolute bottom-[calc(100%+8px)] z-40 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-3 shadow-2xl border border-slate-700 pointer-events-none animate-in fade-in zoom-in-95 duration-150 -left-6 sm:left-1/2 sm:-translate-x-1/2">
+                          <div 
+                            className="absolute bottom-[calc(100%+8px)] z-50 w-72 sm:w-84 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-3 shadow-2xl border border-slate-700 pointer-events-auto animate-in fade-in zoom-in-95 duration-150 -left-6 sm:left-1/2 sm:-translate-x-1/2 before:content-[''] before:absolute before:-bottom-3 before:left-0 before:w-full before:h-3 before:bg-transparent"
+                            onMouseEnter={() => handleEnterHoverBloco('cliente')}
+                            onMouseLeave={handleLeaveHoverBloco}
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <div className="flex items-center justify-between pb-2 border-b border-slate-700/80 mb-2">
                               <div className="flex items-center gap-1.5">
                                 <span className="text-sm">🏢</span>
                                 <strong className="text-xs font-black text-white">Clientes ({metrics3Blocos.cliente.visitas} visitas)</strong>
                               </div>
-                              <span className="text-[10px] font-black bg-blue-500/20 text-totvs-cyan px-2 py-0.5 rounded-full border border-totvs-cyan/30">
-                                {metrics3Blocos.cliente.pessoas} pessoas
-                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-black bg-blue-500/20 text-totvs-cyan border-totvs-cyan/30 px-2 py-0.5 rounded-full border">
+                                  {metrics3Blocos.cliente.pessoas} pessoas
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+                                    setHoveredBloco(null);
+                                  }}
+                                  className="w-5 h-5 rounded-md flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition text-xs font-bold leading-none cursor-pointer"
+                                  title="Fechar janela"
+                                >
+                                  ✕
+                                </button>
+                              </div>
                             </div>
                             
-                            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-left">
+                            <div className="max-h-52 overflow-y-auto space-y-1.5 pr-1.5 text-left custom-scrollbar">
                               {getVisitantesPorTipo('cliente').length === 0 ? (
-                                <p className="text-[11px] text-slate-400 italic py-1">Nenhuma comitiva no período.</p>
+                                <p className="text-[11px] text-slate-400 italic py-2 text-center">Nenhuma comitiva no período.</p>
                               ) : (
-                                getVisitantesPorTipo('cliente').slice(0, 6).map((v, idx) => (
+                                getVisitantesPorTipo('cliente').map((v, idx) => (
                                   <div key={idx} className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
                                     <div className="truncate flex-1">
                                       <p className="font-extrabold text-white text-[11px] truncate">{v.empresa || v.nome || 'Visitante'}</p>
                                       <p className="text-[9.5px] text-slate-400">{v.data ? v.data.split('-').reverse().join('/') : ''} • {v.responsavel || 'Equipe TOTVS'}</p>
                                     </div>
-                                    <span className="text-[10px] font-black text-totvs-cyan shrink-0 bg-totvs-cyan/10 px-1.5 py-0.5 rounded">
+                                    <span className="text-[10px] font-black text-totvs-cyan shrink-0 bg-white/5 px-1.5 py-0.5 rounded">
                                       {v.numero_pessoas || 1} {v.numero_pessoas === 1 ? 'pessoa' : 'pessoas'}
                                     </span>
                                   </div>
                                 ))
                               )}
-                              {getVisitantesPorTipo('cliente').length > 6 && (
-                                <p className="text-[9.5px] text-slate-400 text-center font-bold pt-1">
-                                  + {getVisitantesPorTipo('cliente').length - 6} outras comitivas cadastradas
-                                </p>
-                              )}
                             </div>
 
                             <div className="mt-2 pt-1.5 border-t border-slate-800 text-center">
-                              <p className="text-[9.5px] text-cyan-300 font-semibold">
-                                👆 Clique no bloco para abrir a lista completa e exportar
-                              </p>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCategoriaDetalheModal('cliente');
+                                  setBuscaDetalhe('');
+                                  setHoveredBloco(null);
+                                }}
+                                className="text-[10px] text-cyan-300 hover:text-cyan-200 font-semibold cursor-pointer underline hover:no-underline"
+                              >
+                                👆 Clique para abrir lista completa e exportar
+                              </button>
                             </div>
                           </div>
                         )}
@@ -8831,44 +8876,67 @@
                       >
                         {/* Janela Flutuante à Vista (Hover Tooltip) */}
                         {hoveredBloco === 'prospect' && (
-                          <div className="absolute bottom-[calc(100%+8px)] z-40 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-3 shadow-2xl border border-slate-700 pointer-events-none animate-in fade-in zoom-in-95 duration-150 left-1/2 -translate-x-1/2">
+                          <div 
+                            className="absolute bottom-[calc(100%+8px)] z-50 w-72 sm:w-84 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-3 shadow-2xl border border-slate-700 pointer-events-auto animate-in fade-in zoom-in-95 duration-150 left-1/2 -translate-x-1/2 before:content-[''] before:absolute before:-bottom-3 before:left-0 before:w-full before:h-3 before:bg-transparent"
+                            onMouseEnter={() => handleEnterHoverBloco('prospect')}
+                            onMouseLeave={handleLeaveHoverBloco}
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <div className="flex items-center justify-between pb-2 border-b border-slate-700/80 mb-2">
                               <div className="flex items-center gap-1.5">
                                 <span className="text-sm">🎯</span>
                                 <strong className="text-xs font-black text-white">Prospects ({metrics3Blocos.prospect.visitas} visitas)</strong>
                               </div>
-                              <span className="text-[10px] font-black bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-400/30">
-                                {metrics3Blocos.prospect.pessoas} pessoas
-                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-black bg-emerald-500/20 text-emerald-300 border-emerald-500/30 px-2 py-0.5 rounded-full border">
+                                  {metrics3Blocos.prospect.pessoas} pessoas
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+                                    setHoveredBloco(null);
+                                  }}
+                                  className="w-5 h-5 rounded-md flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition text-xs font-bold leading-none cursor-pointer"
+                                  title="Fechar janela"
+                                >
+                                  ✕
+                                </button>
+                              </div>
                             </div>
                             
-                            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-left">
+                            <div className="max-h-52 overflow-y-auto space-y-1.5 pr-1.5 text-left custom-scrollbar">
                               {getVisitantesPorTipo('prospect').length === 0 ? (
-                                <p className="text-[11px] text-slate-400 italic py-1">Nenhuma comitiva no período.</p>
+                                <p className="text-[11px] text-slate-400 italic py-2 text-center">Nenhuma comitiva no período.</p>
                               ) : (
-                                getVisitantesPorTipo('prospect').slice(0, 6).map((v, idx) => (
+                                getVisitantesPorTipo('prospect').map((v, idx) => (
                                   <div key={idx} className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
                                     <div className="truncate flex-1">
                                       <p className="font-extrabold text-white text-[11px] truncate">{v.empresa || v.nome || 'Visitante'}</p>
                                       <p className="text-[9.5px] text-slate-400">{v.data ? v.data.split('-').reverse().join('/') : ''} • {v.responsavel || 'Equipe TOTVS'}</p>
                                     </div>
-                                    <span className="text-[10px] font-black text-emerald-300 shrink-0 bg-emerald-400/10 px-1.5 py-0.5 rounded">
+                                    <span className="text-[10px] font-black text-emerald-300 shrink-0 bg-white/5 px-1.5 py-0.5 rounded">
                                       {v.numero_pessoas || 1} {v.numero_pessoas === 1 ? 'pessoa' : 'pessoas'}
                                     </span>
                                   </div>
                                 ))
                               )}
-                              {getVisitantesPorTipo('prospect').length > 6 && (
-                                <p className="text-[9.5px] text-slate-400 text-center font-bold pt-1">
-                                  + {getVisitantesPorTipo('prospect').length - 6} outras comitivas cadastradas
-                                </p>
-                              )}
                             </div>
 
                             <div className="mt-2 pt-1.5 border-t border-slate-800 text-center">
-                              <p className="text-[9.5px] text-emerald-300 font-semibold">
-                                👆 Clique no bloco para abrir a lista completa e exportar
-                              </p>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCategoriaDetalheModal('prospect');
+                                  setBuscaDetalhe('');
+                                  setHoveredBloco(null);
+                                }}
+                                className="text-[10px] text-cyan-300 hover:text-cyan-200 font-semibold cursor-pointer underline hover:no-underline"
+                              >
+                                👆 Clique para abrir lista completa e exportar
+                              </button>
                             </div>
                           </div>
                         )}
@@ -8907,44 +8975,67 @@
                       >
                         {/* Janela Flutuante à Vista (Hover Tooltip) */}
                         {hoveredBloco === 'interno' && (
-                          <div className="absolute bottom-[calc(100%+8px)] z-40 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-3 shadow-2xl border border-slate-700 pointer-events-none animate-in fade-in zoom-in-95 duration-150 right-0 sm:left-1/2 sm:-translate-x-1/2">
+                          <div 
+                            className="absolute bottom-[calc(100%+8px)] z-50 w-72 sm:w-84 bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-3 shadow-2xl border border-slate-700 pointer-events-auto animate-in fade-in zoom-in-95 duration-150 right-0 sm:left-1/2 sm:-translate-x-1/2 before:content-[''] before:absolute before:-bottom-3 before:left-0 before:w-full before:h-3 before:bg-transparent"
+                            onMouseEnter={() => handleEnterHoverBloco('interno')}
+                            onMouseLeave={handleLeaveHoverBloco}
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <div className="flex items-center justify-between pb-2 border-b border-slate-700/80 mb-2">
                               <div className="flex items-center gap-1.5">
                                 <span className="text-sm">🌐</span>
                                 <strong className="text-xs font-black text-white">Internos ({metrics3Blocos.interno.visitas} visitas)</strong>
                               </div>
-                              <span className="text-[10px] font-black bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30">
-                                {metrics3Blocos.interno.pessoas} pessoas
-                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-black bg-purple-500/20 text-purple-300 border-purple-500/30 px-2 py-0.5 rounded-full border">
+                                  {metrics3Blocos.interno.pessoas} pessoas
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+                                    setHoveredBloco(null);
+                                  }}
+                                  className="w-5 h-5 rounded-md flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition text-xs font-bold leading-none cursor-pointer"
+                                  title="Fechar janela"
+                                >
+                                  ✕
+                                </button>
+                              </div>
                             </div>
                             
-                            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-left">
+                            <div className="max-h-52 overflow-y-auto space-y-1.5 pr-1.5 text-left custom-scrollbar">
                               {getVisitantesPorTipo('interno').length === 0 ? (
-                                <p className="text-[11px] text-slate-400 italic py-1">Nenhuma comitiva no período.</p>
+                                <p className="text-[11px] text-slate-400 italic py-2 text-center">Nenhuma comitiva no período.</p>
                               ) : (
-                                getVisitantesPorTipo('interno').slice(0, 6).map((v, idx) => (
+                                getVisitantesPorTipo('interno').map((v, idx) => (
                                   <div key={idx} className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
                                     <div className="truncate flex-1">
                                       <p className="font-extrabold text-white text-[11px] truncate">{v.empresa || v.nome || 'Visitante'}</p>
                                       <p className="text-[9.5px] text-slate-400">{v.data ? v.data.split('-').reverse().join('/') : ''} • {v.responsavel || 'Equipe TOTVS'}</p>
                                     </div>
-                                    <span className="text-[10px] font-black text-amber-300 shrink-0 bg-amber-400/10 px-1.5 py-0.5 rounded">
+                                    <span className="text-[10px] font-black text-purple-300 shrink-0 bg-white/5 px-1.5 py-0.5 rounded">
                                       {v.numero_pessoas || 1} {v.numero_pessoas === 1 ? 'pessoa' : 'pessoas'}
                                     </span>
                                   </div>
                                 ))
                               )}
-                              {getVisitantesPorTipo('interno').length > 6 && (
-                                <p className="text-[9.5px] text-slate-400 text-center font-bold pt-1">
-                                  + {getVisitantesPorTipo('interno').length - 6} outras comitivas cadastradas
-                                </p>
-                              )}
                             </div>
 
                             <div className="mt-2 pt-1.5 border-t border-slate-800 text-center">
-                              <p className="text-[9.5px] text-amber-300 font-semibold">
-                                👆 Clique no bloco para abrir a lista completa e exportar
-                              </p>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCategoriaDetalheModal('interno');
+                                  setBuscaDetalhe('');
+                                  setHoveredBloco(null);
+                                }}
+                                className="text-[10px] text-cyan-300 hover:text-cyan-200 font-semibold cursor-pointer underline hover:no-underline"
+                              >
+                                👆 Clique para abrir lista completa e exportar
+                              </button>
                             </div>
                           </div>
                         )}
