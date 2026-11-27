@@ -1,0 +1,35 @@
+[
+  {
+    "id": "rdm-001",
+    "titulo": "Anotações ESS do Dia",
+    "descricao": "Registro diário de ocorrências e chamados operacionais da equipe de especialistas: solicitações para zelador, pedidos de limpeza do showroom, abertura de chamados para o TI (microcomputadores e periféricos com instabilidade), troca de lâmpadas queimadas e anotações gerais da rotina do dia.",
+    "categoria": "Operacional & Rotina",
+    "prioridade": "alta",
+    "status": "a_fazer",
+    "criado_em": "2026-11-27T14:12:00.000Z",
+    "atualizado_em": "2026-11-27T14:12:00.000Z",
+    "autor": "André Gianotti"
+  },
+  {
+    "id": "rdm-002",
+    "titulo": "Pesquisa de Satisfação com Emojis no Tablet Kiosk",
+    "descricao": "Totem/tablet interativo na recepção/entrada do Espaço Experiência operando das 08:00 às 18:00 com pesquisa rápida em 3 carinhas/emojis (verde, amarelo e vermelho). Integrado diretamente com o portal, atrelado ao calendário diário e contabilizando o volume de avaliações por dia.",
+    "categoria": "Experiência & Kiosk",
+    "prioridade": "alta",
+    "status": "a_fazer",
+    "criado_em": "2026-11-27T14:12:00.000Z",
+    "atualizado_em": "2026-11-27T14:12:00.000Z",
+    "autor": "André Gianotti"
+  },
+  {
+    "id": "rdm-003",
+    "titulo": "Central de Sugestões de Melhorias do Espaço",
+    "descricao": "Canal dedicado para envio de sugestões contínuas sobre TVs, equipamentos, maquinários, tablets, soluções demonstradas e infraestrutura física. Possibilita extração mensal consolidada para acompanhamento das contribuições de cada membro da equipe.",
+    "categoria": "Melhoria Contínua",
+    "prioridade": "media",
+    "status": "a_fazer",
+    "criado_em": "2026-11-27T14:12:00.000Z",
+    "atualizado_em": "2026-11-27T14:12:00.000Z",
+    "autor": "André Gianotti"
+  }
+]

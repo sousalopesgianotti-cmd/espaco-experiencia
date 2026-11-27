@@ -1887,6 +1887,70 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    // 9.4 Rotas de Gestão de Roadmaps & Ideias (Exclusivo Dono do Produto)
+    if (pathname === '/api/roadmaps' && method === 'GET') {
+      const roadmapsFile = path.join(DATA_DIR, 'roadmaps.json');
+      const roadmaps = readJsonFile(roadmapsFile, []);
+      return sendJson(res, { success: true, roadmaps });
+    }
+
+    if (pathname === '/api/roadmaps' && method === 'POST') {
+      const body = await readBodyJson(req);
+      const roadmapsFile = path.join(DATA_DIR, 'roadmaps.json');
+      let roadmaps = readJsonFile(roadmapsFile, []);
+      if (!Array.isArray(roadmaps)) roadmaps = [];
+
+      const newItem = {
+        id: body.id || `rdm-${Date.now()}`,
+        titulo: (body.titulo || '').trim(),
+        descricao: (body.descricao || '').trim(),
+        categoria: body.categoria || 'Geral',
+        prioridade: body.prioridade || 'media',
+        status: body.status || 'a_fazer',
+        criado_em: new Date().toISOString(),
+        atualizado_em: new Date().toISOString(),
+        autor: body.autor || 'André Gianotti'
+      };
+
+      roadmaps.unshift(newItem);
+      writeJsonFile(roadmapsFile, roadmaps);
+      return sendJson(res, { success: true, item: newItem, roadmaps });
+    }
+
+    if (pathname.startsWith('/api/roadmaps/') && method === 'PUT') {
+      const id = pathname.replace('/api/roadmaps/', '').trim();
+      const body = await readBodyJson(req);
+      const roadmapsFile = path.join(DATA_DIR, 'roadmaps.json');
+      let roadmaps = readJsonFile(roadmapsFile, []);
+      if (!Array.isArray(roadmaps)) roadmaps = [];
+
+      const index = roadmaps.findIndex(r => r.id === id);
+      if (index === -1) {
+        return sendJson(res, { success: false, message: 'Item de roadmap não encontrado.' }, 404);
+      }
+
+      roadmaps[index] = {
+        ...roadmaps[index],
+        ...body,
+        id: roadmaps[index].id,
+        atualizado_em: new Date().toISOString()
+      };
+
+      writeJsonFile(roadmapsFile, roadmaps);
+      return sendJson(res, { success: true, item: roadmaps[index], roadmaps });
+    }
+
+    if (pathname.startsWith('/api/roadmaps/') && method === 'DELETE') {
+      const id = pathname.replace('/api/roadmaps/', '').trim();
+      const roadmapsFile = path.join(DATA_DIR, 'roadmaps.json');
+      let roadmaps = readJsonFile(roadmapsFile, []);
+      if (!Array.isArray(roadmaps)) roadmaps = [];
+
+      roadmaps = roadmaps.filter(r => r.id !== id);
+      writeJsonFile(roadmapsFile, roadmaps);
+      return sendJson(res, { success: true, roadmaps });
+    }
+
     // 10. Static files
     let relPath = pathname.replace(/^\/+/, '');
     if (!relPath) relPath = 'index.html';

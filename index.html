@@ -130,6 +130,8 @@
 
     // Ícones SVG inline para máxima compatibilidade e confiabilidade
     const RawIcons = {
+      Lightbulb: (props) => <svg className={props?.className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>,
+      Kanban: (props) => <svg className={props?.className || "w-5 h-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>,
       Lock: (props) => <svg className={props?.className || "w-4 h-4"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>,
       Sprout: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2a9 9 0 019 9c0 4.97-4.03 9-9 9S3 15.97 3 11a9 9 0 019-9zm0 0v18m0-10a4 4 0 00-4-4m4 4a4 4 0 014-4" /></svg>,
       Factory: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
@@ -1087,6 +1089,7 @@
       onOpenShowroom,
       onOpenPlantonistas,
       onOpenHistorico,
+      onOpenRoadmaps,
       onOpenAdmin,
       onLogoutAdm,
       admLogado,
@@ -1234,6 +1237,41 @@
                           activeNav === 'historico' ? 'text-totvs-cyan/80' : 'text-slate-400'
                         }`}>
                           {activeNav === 'historico' ? 'Pop-up Aberto' : 'Métricas Consolidadas'}
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                )}
+
+                {/* 3.1 Roadmaps & Ideias (Competência exclusiva do Dono do Produto) */}
+                {admLogado && (admLogado.dono_produto === true || admLogado.email?.toLowerCase().trim() === 'andre.gianotti@totvs.com.br') && (
+                  <button
+                    type="button"
+                    onClick={() => handleNavClick(onOpenRoadmaps)}
+                    className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition text-left cursor-pointer group ${
+                      activeNav === 'roadmaps'
+                        ? 'bg-totvs-cyan/15 text-totvs-cyan border border-totvs-cyan/40 shadow-xs'
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    }`}
+                    title="Roadmaps & Ideias do Produto (Exclusivo Dono do Produto)"
+                  >
+                    <span className={`shrink-0 transition-colors ${
+                      activeNav === 'roadmaps' ? 'text-totvs-cyan' : 'text-slate-300 group-hover:text-totvs-cyan'
+                    }`}>
+                      <Icons.Lightbulb />
+                    </span>
+                    {isExpanded && (
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold block truncate">Roadmaps & Ideias</span>
+                          <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
+                            DONO
+                          </span>
+                        </div>
+                        <span className={`text-[9.5px] block truncate ${
+                          activeNav === 'roadmaps' ? 'text-totvs-cyan/80' : 'text-slate-400'
+                        }`}>
+                          {activeNav === 'roadmaps' ? 'Quadro Ativo' : 'Gestão de Evoluções'}
                         </span>
                       </div>
                     )}
@@ -2243,6 +2281,7 @@
       });
       const [showVisitorModal, setShowVisitorModal] = useState(false);
       const [showVisitorHistoryModal, setShowVisitorHistoryModal] = useState(false);
+      const [showRoadmapsModal, setShowRoadmapsModal] = useState(false);
       const [visitorsList, setVisitorsList] = useState([]);
 
       // Governança: Chave Mestra do Perfil Especialista & Plantonista de Hoje
@@ -2866,9 +2905,10 @@
       const activeNav = useMemo(() => {
         if (showPlantonistasModal) return 'plantonistas';
         if (showVisitorHistoryModal) return 'historico';
+        if (showRoadmapsModal) return 'roadmaps';
         if (adminModal || showMeuPerfilModal) return 'admin';
         return 'showroom';
-      }, [showPlantonistasModal, showVisitorHistoryModal, adminModal, showMeuPerfilModal]);
+      }, [showPlantonistasModal, showVisitorHistoryModal, showRoadmapsModal, adminModal, showMeuPerfilModal]);
 
       // Ação Universal: Retornar ao Showroom (Reset Geral / Fechar Modais / Limpar Filtros)
       const handleReturnToShowroom = () => {
@@ -2877,6 +2917,7 @@
         setShowPlantonistasModal(false);
         setAdminModal(false);
         setShowVisitorHistoryModal(false);
+        setShowRoadmapsModal(false);
         setShowVisitorModal(false);
         setShowMeuPerfilModal(false);
         setLightboxSegment(null);
@@ -2937,6 +2978,7 @@
               }
               setShowVisitorHistoryModal(true);
             }}
+            onOpenRoadmaps={() => setShowRoadmapsModal(true)}
             onOpenAdmin={handleOpenAdmin}
             onLogoutAdm={handleLogoutAdm}
             admLogado={admLogado}
@@ -3454,6 +3496,15 @@
                 window.history.replaceState({}, document.title, window.location.pathname);
               }}
               onAcceptSuccess={handleAcceptInviteSuccess}
+            />
+          )}
+
+          {/* MODAL DE GESTÃO DE ROADMAPS & IDEIAS - EXCLUSIVO DONO DO PRODUTO */}
+          {showRoadmapsModal && admLogado && (admLogado.dono_produto === true || admLogado.email?.toLowerCase().trim() === 'andre.gianotti@totvs.com.br') && (
+            <RoadmapsModal
+              onClose={() => setShowRoadmapsModal(false)}
+              admLogado={admLogado}
+              showToast={showToast}
             />
           )}
 
@@ -9153,6 +9204,591 @@
     }
 
     // --- COMPONENTE: REGISTRO DE VISITANTE NO ESPAÇO EXPERIÊNCIA (ACESSO ABERTO) ---
+    
+    // --- MODAL DE GESTÃO DE ROADMAPS & IDEIAS (EXCLUSIVO DONO DO PRODUTO) ---
+    function RoadmapsModal({ onClose, admLogado, showToast }) {
+      const [roadmaps, setRoadmaps] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [searchTerm, setSearchTerm] = useState('');
+      const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
+      const [itemParaEdicao, setItemParaEdicao] = useState(null);
+      const [showFormModal, setShowFormModal] = useState(false);
+
+      const carregarRoadmaps = async () => {
+        setLoading(true);
+        try {
+          const res = await fetch('/api/roadmaps');
+          const data = await res.json();
+          if (data && data.success && Array.isArray(data.roadmaps)) {
+            setRoadmaps(data.roadmaps);
+            try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(data.roadmaps)); } catch(e){}
+          } else {
+            const cached = localStorage.getItem('totvs_roadmaps_cache');
+            if (cached) setRoadmaps(JSON.parse(cached));
+          }
+        } catch (err) {
+          try {
+            const cached = localStorage.getItem('totvs_roadmaps_cache');
+            if (cached) setRoadmaps(JSON.parse(cached));
+          } catch(e){}
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      useEffect(() => {
+        carregarRoadmaps();
+      }, []);
+
+      const categoriasDisponiveis = useMemo(() => {
+        const cats = new Set(['Operacional & Rotina', 'Experiência & Kiosk', 'Melhoria Contínua', 'Infraestrutura & TI', 'Inovação & IA']);
+        roadmaps.forEach(r => { if (r.categoria) cats.add(r.categoria); });
+        return Array.from(cats);
+      }, [roadmaps]);
+
+      const roadmapsFiltrados = useMemo(() => {
+        return roadmaps.filter(r => {
+          const matchBusca = !searchTerm || 
+            (r.titulo && r.titulo.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (r.descricao && r.descricao.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (r.categoria && r.categoria.toLowerCase().includes(searchTerm.toLowerCase()));
+          const matchCat = categoriaFiltro === 'todas' || r.categoria === categoriaFiltro;
+          return matchBusca && matchCat;
+        });
+      }, [roadmaps, searchTerm, categoriaFiltro]);
+
+      const contadores = useMemo(() => {
+        return {
+          total: roadmaps.length,
+          a_fazer: roadmaps.filter(r => r.status === 'a_fazer').length,
+          aprovado: roadmaps.filter(r => r.status === 'aprovado').length,
+          iniciado: roadmaps.filter(r => r.status === 'iniciado').length,
+          concluido: roadmaps.filter(r => r.status === 'concluido').length
+        };
+      }, [roadmaps]);
+
+      const handleMudarStatus = async (id, novoStatus) => {
+        const itemAnterior = roadmaps.find(r => r.id === id);
+        if (!itemAnterior) return;
+
+        // Atualização otimista
+        const updatedList = roadmaps.map(r => r.id === id ? { ...r, status: novoStatus, atualizado_em: new Date().toISOString() } : r);
+        setRoadmaps(updatedList);
+        try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(updatedList)); } catch(e){}
+
+        try {
+          const res = await fetch(`/api/roadmaps/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: novoStatus })
+          });
+          const data = await res.json();
+          if (data && data.success) {
+            const labelStatus = novoStatus === 'aprovado' ? 'Aprovada ⏳' : novoStatus === 'iniciado' ? 'Iniciada 🚀' : novoStatus === 'concluido' ? 'Concluída ✅' : 'movida para A Fazer 💡';
+            showToast(`Ideia "${itemAnterior.titulo}" ${labelStatus}!`);
+          } else {
+            showToast('Erro ao atualizar status.');
+            carregarRoadmaps();
+          }
+        } catch (err) {
+          showToast('Status salvo localmente (servidor offline).');
+        }
+      };
+
+      const handleExcluir = async (id, titulo) => {
+        if (!window.confirm(`Deseja realmente excluir a ideia de roadmap "${titulo}"?`)) return;
+
+        const updatedList = roadmaps.filter(r => r.id !== id);
+        setRoadmaps(updatedList);
+        try { localStorage.setItem('totvs_roadmaps_cache', JSON.stringify(updatedList)); } catch(e){}
+
+        try {
+          await fetch(`/api/roadmaps/${id}`, { method: 'DELETE' });
+          showToast('Ideia excluída com sucesso.');
+        } catch (err) {
+          showToast('Excluída localmente.');
+        }
+      };
+
+      const handleSalvarSucesso = (itemAtualizado) => {
+        carregarRoadmaps();
+        setShowFormModal(false);
+        setItemParaEdicao(null);
+        showToast('Roadmap salvo com sucesso!');
+      };
+
+      const colunas = [
+        {
+          key: 'a_fazer',
+          titulo: '💡 A Fazer / Ideias',
+          badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+          borderColor: 'border-amber-500/30',
+          glow: 'from-amber-500/10 to-transparent'
+        },
+        {
+          key: 'aprovado',
+          titulo: '⏳ Aprovadas',
+          badgeColor: 'bg-[#00dbff]/20 text-[#00dbff] border-[#00dbff]/40',
+          borderColor: 'border-[#00dbff]/30',
+          glow: 'from-[#00dbff]/10 to-transparent'
+        },
+        {
+          key: 'iniciado',
+          titulo: '🚀 Iniciadas',
+          badgeColor: 'bg-[#a44dff]/20 text-[#c788ff] border-[#a44dff]/40',
+          borderColor: 'border-[#a44dff]/30',
+          glow: 'from-[#a44dff]/10 to-transparent'
+        },
+        {
+          key: 'concluido',
+          titulo: '✅ Concluídas',
+          badgeColor: 'bg-[#00ffd4]/20 text-[#00ffd4] border-[#00ffd4]/40',
+          borderColor: 'border-[#00ffd4]/30',
+          glow: 'from-[#00ffd4]/10 to-transparent'
+        }
+      ];
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-[#001726] text-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-7xl border border-slate-700/80 overflow-hidden flex flex-col h-[94vh] animate-in zoom-in-95 duration-200">
+            
+            {/* CABEÇALHO DO MODAL */}
+            <div className="px-5 py-4 border-b border-slate-800 bg-[#001422] flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#00dbff]/15 text-[#00dbff] flex items-center justify-center font-black text-xl border border-[#00dbff]/30">
+                  <Icons.Lightbulb />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                      Roadmaps & Ideias do Produto
+                    </h2>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase tracking-wider">
+                      👑 Dono do Produto
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Repositório de ideias estratégicas e acompanhamento do ciclo de vida das evoluções do Espaço Experiência
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setItemParaEdicao(null); setShowFormModal(true); }}
+                  className="px-3.5 py-2 rounded-xl bg-[#00dbff] hover:bg-[#00c5ea] active:bg-[#00b0d2] text-[#002233] font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                >
+                  <Icons.Plus className="w-4 h-4" />
+                  <span>Nova Ideia</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-9 h-9 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition flex items-center justify-center cursor-pointer"
+                  title="Fechar (ESC)"
+                >
+                  <Icons.X />
+                </button>
+              </div>
+            </div>
+
+            {/* BARRA DE MÉTRICAS & FILTROS */}
+            <div className="px-5 py-3 border-b border-slate-800/80 bg-[#001B2B] flex flex-wrap items-center justify-between gap-3 shrink-0">
+              {/* Contadores */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+                <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 flex items-center gap-2 shrink-0">
+                  <span className="text-xs text-slate-400">Total:</span>
+                  <span className="text-xs font-black text-white">{contadores.total}</span>
+                </div>
+                <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-2 shrink-0">
+                  <span className="text-xs text-amber-300">💡 A Fazer:</span>
+                  <span className="text-xs font-black text-amber-200">{contadores.a_fazer}</span>
+                </div>
+                <div className="px-3 py-1.5 rounded-xl bg-[#00dbff]/10 border border-[#00dbff]/30 flex items-center gap-2 shrink-0">
+                  <span className="text-xs text-[#00dbff]">⏳ Aprovadas:</span>
+                  <span className="text-xs font-black text-cyan-200">{contadores.aprovado}</span>
+                </div>
+                <div className="px-3 py-1.5 rounded-xl bg-[#a44dff]/10 border border-[#a44dff]/30 flex items-center gap-2 shrink-0">
+                  <span className="text-xs text-[#c788ff]">🚀 Iniciadas:</span>
+                  <span className="text-xs font-black text-purple-200">{contadores.iniciado}</span>
+                </div>
+                <div className="px-3 py-1.5 rounded-xl bg-[#00ffd4]/10 border border-[#00ffd4]/30 flex items-center gap-2 shrink-0">
+                  <span className="text-xs text-[#00ffd4]">✅ Concluídas:</span>
+                  <span className="text-xs font-black text-emerald-200">{contadores.concluido}</span>
+                </div>
+              </div>
+
+              {/* Filtros e Busca */}
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-64">
+                  <input
+                    type="text"
+                    placeholder="Buscar ideia..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-[#00dbff]"
+                  />
+                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                    <Icons.Search />
+                  </div>
+                </div>
+
+                <select
+                  value={categoriaFiltro}
+                  onChange={e => setCategoriaFiltro(e.target.value)}
+                  className="px-2.5 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-xl text-slate-200 focus:outline-none focus:border-[#00dbff]"
+                >
+                  <option value="todas">Todas Categorias</option>
+                  {categoriasDisponiveis.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* QUADRO KANBAN (4 COLUNAS) */}
+            <div className="flex-1 p-4 sm:p-5 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-[#001726]">
+              {colunas.map(col => {
+                const itensColuna = roadmapsFiltrados.filter(r => r.status === col.key);
+                return (
+                  <div
+                    key={col.key}
+                    className={`flex flex-col bg-[#001B2B]/70 rounded-2xl border ${col.borderColor} overflow-hidden shadow-lg`}
+                  >
+                    {/* Cabeçalho da Coluna */}
+                    <div className={`px-4 py-3 bg-gradient-to-b ${col.glow} border-b border-white/5 flex items-center justify-between`}>
+                      <span className="text-xs font-black text-white tracking-wide">{col.titulo}</span>
+                      <span className={`text-[11px] font-black px-2 py-0.5 rounded-full border ${col.badgeColor}`}>
+                        {itensColuna.length}
+                      </span>
+                    </div>
+
+                    {/* Lista de Cards da Coluna */}
+                    <div className="p-3 flex-1 overflow-y-auto space-y-3 min-h-[300px]">
+                      {itensColuna.length === 0 ? (
+                        <div className="h-full min-h-[140px] flex flex-col items-center justify-center text-center p-4 border border-dashed border-white/10 rounded-xl text-slate-500 text-xs">
+                          <span>Nenhuma ideia nesta etapa</span>
+                        </div>
+                      ) : (
+                        itensColuna.map(item => (
+                          <div
+                            key={item.id}
+                            className="bg-[#002238] hover:bg-[#002740] border border-white/10 hover:border-[#00dbff]/40 rounded-xl p-3.5 transition-all shadow-md group relative flex flex-col justify-between"
+                          >
+                            {/* Topo do Card: Categoria e Prioridade */}
+                            <div>
+                              <div className="flex items-center justify-between gap-1 mb-2">
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 text-slate-300 truncate max-w-[150px]">
+                                  {item.categoria}
+                                </span>
+                                <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded border ${
+                                  item.prioridade === 'alta'
+                                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                                    : item.prioridade === 'media'
+                                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                                      : 'bg-slate-500/20 text-slate-300 border-slate-500/30'
+                                }`}>
+                                  {item.prioridade === 'alta' ? 'Alta' : item.prioridade === 'media' ? 'Média' : 'Baixa'}
+                                </span>
+                              </div>
+
+                              <h3 className="text-xs font-extrabold text-white mb-1.5 leading-snug">
+                                {item.titulo}
+                              </h3>
+
+                              <p className="text-[11px] text-slate-300/90 leading-relaxed font-normal mb-3 whitespace-pre-line">
+                                {item.descricao}
+                              </p>
+                            </div>
+
+                            {/* Rodapé do Card: Ações Rápidas */}
+                            <div className="pt-2.5 border-t border-white/5 flex items-center justify-between gap-1">
+                              {/* Botões de Transição de Status */}
+                              <div className="flex items-center gap-1">
+                                {item.status === 'a_fazer' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMudarStatus(item.id, 'aprovado')}
+                                    className="px-2 py-1 text-[10px] font-bold rounded bg-[#00dbff]/20 text-[#00dbff] hover:bg-[#00dbff]/30 transition"
+                                    title="Mover para Aprovada"
+                                  >
+                                    Aprovar ⏳
+                                  </button>
+                                )}
+                                {item.status === 'aprovado' && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleMudarStatus(item.id, 'a_fazer')}
+                                      className="px-1.5 py-1 text-[10px] font-bold rounded bg-white/10 text-slate-400 hover:text-white"
+                                      title="Voltar para A Fazer"
+                                    >
+                                      ←
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleMudarStatus(item.id, 'iniciado')}
+                                      className="px-2 py-1 text-[10px] font-bold rounded bg-[#a44dff]/20 text-[#c788ff] hover:bg-[#a44dff]/30 transition"
+                                      title="Mover para Iniciada"
+                                    >
+                                      Iniciar 🚀
+                                    </button>
+                                  </>
+                                )}
+                                {item.status === 'iniciado' && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleMudarStatus(item.id, 'aprovado')}
+                                      className="px-1.5 py-1 text-[10px] font-bold rounded bg-white/10 text-slate-400 hover:text-white"
+                                      title="Voltar para Aprovada"
+                                    >
+                                      ←
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleMudarStatus(item.id, 'concluido')}
+                                      className="px-2 py-1 text-[10px] font-bold rounded bg-[#00ffd4]/20 text-[#00ffd4] hover:bg-[#00ffd4]/30 transition"
+                                      title="Mover para Concluída"
+                                    >
+                                      Concluir ✅
+                                    </button>
+                                  </>
+                                )}
+                                {item.status === 'concluido' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMudarStatus(item.id, 'iniciado')}
+                                    className="px-2 py-1 text-[10px] font-bold rounded bg-white/10 text-slate-400 hover:text-white transition"
+                                    title="Reabrir para Iniciada"
+                                  >
+                                    ← Reabrir
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Ações de Edição e Exclusão */}
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => { setItemParaEdicao(item); setShowFormModal(true); }}
+                                  className="p-1 rounded text-slate-400 hover:text-[#00dbff] hover:bg-white/5 transition"
+                                  title="Editar ideia"
+                                >
+                                  <Icons.Edit className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleExcluir(item.id, item.titulo)}
+                                  className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition"
+                                  title="Excluir ideia"
+                                >
+                                  <Icons.Trash className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* MODAL DE CRIAÇÃO / EDIÇÃO */}
+            {showFormModal && (
+              <RoadmapFormModal
+                item={itemParaEdicao}
+                categoriasDisponiveis={categoriasDisponiveis}
+                onClose={() => { setShowFormModal(false); setItemParaEdicao(null); }}
+                onSuccess={handleSalvarSucesso}
+                admLogado={admLogado}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // --- SUBMODAL: FORMULÁRIO DE CRIAÇÃO / EDIÇÃO DE ROADMAP ---
+    function RoadmapFormModal({ item, categoriasDisponiveis, onClose, onSuccess, admLogado }) {
+      const [titulo, setTitulo] = useState(item?.titulo || '');
+      const [descricao, setDescricao] = useState(item?.descricao || '');
+      const [categoria, setCategoria] = useState(item?.categoria || 'Operacional & Rotina');
+      const [novaCategoria, setNovaCategoria] = useState('');
+      const [prioridade, setPrioridade] = useState(item?.prioridade || 'alta');
+      const [status, setStatus] = useState(item?.status || 'a_fazer');
+      const [salvando, setSalvando] = useState(false);
+      const [erro, setErro] = useState('');
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setErro('');
+
+        if (!titulo.trim()) {
+          setErro('O título da ideia é obrigatório.');
+          return;
+        }
+
+        const catFinal = (novaCategoria.trim() || categoria).trim();
+
+        const payload = {
+          titulo: titulo.trim(),
+          descricao: descricao.trim(),
+          categoria: catFinal,
+          prioridade,
+          status,
+          autor: admLogado?.nome || 'André Gianotti'
+        };
+
+        setSalvando(true);
+        try {
+          const url = item ? `/api/roadmaps/${item.id}` : '/api/roadmaps';
+          const method = item ? 'PUT' : 'POST';
+          const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data && data.success) {
+            onSuccess(data.item);
+          } else {
+            setErro(data?.message || 'Erro ao salvar ideia de roadmap.');
+          }
+        } catch (err) {
+          setErro('Erro de conexão ao salvar.');
+        } finally {
+          setSalvando(false);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 animate-in fade-in duration-150">
+          <div className="bg-[#001B2B] text-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-700/80 p-6 relative">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Icons.Lightbulb className="w-5 h-5 text-[#00dbff]" />
+                <span>{item ? 'Editar Ideia de Roadmap' : 'Nova Ideia de Roadmap'}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center"
+              >
+                <Icons.X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {erro && (
+              <div className="mb-4 bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs p-3 rounded-xl flex items-center gap-2">
+                <Icons.AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{erro}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">Título da Ideia / Funcionalidade:</label>
+                <input
+                  type="text"
+                  value={titulo}
+                  onChange={e => setTitulo(e.target.value)}
+                  placeholder="Ex: Pesquisa de satisfação com emojis no tablet"
+                  className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00dbff] text-xs font-semibold"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Categoria:</label>
+                  <select
+                    value={categoria}
+                    onChange={e => setCategoria(e.target.value)}
+                    className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs"
+                  >
+                    {categoriasDisponiveis.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                    <option value="__nova__">+ Outra Categoria...</option>
+                  </select>
+                  {categoria === '__nova__' && (
+                    <input
+                      type="text"
+                      placeholder="Nome da nova categoria"
+                      value={novaCategoria}
+                      onChange={e => setNovaCategoria(e.target.value)}
+                      className="w-full mt-2 p-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs"
+                      required
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">Prioridade:</label>
+                  <select
+                    value={prioridade}
+                    onChange={e => setPrioridade(e.target.value)}
+                    className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs"
+                  >
+                    <option value="alta">🔴 Alta Prioridade</option>
+                    <option value="media">🟡 Média Prioridade</option>
+                    <option value="baixa">⚪ Baixa Prioridade</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">Status do Ciclo de Vida:</label>
+                <select
+                  value={status}
+                  onChange={e => setStatus(e.target.value)}
+                  className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs"
+                >
+                  <option value="a_fazer">💡 A Fazer / Ideia (Backlog)</option>
+                  <option value="aprovado">⏳ Aprovada (Planejada)</option>
+                  <option value="iniciado">🚀 Iniciada (Em Andamento)</option>
+                  <option value="concluido">✅ Concluída (Entregue)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">Descrição Detalhada & Requisitos:</label>
+                <textarea
+                  rows={4}
+                  value={descricao}
+                  onChange={e => setDescricao(e.target.value)}
+                  placeholder="Explique como a funcionalidade deve funcionar, regras e detalhes..."
+                  className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#00dbff] text-xs font-normal"
+                />
+              </div>
+
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 font-bold text-xs"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={salvando}
+                  className="px-5 py-2.5 rounded-xl bg-[#00dbff] hover:bg-[#00c5ea] active:bg-[#00b0d2] text-[#002233] font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer disabled:opacity-50"
+                >
+                  {salvando ? 'Salvando...' : (item ? 'Atualizar Ideia' : 'Cadastrar Ideia')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
     function VisitorRegisterModal({ onClose, onSuccess, onFormOpened, showToast, admLogado, plantonistaHoje }) {
       const [dataVisita, setDataVisita] = useState(() => {
         const today = new Date();
