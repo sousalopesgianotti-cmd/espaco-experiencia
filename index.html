@@ -37,6 +37,30 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
+    @font-face {
+      font-family: 'TOTVS';
+      src: url('/uploads/fonts/TOTVS-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    .font-totvs {
+      font-family: 'TOTVS', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(1.2deg); }
+    }
+    @keyframes floatMedium {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(8px) rotate(-1.5deg); }
+    }
+    .animate-float-slow {
+      animation: floatSlow 8s ease-in-out infinite;
+    }
+    .animate-float-medium {
+      animation: floatMedium 6s ease-in-out infinite;
+    }
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     body {
       font-family: 'Inter', sans-serif;
@@ -106,6 +130,7 @@
 
     // Ícones SVG inline para máxima compatibilidade e confiabilidade
     const RawIcons = {
+      Lock: (props) => <svg className={props?.className || "w-4 h-4"} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>,
       Sprout: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2a9 9 0 019 9c0 4.97-4.03 9-9 9S3 15.97 3 11a9 9 0 019-9zm0 0v18m0-10a4 4 0 00-4-4m4 4a4 4 0 014-4" /></svg>,
       Factory: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
       Truck: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>,
@@ -4175,7 +4200,7 @@
           return;
         }
 
-        // 2. Render / Servidor Local
+        // 2. Servidor Local / Nuvem Interna
         try {
           const res = await fetch('/api/auth/login', {
             method: 'POST',
@@ -4197,129 +4222,208 @@
       };
 
       return (
-        <div className="min-h-screen bg-gradient-to-br from-[#001738] via-[#002554] to-[#0A192F] flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden font-sans select-none">
-          {/* Efeitos de Fundo Tech e Brilho Corporativo */}
-          <div className="absolute -top-32 -left-32 w-96 h-96 bg-totvs-blue/20 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-totvs-cyan/15 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(#00B4D8_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none"></div>
+        <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#002233] select-none font-sans overflow-x-hidden">
+          {/* COLUNA ESQUERDA: APRESENTAÇÃO INSTITUCIONAL & BRANDING TOTVS */}
+          <div className="relative w-full lg:w-[54%] xl:w-[58%] min-h-[460px] lg:min-h-screen bg-[#002233] flex flex-col justify-between p-8 sm:p-12 lg:p-16 overflow-hidden">
+            {/* Efeitos de Luz e Atmosfera Tech */}
+            <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#00dbff]/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute top-1/2 -right-40 w-[420px] h-[420px] bg-[#a44dff]/12 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute -bottom-40 left-1/4 w-80 h-80 bg-[#00ffd4]/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(#00dbff_1px,transparent_1px)] [background-size:28px_28px] opacity-10 pointer-events-none"></div>
 
-          {/* Card Central de Login */}
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 border border-white/20 relative z-10 animate-in zoom-in-95 duration-200">
-            {/* Topo do Card com Identidade Visual TOTVS */}
-            <div className="text-center mb-6">
-              <div className="flex justify-center mb-3">
-                <TotvsLogo light={false} textClassName="font-black text-2xl tracking-wider text-slate-900 leading-none" />
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-black uppercase tracking-wider mb-2">
-                <span>🔒 Modo Estrito Ativo</span>
-                <span>•</span>
-                <span>Acesso Restrito</span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Espaço Experiência
-              </h2>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Identifique-se com suas credenciais corporativas para liberar o showroom e as ferramentas operacionais.
-              </p>
+            {/* Hexágonos 3D Oficiais TOTVS Decorativos Flutuantes */}
+            <div className="absolute -top-10 -right-10 w-44 sm:w-56 lg:w-64 opacity-80 pointer-events-none animate-float-slow transition-transform">
+              <img src="/uploads/identidade/hexagono-1.png" alt="Hexágono 3D TOTVS" className="w-full h-auto drop-shadow-2xl" />
+            </div>
+            <div className="absolute top-[48%] -right-14 w-36 sm:w-44 lg:w-52 opacity-60 pointer-events-none animate-float-medium">
+              <img src="/uploads/identidade/hexagono-7.png" alt="Hexágono 3D TOTVS" className="w-full h-auto drop-shadow-2xl" />
+            </div>
+            <div className="absolute -bottom-12 right-24 w-32 sm:w-40 lg:w-48 opacity-40 pointer-events-none animate-float-slow">
+              <img src="/uploads/identidade/hexagono-11.png" alt="Hexágono 3D TOTVS" className="w-full h-auto drop-shadow-xl" />
             </div>
 
-            {/* Alerta de Erro */}
-            {erro && (
-              <div className="mb-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3 rounded-xl flex items-center gap-2 animate-in fade-in">
-                <Icons.AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                <span>{erro}</span>
-              </div>
-            )}
-
-            {/* Formulário de Identificação */}
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  E-mail Corporativo:
-                </label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    placeholder="seu.email@totvs.com.br"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    className="w-full p-3 border border-slate-300 rounded-xl bg-slate-50/50 font-medium text-slate-800 focus:bg-white focus:border-totvs-cyan focus:ring-2 focus:ring-totvs-cyan/20 transition-all text-xs"
-                    required
-                    autoFocus={!email}
-                  />
+            {/* Cabeçalho da Coluna: Logotipo Oficial TOTVS */}
+            <div className="relative z-10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/uploads/identidade/logo-totvs-branco.svg"
+                  alt="TOTVS"
+                  className="h-8 sm:h-10 w-auto"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+                <div style={{ display: 'none' }} className="items-center">
+                  <TotvsLogo light={true} textClassName="font-black text-2xl tracking-wider text-white leading-none font-totvs" />
                 </div>
               </div>
+              <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-bold text-slate-200">
+                <span className="w-2 h-2 rounded-full bg-[#00ffd4] animate-pulse"></span>
+                <span>Ambiente Corporativo Seguro</span>
+              </div>
+            </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Senha de Acesso:
-                </label>
-                <div className="relative">
-                  <input
-                    type={showSenha ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={senha}
-                    onChange={e => setSenha(e.target.value)}
-                    className="w-full p-3 pr-10 border border-slate-300 rounded-xl bg-slate-50/50 font-medium text-slate-800 focus:bg-white focus:border-totvs-cyan focus:ring-2 focus:ring-totvs-cyan/20 transition-all text-xs"
-                    required
-                    autoFocus={!!email}
-                  />
+            {/* Bloco Central: Posicionamento & Espaço Experiência */}
+            <div className="relative z-10 my-auto py-8 sm:py-12 max-w-xl">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#00dbff] text-xs font-black uppercase tracking-wider mb-4">
+                <span className="w-2 h-2 rounded-full bg-[#00dbff]"></span>
+                <span>Espaço Experiência TOTVS</span>
+              </div>
+
+              <h1 className="font-totvs text-3xl sm:text-4xl xl:text-5xl font-black text-white leading-tight tracking-tight">
+                Tecnologia que conecta inteligência, pessoas e negócios.
+              </h1>
+
+              <p className="text-sm sm:text-base text-slate-300 mt-4 leading-relaxed font-normal">
+                Uma imersão completa pelo ecossistema de soluções que impulsiona os maiores segmentos da economia brasileira.
+              </p>
+
+              {/* Pilares Institucionais em Chips */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-8 pt-6 border-t border-white/10">
+                <div className="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-3.5 py-2.5">
+                  <div className="w-2 h-2 rounded-full bg-[#00dbff] shrink-0"></div>
+                  <span className="text-xs font-bold text-slate-200">Sistemas & Gestão (ERP)</span>
+                </div>
+                <div className="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-3.5 py-2.5">
+                  <div className="w-2 h-2 rounded-full bg-[#a44dff] shrink-0"></div>
+                  <span className="text-xs font-bold text-slate-200">Techfin & Crédito</span>
+                </div>
+                <div className="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-3.5 py-2.5">
+                  <div className="w-2 h-2 rounded-full bg-[#00ffd4] shrink-0"></div>
+                  <span className="text-xs font-bold text-slate-200">Business Performance</span>
+                </div>
+                <div className="flex items-center gap-2.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-3.5 py-2.5">
+                  <div className="w-2 h-2 rounded-full bg-[#d9ff65] shrink-0"></div>
+                  <span className="text-xs font-bold text-slate-200">Inovação & IA Contínua</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Rodapé da Coluna Esquerda */}
+            <div className="relative z-10 pt-4 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-2 border-t border-white/10">
+              <span className="font-medium">TOTVS S.A. • Liderança e Inovação</span>
+              <span className="font-mono text-[11px] text-slate-400">São Paulo • Brasil</span>
+            </div>
+          </div>
+
+          {/* COLUNA DIREITA: FORMULÁRIO DE LOGIN CORPORATIVO */}
+          <div className="relative w-full lg:w-[46%] xl:w-[42%] min-h-full bg-slate-50 flex items-center justify-center p-6 sm:p-10 lg:p-12">
+            <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-200/90 p-7 sm:p-9 relative z-10 animate-in zoom-in-95 duration-200">
+              {/* Topo do Formulário */}
+              <div className="mb-6">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#a44dff]/10 text-[#a44dff] border border-[#a44dff]/30 text-[11px] font-black uppercase tracking-wider mb-3">
+                  <Icons.Lock className="w-3.5 h-3.5" />
+                  <span>Modo Estrito Ativo</span>
+                  <span>•</span>
+                  <span>Acesso Restrito</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-[#002233] font-totvs tracking-tight">
+                  Identificação Corporativa
+                </h2>
+                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed font-normal">
+                  Insira suas credenciais corporativas para liberar o showroom interativo e as ferramentas operacionais.
+                </p>
+              </div>
+
+              {/* Mensagem de Erro */}
+              {erro && (
+                <div className="mb-5 bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3.5 rounded-xl flex items-center gap-2.5 animate-in fade-in">
+                  <Icons.AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <span className="font-medium">{erro}</span>
+                </div>
+              )}
+
+              {/* Formulário de Credenciais */}
+              <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                    E-mail Corporativo:
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      placeholder="seu.email@totvs.com.br"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      className="w-full p-3.5 border border-slate-300 rounded-xl bg-slate-50 font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:border-[#00dbff] focus:ring-4 focus:ring-[#00dbff]/20 transition-all text-xs outline-none"
+                      required
+                      autoFocus={!email}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                    Senha de Acesso:
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showSenha ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={senha}
+                      onChange={e => setSenha(e.target.value)}
+                      className="w-full p-3.5 pr-11 border border-slate-300 rounded-xl bg-slate-50 font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:border-[#00dbff] focus:ring-4 focus:ring-[#00dbff]/20 transition-all text-xs outline-none"
+                      required
+                      autoFocus={!!email}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSenha(!showSenha)}
+                      title={showSenha ? 'Ocultar senha' : 'Exibir senha'}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#002233] transition p-1.5 rounded-lg cursor-pointer"
+                    >
+                      {showSenha ? <Icons.EyeOff className="w-4 h-4" /> : <Icons.Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Opção Lembrar Usuário */}
+                <div className="flex items-center justify-between pt-1">
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={lembrarUsuario}
+                      onChange={e => setLembrarUsuario(e.target.checked)}
+                      className="w-4 h-4 rounded text-[#002233] focus:ring-[#00dbff] border-slate-300 cursor-pointer accent-[#002233]"
+                    />
+                    <span className="text-[11px] font-bold text-slate-600 hover:text-slate-900 transition-colors">
+                      Lembrar meu usuário neste dispositivo
+                    </span>
+                  </label>
+                </div>
+
+                {/* Botão de Ação Primária Oficial TOTVS */}
+                <div className="pt-3">
                   <button
-                    type="button"
-                    onClick={() => setShowSenha(!showSenha)}
-                    title={showSenha ? 'Ocultar senha' : 'Exibir senha'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-totvs-blue transition p-1 rounded-lg cursor-pointer"
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3.5 px-5 rounded-xl bg-[#00dbff] hover:bg-[#00c5ea] active:bg-[#00b0d2] text-[#002233] font-black text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-cyan-500/25 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 transform active:scale-[0.99]"
                   >
-                    {showSenha ? <Icons.EyeOff /> : <Icons.Eye />}
+                    {loading ? (
+                      <>
+                        <span className="animate-spin text-sm">⏳</span>
+                        <span>Autenticando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icons.Key className="w-4 h-4" />
+                        <span>Entrar no Espaço Experiência</span>
+                      </>
+                    )}
                   </button>
                 </div>
-              </div>
+              </form>
 
-              {/* Opção para Salvar Nome/Perfil no Dispositivo */}
-              <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={lembrarUsuario}
-                    onChange={e => setLembrarUsuario(e.target.checked)}
-                    className="w-4 h-4 rounded text-totvs-blue focus:ring-totvs-cyan border-slate-300 cursor-pointer"
-                  />
-                  <span className="text-[11px] font-bold text-slate-600 hover:text-slate-900 transition-colors">
-                    Lembrar meu usuário neste dispositivo
-                  </span>
-                </label>
+              {/* Rodapé do Formulário */}
+              <div className="mt-7 pt-5 border-t border-slate-100 text-center space-y-1.5">
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Perfis cadastrados: Especialista, PMM e Administrador
+                </p>
+                <p className="text-[10px] text-slate-400 font-mono">
+                  TOTVS S.A. • Espaço Experiência • Governança & Auditoria
+                </p>
               </div>
-
-              {/* Botão de Entrar */}
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-totvs-blue via-totvs-vibrant to-totvs-cyan hover:from-totvs-vibrant hover:to-totvs-accent text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 transform active:scale-98"
-                >
-                  {loading ? (
-                    <>
-                      <span className="animate-spin text-sm">⏳</span>
-                      <span>Autenticando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icons.Key />
-                      <span>Entrar no Espaço Experiência</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-
-            {/* Rodapé Institucional */}
-            <div className="mt-6 pt-4 border-t border-slate-100 text-center space-y-1">
-              <p className="text-[10px] text-slate-400 font-medium">
-                Perfis cadastrados: Especialista, PMM e Administrador
-              </p>
-              <p className="text-[9px] text-slate-400/80 font-mono">
-                TOTVS S.A. • Espaço Experiência • Governança & Auditoria
-              </p>
             </div>
           </div>
         </div>
