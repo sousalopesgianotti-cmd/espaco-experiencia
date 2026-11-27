@@ -4408,7 +4408,7 @@
 
         // Validação da tecla Caps Lock: Não permitir submissão se ativa
         if (capsLockAtivo) {
-          setErro('N\u00E3o \u00E9 permitido efetuar login com a tecla Caps Lock ativada. Desative o Caps Lock para continuar.');
+          setErro('Não é permitido efetuar login com a tecla Caps Lock ativada. Desative o Caps Lock para continuar.');
           return;
         }
 
@@ -4499,7 +4499,7 @@
             setErro(data.message || 'E-mail ou senha incorretos.');
           }
         } catch (err) {
-          setErro('Erro de conex\u00E3o ao autenticar. Tente novamente.');
+          setErro('Erro de conexão ao autenticar. Tente novamente.');
         } finally {
           setLoading(false);
         }
@@ -4588,7 +4588,7 @@
               <div className="mb-4 bg-amber-500/15 border border-amber-500/50 text-amber-300 text-xs p-3 rounded-xl flex items-center gap-2 animate-in fade-in">
                 <span className="text-base">⚠️</span>
                 <div>
-                  <span className="font-bold">Aten\u00E7\u00E3o: Tecla Caps Lock ativada!</span>
+                  <span className="font-bold">Atenção: Tecla Caps Lock ativada!</span>
                   <p className="text-[10px] text-amber-200/80 mt-0.5">Desative o Caps Lock para digitar sua senha e efetuar o login.</p>
                 </div>
               </div>
@@ -4652,7 +4652,7 @@
                     className="w-4 h-4 rounded text-[#00dbff] focus:ring-[#00dbff] border-white/20 cursor-pointer accent-[#00dbff]"
                   />
                   <span className="text-[11px] font-bold text-slate-300 hover:text-white transition-colors">
-                    Lembrar meu usu\u00E1rio neste dispositivo
+                    Lembrar meu usuário neste dispositivo
                   </span>
                 </label>
               </div>
@@ -4672,7 +4672,7 @@
                   ) : (
                     <>
                       <Icons.Key className="w-4 h-4" />
-                      <span>ENTRAR NO ESPA\u00C7O EXPERI\u00CANCIA</span>
+                      <span>ENTRAR NO ESPAÇO EXPERIÊNCIA</span>
                     </>
                   )}
                 </button>
@@ -4685,7 +4685,7 @@
                 Perfis cadastrados: Especialista, PMM e Administrador
               </p>
               <p className="text-[9px] text-slate-400/70 font-mono">
-                TOTVS S.A. \u2022 Espa\u00E7o Experi\u00EAncia \u2022 Governan\u00E7a & Auditoria
+                TOTVS S.A. • Espaço Experiência • Governança & Auditoria
               </p>
             </div>
           </div>
